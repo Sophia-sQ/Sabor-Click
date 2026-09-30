@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, session, url_for,abort
 
 from config import Config  # importa configurações gerais da aplicação
 from database import init_app as init_database
@@ -10,8 +10,14 @@ def create_app(test_config=None):
 
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(Config)
+
+    #configuração do banco de dados
+    app.config.setdefault("SQLALCHEMY_DATABASE_URI", "sqlite:///banco.db")
+    app.config.from_object(Config)
     if test_config: 
         app.config.update(test_config)
+
+    # ESPEAR A SOPHIA RESPONDER 
 
         from controllers.auth_controller import auth_bp
         from controllers.compra_controller import compra_bp
