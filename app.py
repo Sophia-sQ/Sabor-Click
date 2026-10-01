@@ -18,15 +18,15 @@ def create_app(test_config=None):
     if test_config: 
         app.config.update(test_config)
 
-    from controllers.auth_controller import auth_bp
-    from controllers.admin_controller import admin_bp
-    from controllers.chefe_controller import chefe_bp
-    from controllers.cliente_controller import cliente_bp
+    from controller.auth_controller import auth_bp
+    from controller.admin_controller import admin_bp
+    from controller.chefe_controller import chefe_bp
+    from controller.cliente_controller import cliente_bp
     
     app.register_blueprint(auth_bp)
-    app.register_blueprint(main_bp)
-    app.register_blueprint(produto_bp)
-    app.register_blueprint(compra_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(chefe_bp)
+    app.register_blueprint(cliente_bp)
     
     app.jinja_env.filters["moeda"] = formatar_moeda
     

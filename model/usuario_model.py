@@ -18,7 +18,7 @@ class Usuario(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     senha_hash = db.Column(db.String(255), nullable=False)
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+    criado_em = db.Column(db.DateTime, default=datetime.timetz.utcnow)
     id_permissao = db.Column(db.Integer, db.ForeignKey("nivel_permissao.id_permissao"), nullable=False)
 
 # Tabela das atividades realizadas pelo usuário dentro do site
@@ -26,7 +26,28 @@ class LogAtividade(db.Model):
     __tablename__ = "log_atividade"
 
     id_atividade = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    realizado_em = db.Column(db.DateTime, default=datetime.utcnow) # Se vazio cria data e hora padrão
+    realizado_em = db.Column(db.DateTime, default=datetime.timetz.utcnow) # Se vazio cria data e hora padrão
     acao = db.Column(db.String(45), nullable=False)
     descricao = db.Column(db.Text, nullable=True)  
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
+    
+    
+def buscar_usuario(cpf:str):
+    """Busca um usuário pelo CPF e retorna um dicionario/JSON."""
+    
+    usuario = db.session.execute(db.select(Usuario).filter_by(id_usuario=cpf)).scalar_one_or_none()
+    
+    if not usuario:
+        return False
+    else:
+        return True #TODO: verificar quais dados podem ser omitidos do retorno
+    
+def buscar_todos_usuarios():
+    """Retorna todos os usuários registrados como uma lista"""
+    
+    usuarios = db.session.execute(db.select(Usuario)).scalars().all()
+    
+    if not usuarios:
+        return False
+    else:
+        return usuarios
