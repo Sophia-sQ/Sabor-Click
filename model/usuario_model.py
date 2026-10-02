@@ -33,14 +33,22 @@ class LogAtividade(db.Model):
     
     
 def buscar_usuario(cpf:str):
-    """Busca um usuário pelo CPF e retorna um dicionario/JSON."""
+    """Busca um usuário pelo CPF e retorna um dicionario/JSON.
     
-    usuario = db.session.execute(db.select(Usuario).filter_by(id_usuario=cpf)).scalar_one_or_none()
+    Retorna id, nome, email e cargo do usuário"""
     
-    if not usuario:
-        return False
+    # retorna apenas uma entrada ou None 
+    usuario = db.session.execute(db.select(Usuario).where(Usuario.cpf == cpf)).scalar_one_or_none()
+    
+    if usuario:
+        return {'id': usuario.id_usuario,
+                'nome': usuario.nome,
+                'email': usuario.email,
+                'cargo': db.session.execute(
+                    db.select(NivelPermissao).where(NivelPermissao.id_permissao == Usuario.id_permissao)
+                ).scalar_one() }
     else:
-        return True #TODO: verificar quais dados podem ser omitidos do retorno
+        return False
     
 def buscar_todos_usuarios():
     """Retorna todos os usuários registrados como uma lista"""
