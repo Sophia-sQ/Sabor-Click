@@ -1,11 +1,10 @@
-import smtplib
-from email.message import EmailMessage
-
 from os import environ as env
 
 from model.usuario_model import buscar_usuario_para_login, buscar_usuario_por_id
 from flask import Blueprint, render_template, request, session
 from werkzeug.security import generate_password_hash
+from utils import enviar_email_nao_responda
+
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -13,51 +12,21 @@ auth_bp = Blueprint("auth", __name__)
 def login():
     # TODO: garantir que os names da página batam
     # TODO: adicionar possibilidade de login por email
-    cpf=request.form.get("cpf", "").strip()
+    credencial=request.form.get("credencial", "").strip()
     senha=request.form.get("senha", "")
     
-    id_usuario=buscar_usuario_para_login(cpf, senha)
+    id_usuario=buscar_usuario_para_login(credencial, senha)
     
     #adicionar validação da senha e geração de token
-    email = EmailMessage()
-
-    email["Subject"] = "Código de confirmação"
-    email["From"] = env.get("EMAIL")
-    email["To"] = buscar_usuario_por_id(id_usuario).email
-
-    codigo = "583214" # TODO: implementar calculo com secrets
-
-    # Versão para clientes que não exibem HTML
-    email.set_content(
-        f"Seu código de confirmação é: {codigo}"
-    )
-
-    # Versão HTML
-    email.add_alternative(f"""
-    <!DOCTYPE html>
-    <html>
-    <body>
-        <h1>Confirmação de login</h1>
-
-        <p>Seu código de confirmação é:</p>
-
-        <div style="
-            font-size: 32px;
-            font-weight: bold;
-            padding: 15px;
-            text-align: center;
-        ">
-            {codigo}
-        </div>
-
-        <p>Esse código é válido por 10 minutos.</p>
-    </body>
-    </html>
-    """, subtype="html")
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(env.get("EMAIL"), env.get("PASSWORD"))
-        smtp.send_message(email)
+    codigo = ... #TODO: gerar codigo
+    
+    enviar_email_nao_responda("Código de validação", buscar_usuario_por_id(id_usuario).email, 
+    f"""seu codigo de validação: {codigo}.
+    
+    Ele permanecerá ativo por 10 minutos.""", 
+    
+    f"""fazer modelo de email
+    """)
     
     if id_usuario is not None:
         session.clear()
@@ -70,5 +39,21 @@ def login():
 
 @auth_bp.route("/logout", methods=("GET", "POST"))
 def logout():
+    "Remove o usuário da sessão e volta paraa página de login."
+    
     session.clear()
+    return render_template("""TODO: colocar pagina de login""")  
+
+@auth_bp.route("/cadatro", methods=("POST"))
+def cadastro():
+    "adiciona um novo usuario cliente."
+
+    nome=request.form.get("nome", "").strip()
+    cpf=request.form.get("cpf", "").strip()
+    telefone=request.form.get("telefone", "").strip()
+    email=request.form.get("email", "").strip()
+    senha=request.form.get("senha", "")
+    
+    # TODO: adicionar função de criação de usuário e de busca de id de permissões
+    
     return render_template("""TODO: colocar pagina de login""")  
