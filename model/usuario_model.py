@@ -33,7 +33,8 @@ class LogAtividade(db.Model):
     descricao = db.Column(db.Text, nullable=True)  
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
     
-    
+def criar_usuario():
+    return    
 def buscar_usuario_para_login(cpf:str, senha:str):
     """Busca um usuário pelo CPF e senha e retorna o id.
     
@@ -41,11 +42,11 @@ def buscar_usuario_para_login(cpf:str, senha:str):
     
     # retorna apenas uma entrada ou None 
     usuario = db.session.execute(
-        db.select(Usuario).where(Usuario.cpf == cpf, 
-                            Usuario.senha_hash == check_password_hash(senha))
-        ).scalar_one_or_none()
+        db.select(Usuario).where(Usuario.cpf == cpf) # Não pode utilizar check_password_hash em where
+    ).scalar_one_or_none()
+
     
-    if usuario:
+    if usuario and check_password_hash(usuario.senha_hash, senha):
         return usuario.id_usuario
     
     return None
