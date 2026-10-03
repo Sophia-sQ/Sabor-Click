@@ -8,6 +8,7 @@ from werkzeug.security import check_password_hash
 class NivelPermissao(db.Model):
     __tablename__ = "nivel_permissao"
 
+    """Certificar que os id dos cargos estão de acordo com a Enum cargos em cargos.py"""
     id_permissao = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(20), unique=True, nullable=False)  # Escolha: cliente, chef, adm
 
@@ -20,7 +21,7 @@ class Usuario(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     senha_hash = db.Column(db.String(255), nullable=False)
-    criado_em = db.Column(db.DateTime, default=datetime.timetz.utcnow)
+    criado_em = db.Column(db.DateTime, default=datetime.now(datetime.timezone.utc))
     id_permissao = db.Column(db.Integer, db.ForeignKey("nivel_permissao.id_permissao"), nullable=False)
 
 # Tabela das atividades realizadas pelo usuário dentro do site
@@ -28,7 +29,7 @@ class LogAtividade(db.Model):
     __tablename__ = "log_atividade"
 
     id_atividade = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    realizado_em = db.Column(db.DateTime, default=datetime.timetz.utcnow) # Se vazio cria data e hora padrão
+    realizado_em = db.Column(db.DateTime, default=datetime.now(datetime.timezone.utc)) # Se vazio cria data e hora padrão
     acao = db.Column(db.String(45), nullable=False)
     descricao = db.Column(db.Text, nullable=True)  
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
@@ -60,7 +61,6 @@ def buscar_usuario_por_id(id:int):
         return usuario
     
     return None
-    
     
 def buscar_usuario_por_cpf(cpf:str):
     """Busca um usuário pelo CPF e retorna um dicionario/JSON.

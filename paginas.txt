@@ -1,10 +1,18 @@
 ========== paginas pendentes ==========
 403
 login
-cadastro 
+cadastro
 
 ========== nomes que devem estar nos formulários ==========
 login(
-cpf
-senha
+    credencial
+    senha
+)
+
+cadastro(
+    nome
+    cpf
+    telefone
+    email
+    senha
 )

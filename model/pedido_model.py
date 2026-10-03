@@ -17,7 +17,7 @@ class Pedido(db.Model):
     status = db.Column(
         db.Enum("aguardando", "confirmado", "em preparo", "concluído", "cancelado", name="status_pedido"),default="aguardando",nullable=False)
     confirmado_em = db.Column(db.DateTime, nullable=True)
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    criado_em = db.Column(db.DateTime, default=datetime.now(datetime.timezone.utc), nullable=False)
 
     
     id_cliente = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
