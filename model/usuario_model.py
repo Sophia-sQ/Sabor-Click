@@ -2,6 +2,8 @@
 from datetime import datetime
 from database import db
 
+from werkzeug.security import check_password_hash
+
 # Tabela Nível de permissão do usuário
 class NivelPermissao(db.Model):
     __tablename__ = "nivel_permissao"
@@ -32,7 +34,35 @@ class LogAtividade(db.Model):
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
     
     
-def buscar_usuario(cpf:str):
+def buscar_usuario_para_login(cpf:str, senha:str):
+    """Busca um usuário pelo CPF e senha e retorna o id.
+    
+    Se usuário nao existir, retorna None"""
+    
+    # retorna apenas uma entrada ou None 
+    usuario = db.session.execute(
+        db.select(Usuario).where(Usuario.cpf == cpf, 
+                            Usuario.senha_hash == check_password_hash(senha))
+        ).scalar_one_or_none()
+    
+    if usuario:
+        return usuario.id_usuario
+    
+    return None
+    
+def buscar_usuario_por_id(id:int):
+    """Busca um usuário pelo id e retorna um result object??????????????????????."""
+    
+    # retorna apenas uma entrada ou None 
+    usuario = db.session.execute(db.select(Usuario).where(Usuario.id_usuario == id)).scalar_one_or_none()
+    
+    if usuario:
+        return usuario
+    
+    return None
+    
+    
+def buscar_usuario_por_cpf(cpf:str):
     """Busca um usuário pelo CPF e retorna um dicionario/JSON.
     
     Retorna id, nome, email e cargo do usuário"""
@@ -47,15 +77,17 @@ def buscar_usuario(cpf:str):
                 'cargo': db.session.execute(
                     db.select(NivelPermissao).where(NivelPermissao.id_permissao == Usuario.id_permissao)
                 ).scalar_one() }
-    else:
-        return False
+    
+    return None
     
 def buscar_todos_usuarios():
-    """Retorna todos os usuários registrados como uma lista"""
+    """Retorna todos os usuários registrados como uma lista.
+    
+    retorna dados sensíveis em texto criptografado."""
     
     usuarios = db.session.execute(db.select(Usuario)).scalars().all()
     
-    if not usuarios:
-        return False
-    else:
+    if usuarios:
         return usuarios
+    
+    return None

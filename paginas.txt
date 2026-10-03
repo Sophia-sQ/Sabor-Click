@@ -1,6 +1,7 @@
 ========== paginas pendentes ==========
 403
 login
+cadastro 
 
 ========== nomes que devem estar nos formulários ==========
 login(

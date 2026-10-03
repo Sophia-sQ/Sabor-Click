@@ -1,3 +1,5 @@
+from os import environ as env
+
 from flask import Flask, redirect, render_template, request, session, url_for, abort
 from flask import Flask, redirect, render_template, request, session, url_for,abort
 
@@ -9,6 +11,8 @@ from model.cargos import Cargo
 
 def create_app(test_config=None):
 
+    app.config["SECRET_KEY"] = env.get("SECRET_KEY")
+    
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(Config)
 
@@ -62,4 +66,4 @@ def create_app(test_config=None):
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True) # TODO: apagar ao final do desenvolvimento
