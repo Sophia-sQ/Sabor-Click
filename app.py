@@ -1,7 +1,6 @@
 from os import environ as env
 
 from flask import Flask, redirect, render_template, request, session, url_for, abort
-from flask import Flask, redirect, render_template, request, session, url_for,abort
 
 from config import Config  # importa configurações gerais da aplicação
 from database import init_app as init_database
@@ -36,10 +35,10 @@ def create_app(test_config=None):
     
     @app.before_request
     def exigir_login():
-        rotas_publicas = {"auth.login", "auth.cadastro", "static"}
+        rotas_publicas = {"auth.login", "auth.cadastro", "static"} # TODO: adicionar rotas do cliente
         if request.endpoint not in rotas_publicas and "usuario_id" not in session:
             return redirect(url_for("auth.login", proxima=request.path))
-    
+        
     @app.before_request
     def verificar_cargo():
         if request.endpoint == 'static':
