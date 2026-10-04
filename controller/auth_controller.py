@@ -41,7 +41,7 @@ def login():
 
 @auth_bp.route("/logout", methods=("GET", "POST"))
 def logout():
-    "Remove o usuário da sessão e volta paraa página de login."
+    "Remove o usuário da sessão e volta para página de login."
     
     session.clear()
     return render_template("""TODO: colocar pagina de login""")  
