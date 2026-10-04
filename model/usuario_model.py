@@ -10,7 +10,7 @@ class NivelPermissao(db.Model):
 
     """Certificar que os id dos cargos estão de acordo com a Enum cargos em cargos.py"""
     id_permissao = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    nome = db.Column(db.String(20), unique=True, nullable=False)  # Escolha: cliente, chef, adm
+    nome = db.Column(db.String(20), unique=True, nullable=False)  # Escolha: cliente, chefe, admin
 
 # Tabela do usuário
 class Usuario(db.Model):
@@ -35,8 +35,10 @@ class LogAtividade(db.Model):
     descricao = db.Column(db.Text, nullable=True)  
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
     
+# funções de consulta    
 def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
-   """Cria novo usuario"""
+   """Cria novo usuario."""
+   
    senha_criptografada=generate_password_hash(senha)
    novo_usuario=Usuario(cpf=cpf, nome=nome, email=email, senha_hash=senha_criptografada,id_permissao=id_permissao)
    db.session.add(novo_usuario)
@@ -45,10 +47,11 @@ def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    return novo_usuario.id_usuario
 
 def registrar_log(id_usuario: int, acao:str, descricao: str = None):
-    """Registra uma atividade """
+    """Registra uma atividade."""
     log= LogAtividade(id_usuario=id_usuario, acao=acao, descricao=descricao )
     db.session.add(log)
     db.session.commit()
+    
 def buscar_usuario_para_login(cpf:str, senha:str):
     """Busca um usuário pelo CPF e senha e retorna o id.
     
@@ -122,26 +125,33 @@ def atualizar_usuario(id_usuario:int, nome:str = None, email:str= None,nova_senh
     registrar_log(id_usuario, "ATUALIZACAO", "Dados cadastrais atualizados pelo usuário")        
     return True
 
-def deletar_usuario(id_usuario: int, soft_delete:bool= True):
+def deletar_usuario(id_usuario: int, soft_delete:bool = True):
     """Deleta ou desativa"""
     usuario=db.session.get(Usuario,id_usuario)
+    
     if not usuario:
         return False
+    
     if soft_delete: #Desativa
         usuario.ativo=False
         db.session.commit()
         registrar_log(id_usuario,"DESATIVACAO", "Usuário desativado")
-
     else: #Deleta
         db.session.delete(usuario)
         db.session.commit()
+    
     return True     
-def reativar_usuario   (id_usuario: int):
+
+def reativar_usuario (id_usuario: int):
     """Reativa conta de usuario inativo"""
+    
     usuario=db.session.get(Usuario,id_usuario)
+    
     if not usuario:
         return False
+    
     usuario.ativo=True
     db.session.commit()
     registrar_log(id_usuario,"REATIVACAO", "Conta reativada")
+    
     return True
