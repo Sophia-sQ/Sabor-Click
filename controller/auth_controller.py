@@ -1,6 +1,8 @@
 from os import environ as env
 
 from model.usuario_model import buscar_usuario_para_login, buscar_usuario_por_id, criar_usuario
+from model.cargos import Cargo
+
 from flask import Blueprint, render_template, request, session
 from werkzeug.security import generate_password_hash
 from utils import enviar_email_nao_responda
@@ -44,7 +46,7 @@ def logout():
     session.clear()
     return render_template("""TODO: colocar pagina de login""")  
 
-@auth_bp.route("/cadatro", methods=("POST"))
+@auth_bp.route("/cadastro", methods=("POST"))
 def cadastro():
     "adiciona um novo usuario cliente."
 
@@ -54,6 +56,6 @@ def cadastro():
     email=request.form.get("email", "").strip()
     senha=request.form.get("senha", "")
     
-    criar_usuario(cpf, nome, email, generate_password_hash(senha), "adicionar busca de permissao")
+    criar_usuario(cpf, nome, email, generate_password_hash(senha), Cargo.CLIENTE)
     
-    return render_template("""TODO: colocar pagina de login""")  
+    return render_template("""TODO: colocar pagina de cadastro""")  
