@@ -1,6 +1,6 @@
 from os import environ as env
 
-from model.usuario_model import buscar_usuario_para_login, buscar_usuario_por_id
+from model.usuario_model import buscar_usuario_para_login, buscar_usuario_por_id, criar_usuario
 from flask import Blueprint, render_template, request, session
 from werkzeug.security import generate_password_hash
 from utils import enviar_email_nao_responda
@@ -54,6 +54,6 @@ def cadastro():
     email=request.form.get("email", "").strip()
     senha=request.form.get("senha", "")
     
-    # TODO: adicionar função de criação de usuário e de busca de id de permissões
+    criar_usuario(cpf, nome, email, generate_password_hash(senha), "adicionar busca de permissao")
     
     return render_template("""TODO: colocar pagina de login""")  
