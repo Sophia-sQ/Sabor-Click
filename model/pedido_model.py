@@ -1,4 +1,5 @@
 # Contém a tabela: Pedido
+from model.usuario_model import registrar_log
 
 from datetime import datetime
 from database import db
@@ -20,8 +21,8 @@ class Pedido(db.Model):
     criado_em = db.Column(db.DateTime, default=datetime.now(datetime.timezone.utc), nullable=False)
 
     
-    id_cliente = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
-    id_chefe = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=True)  
+    id_cliente = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), nullable=False)
+    id_chefe = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), nullable=True)  
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), nullable=False)
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), nullable=False)
 
@@ -58,3 +59,26 @@ class PedidoBebida(db.Model):
     __table_args__ = (
         db.CheckConstraint("qtd > 0", name="ck_pedido_bebida_qtd"),
     )
+    
+def buscar_pedido_por_id(id_pedido:int):
+    pedido=db.session.get(pedido, id_pedido)
+    
+    return pedido
+
+def atualizar_pedido(id_pedido:int, status:str = None, confirmado_em:str = None, id_chefe:int=None):
+    """Atualiza dados do pedido"""
+    
+    pedido=db.session.get(pedido,id_pedido)
+    if not pedido:
+        return False
+    
+    if status:
+        pedido.status = status
+    if confirmado_em: 
+        pedido.confirmado_em = confirmado_em
+    if id_chefe:
+        pedido.id_chefe = id_chefe
+   
+    db.session.commit()
+    registrar_log(id_pedido, "ATUALIZACAO", "Dados cadastrais atualizados pelo usuário")        
+    return True
