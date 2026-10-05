@@ -1,7 +1,10 @@
 import smtplib
 from email.message import EmailMessage
 from os import environ as env
+import hmac
+import hashlib
 
+from cryptography.fernet import Fernet
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 def enviar_email_nao_responda(assunto:str, destinatario:str, conteudo:str, conteudo_HTML:str):
@@ -42,3 +45,45 @@ def formatar_moeda(centavos):
     
     valor = Decimal(int(centavos)) / 100
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+
+# ... (mantenha suas funções enviar_email_nao_responda, moeda_para_centavos, etc.)
+
+def obter_chave_fernet() -> Fernet:
+    """Recupera a chave Fernet do arquivo .env e inicializa o objeto."""
+    chave = env.get("FERNET_ENCRYPTION_KEY")
+    if not chave:
+        raise ValueError("A variável FERNET_ENCRYPTION_KEY não está configurada no .env")
+    # O Fernet exige que a chave esteja em bytes
+    return Fernet(chave.encode())
+
+def criptografar_cpf(cpf: str) -> str:
+    """Criptografa o CPF de forma bidirecional (retorna string)."""
+    if not cpf:
+        return ""
+    fernet = obter_chave_fernet()
+    # Transforma a string do CPF em bytes, criptografa e decodifica o resultado para string
+    cpf_criptografado = fernet.encrypt(cpf.encode())
+    return cpf_criptografado.decode()
+
+def descriptografar_cpf(cpf_criptografado: str) -> str:
+    """Descriptografa o CPF retornando a string original."""
+    if not cpf_criptografado:
+        return ""
+    fernet = obter_chave_fernet()
+    # Transforma a string criptografada em bytes, descriptografa e decodifica para string original
+    cpf_bytes = fernet.decrypt(cpf_criptografado.encode())
+    return cpf_bytes.decode()
+
+def gerar_hmac_cpf(cpf: str) -> str:
+    """Gera um hash determinístico do CPF para ser utilizado em buscas no banco de dados."""
+    if not cpf:
+        return ""
+    chave_secret_hmac = env.get("CPF_LOOKUP_HMAC_SECRET")
+    if not chave_secret_hmac:
+        raise ValueError("A variável CPF_LOOKUP_HMAC_SECRET não está configurada no .env")
+    
+    # Gera o HMAC utilizando SHA-256
+    resultado = hmac.new(chave_secret_hmac.encode(), cpf.encode(), hashlib.sha256)
+    return resultado.hexdigest()

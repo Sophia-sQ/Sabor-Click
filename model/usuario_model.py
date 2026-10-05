@@ -4,6 +4,8 @@ from database import db
 
 from werkzeug.security import check_password_hash,generate_password_hash
 
+from utils import gerar_hmac_cpf 
+
 # Tabela Nível de permissão do usuário
 class NivelPermissao(db.Model):
     __tablename__ = "nivel_permissao"
@@ -18,6 +20,8 @@ class Usuario(db.Model):
 
     id_usuario = db.Column(db.Integer, primary_key=True, autoincrement=True)
     cpf = db.Column(db.String(11), unique=True, nullable=False) 
+    cpf_criptografado = db.Column(db.Text, nullable=False) 
+    cpf_hmac = db.Column(db.String(64), unique=True, nullable=False) 
     nome = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     senha_hash = db.Column(db.String(255), nullable=False)
@@ -79,21 +83,34 @@ def buscar_usuario_por_id(id:int):
     
     return None
     
-def buscar_usuario_por_cpf(cpf:str):
-    """Busca um usuário pelo CPF e retorna um dicionario/JSON.
+def buscar_usuario_por_cpf(cpf: str):
+    """Busca um usuário pelo CPF puro e retorna um dicionário/JSON.
     
-    Retorna id, nome, email e cargo do usuário"""
+    Retorna id, nome, email e cargo do usuário.
+    """
+    if not cpf:
+        return None
+
+    # Geramos o hash HMAC correspondente ao CPF enviado para fazer a busca indexada e segura
+    cpf_hash = gerar_hmac_cpf(cpf)
     
-    # retorna apenas uma entrada ou None 
-    usuario = db.session.execute(db.select(Usuario).where(Usuario.cpf == cpf)).scalar_one_or_none()
+    # Realiza a busca comparando com a coluna cpf_hmac que já está no seu modelo
+    usuario = db.session.execute(
+        db.select(Usuario).where(Usuario.cpf_hmac == cpf_hash)
+    ).scalar_one_or_none()
     
     if usuario:
-        return {'id': usuario.id_usuario,
-                'nome': usuario.nome,
-                'email': usuario.email,
-                'cargo': db.session.execute(
-                    db.select(NivelPermissao).where(NivelPermissao.id_permissao == Usuario.id_permissao)
-                ).scalar_one() }
+        # Busca o nível de permissão associado ao id_permissao do usuário encontrado
+        permissao = db.session.execute(
+            db.select(NivelPermissao).where(NivelPermissao.id_permissao == usuario.id_permissao)
+        ).scalar_one()
+
+        return {
+            'id': usuario.id_usuario,
+            'nome': usuario.nome,
+            'email': usuario.email,
+            'cargo': permissao.nome  # Retorna o nome do cargo (ex: "cliente", "chefe", "admin")
+        }
     
     return None
     
