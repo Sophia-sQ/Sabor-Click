@@ -2,6 +2,7 @@
 403
 login
 cadastro
+home page
 
 ========== nomes que devem estar nos formulários ==========
 login(
@@ -15,4 +16,14 @@ cadastro(
     telefone
     email
     senha
+)
+
+fazer pedido(
+    logadouro
+    num
+    compl
+    bairro
+    cidade
+    cep
+    obs
 )
