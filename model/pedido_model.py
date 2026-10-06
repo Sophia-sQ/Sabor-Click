@@ -8,12 +8,6 @@ class Pedido(db.Model):
     __tablename__ = "pedido"
 
     id_pedido = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    logradouro = db.Column(db.String(150), nullable=False)
-    numero = db.Column(db.String(20), nullable=False)
-    complemento = db.Column(db.String(100), nullable=True)  # Opcional
-    bairro = db.Column(db.String(100), nullable=False)
-    cidade = db.Column(db.String(100), nullable=False)
-    cep = db.Column(db.String(9), nullable=False)
     observacao = db.Column(db.Text, nullable=True)  # Opcional
     status = db.Column(
         db.Enum("aguardando", "confirmado", "em preparo", "concluído", "cancelado", name="status_pedido"),default="aguardando",nullable=False)
@@ -22,6 +16,7 @@ class Pedido(db.Model):
 
     
     id_cliente = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), nullable=False)
+    id_endereco = db.Column(db.Integer, db.ForeignKey("endereco.id_endereco"), nullable=False) #FIXME: eu n sei se essa referencia ta certa e tem q importar a tabela
     id_chefe = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), nullable=True)  
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), nullable=False)
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), nullable=False)

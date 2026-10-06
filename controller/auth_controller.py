@@ -4,7 +4,6 @@ from model.usuario_model import buscar_usuario_para_login, buscar_usuario_por_id
 from model.cargos import Cargo
 
 from flask import Blueprint, render_template, request, session
-from werkzeug.security import generate_password_hash
 from utils import enviar_email_nao_responda
 
 
@@ -18,11 +17,12 @@ def login():
     senha=request.form.get("senha", "")
     
     id_usuario=buscar_usuario_para_login(credencial, senha)
+    usuario = buscar_usuario_por_id(id_usuario)
     
     #adicionar validação da senha e geração de token
     codigo = ... #TODO: gerar codigo
     
-    enviar_email_nao_responda("Código de validação", buscar_usuario_por_id(id_usuario).email, 
+    enviar_email_nao_responda("Código de validação", usuario.email, 
     f"""seu codigo de validação: {codigo}.
     
     Ele permanecerá ativo por 10 minutos.""", 
@@ -33,18 +33,18 @@ def login():
     if id_usuario is not None:
         session.clear()
         session["id"]=id_usuario
-        session["cargo"]=... # TODO: adicionar busca por permissão
+        session["cargo"]=usuario.id_permissao
         
     
-    return render_template("login.html") #TODO :pagina de login
+    return render_template("login.html")
 
 
 @auth_bp.route("/logout", methods=("GET", "POST"))
 def logout():
-    "Remove o usuário da sessão e volta para página de login."
+    "Remove o usuário da sessão e volta para página inicial."
     
     session.clear()
-    return render_template("""TODO: colocar pagina de login""")  
+    return render_template("""TODO: colocar pagina inicial""")  
 
 @auth_bp.route("/cadastro", methods=("POST"))
 def cadastro():
@@ -52,10 +52,9 @@ def cadastro():
 
     nome=request.form.get("nome", "").strip()
     cpf=request.form.get("cpf", "").strip()
-    telefone=request.form.get("telefone", "").strip()
     email=request.form.get("email", "").strip()
     senha=request.form.get("senha", "")
     
-    criar_usuario(cpf, nome, email, generate_password_hash(senha), Cargo.CLIENTE)
+    criar_usuario(cpf, nome, email, senha, Cargo.CLIENTE)
     
     return render_template("""TODO: colocar pagina de cadastro""")  
