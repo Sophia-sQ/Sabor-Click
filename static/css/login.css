@@ -307,11 +307,6 @@
   outline-offset: 2px;
 }
 
-.rotulo-cpf,
-.cartao:has(#opcao-cpf:checked) .rotulo-email {
+.campo[hidden] {
   display: none;
-}
-
-.cartao:has(#opcao-cpf:checked) .rotulo-cpf {
-  display: inline;
 }

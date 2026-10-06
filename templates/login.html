@@ -36,24 +36,27 @@
                 <legend>Como deseja entrar?</legend>
 
                 <div class="alternador">
-                    <input type="radio" id="opcao-email" name="tipo_login" value="email" checked>
+                    <input type="radio" id="opcao-email" name="tipo_login" form="form-login" value="email" checked>
                     <label for="opcao-email">E-mail</label>
 
-                    <input type="radio" id="opcao-cpf" name="tipo_login" value="cpf">
+                    <input type="radio" id="opcao-cpf" name="tipo_login" form="form-login" value="cpf">
                     <label for="opcao-cpf">CPF</label>
                 </div>
             </fieldset>
 
-            <form class="formulario" action="{{ url_for('auth.login') }}" method="post">
-                <div class="campo">
-                    <label for="credencial">
-                        <span class="rotulo-email">E-mail</span>
-                        <span class="rotulo-cpf">CPF</span>
-                    </label>
-                    <input type="text" id="credencial" name="credencial"
+            <form id="form-login" class="formulario" action="{{ url_for('auth.login') }}" method="post">
+                <div class="campo" id="campo-email">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="credencial" placeholder="seuemail@exemplo.com"
                         autocomplete="username" autocapitalize="none" spellcheck="false" required>
                 </div>
 
+                <div class="campo" id="campo-cpf" hidden>
+                    <label for="cpf">CPF</label>
+                    <input type="text" id="cpf" name="credencial" placeholder="Digite os 11 números do CPF"
+                        inputmode="numeric" autocomplete="username" maxlength="11" pattern="[0-9]{11}"
+                        title="Informe os 11 números do CPF, sem pontos ou traço." disabled>
+                </div>
                 <div class="campo">
                     <label for="senha">Senha</label>
                     <input type="password" id="senha" name="senha" placeholder="Digite sua senha"
@@ -67,6 +70,27 @@
             </form>
         </section>
     </main>
+    <script>
+        const opcoes = document.querySelectorAll('input[name="tipo_login"]');
+        const email = document.getElementById('email');
+        const cpf = document.getElementById('cpf');
+
+        function alternarLogin() {
+            const usarCpf = document.getElementById('opcao-cpf').checked;
+
+            document.getElementById('campo-email').hidden = usarCpf;
+            email.disabled = usarCpf;
+            email.required = !usarCpf;
+
+            document.getElementById('campo-cpf').hidden = !usarCpf;
+            cpf.disabled = !usarCpf;
+            cpf.required = usarCpf;
+        }
+
+        opcoes.forEach(opcao => opcao.addEventListener('change', alternarLogin));
+        window.addEventListener('pageshow', alternarLogin);
+        alternarLogin();
+    </script>
 </body>
 
 </html>
