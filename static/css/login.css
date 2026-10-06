@@ -1,0 +1,317 @@
+.pagina-acesso {
+  --texto: #312118;
+  --texto-secundario: #614a3d;
+  --destaque: #8c4d29;
+  --botao: #6f391f;
+  --botao-hover: #582b17;
+}
+
+.pagina-acesso,
+.pagina-acesso * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.pagina-acesso {
+  min-height: 100vh;
+  min-height: 100svh;
+  background-color: #2e1b11;
+  color: var(--texto);
+  font-family: "DM Sans", sans-serif;
+  isolation: isolate;
+}
+
+.pagina-acesso::before {
+  content: "";
+  position: fixed;
+  inset: -24px;
+  z-index: -2;
+  background: url("../images/LoginImagem.jpg") center / cover no-repeat;
+  filter: blur(7px);
+  pointer-events: none;
+}
+
+.pagina-acesso::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: rgb(27 14 9 / 52%);
+  pointer-events: none;
+}
+
+.voltar {
+  position: absolute;
+  top: 38px;
+  left: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100% - 40px);
+  padding: 12px 18px 12px 16px;
+  border: 1px solid rgb(169 79 46 / 45%);
+  border-radius: 999px;
+  background-color: rgb(247 240 228 / 94%);
+  box-shadow: 0 8px 24px rgb(26 14 9 / 20%);
+  color: var(--texto);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.voltar[href]:hover {
+  background-color: #fff8ed;
+}
+
+.seta {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.divisor {
+  width: 1px;
+  height: 24px;
+  flex-shrink: 0;
+  background-color: rgb(97 74 61 / 25%);
+}
+
+.voltar[aria-disabled="true"] {
+  cursor: default;
+}
+
+.marca {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 28px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 120px 24px;
+}
+
+.cartao {
+  width: 440px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 44px 47px;
+  border: 1px solid rgb(196 156 115 / 72%);
+  border-radius: 16px;
+  background-color: rgb(251 244 231 / 96%);
+  box-shadow:
+    0 16px 16px -8px rgb(12 12 13 / 10%),
+    0 4px 4px -4px rgb(12 12 13 / 5%);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.identidade {
+  color: var(--destaque);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 1.6px;
+}
+
+.cartao h1 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 42px;
+  font-weight: 600;
+  line-height: 48px;
+}
+
+.descricao {
+  color: var(--texto-secundario);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.campo label {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.campo input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background-color: #fff;
+  color: var(--texto);
+  font: inherit;
+  font-size: 16px;
+}
+
+.campo input::placeholder {
+  color: #767676;
+}
+
+.campo input:focus {
+  border-color: var(--destaque);
+}
+
+.cadastro {
+  align-self: center;
+  color: var(--texto);
+  font-size: 16px;
+  line-height: 22px;
+  text-align: center;
+  text-underline-offset: 3px;
+}
+
+.cadastro:hover {
+  color: var(--destaque);
+}
+
+.entrar {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid var(--botao);
+  border-radius: 8px;
+  background-color: var(--botao);
+  color: #fff8ed;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.entrar:hover {
+  background-color: var(--botao-hover);
+}
+
+.pagina-acesso :where(a, button, input):focus-visible {
+  outline: 3px solid var(--destaque);
+  outline-offset: 4px;
+}
+
+@media (max-width: 600px) {
+  .voltar {
+    top: 20px;
+    left: 20px;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .marca {
+    font-size: 23px;
+  }
+
+  .login {
+    padding: 116px 20px 40px;
+  }
+
+  .cartao {
+    padding: 36px 24px;
+  }
+
+  .cartao h1 {
+    font-size: clamp(30px, 8vw, 42px);
+    line-height: 1.15;
+  }
+
+  .cadastro {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .divisor {
+    display: none;
+  }
+
+  .marca {
+    font-size: 21px;
+  }
+}
+
+.opcoes-login {
+  min-width: 0;
+  margin-bottom: 16px;
+  border: 0;
+}
+
+.opcoes-login legend {
+  margin-bottom: 10px;
+  color: var(--texto-secundario);
+  font-size: 14px;
+}
+
+.alternador {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid rgb(196 156 115 / 60%);
+  border-radius: 10px;
+  background-color: #efe3d3;
+}
+
+.alternador input[type="radio"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.alternador label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  color: var(--texto-secundario);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.alternador input:checked + label {
+  background-color: var(--botao);
+  color: #fff8ed;
+  box-shadow: 0 2px 6px rgb(49 33 24 / 15%);
+}
+
+.alternador input:focus-visible + label {
+  outline: 3px solid var(--destaque);
+  outline-offset: 2px;
+}
+
+.rotulo-cpf,
+.cartao:has(#opcao-cpf:checked) .rotulo-email {
+  display: none;
+}
+
+.cartao:has(#opcao-cpf:checked) .rotulo-cpf {
+  display: inline;
+}
