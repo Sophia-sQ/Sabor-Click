@@ -73,14 +73,13 @@ class Lote(db.Model):
 
 """==================CRUD PRATO============="""
 
-def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, requer_pre_preparo: bool = False, id_usuario: int = None):
+def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, requer_pre_preparo: bool = False):
     """Cria um novo prato"""
     novo_prato = Prato(nome=nome,descricao=descricao,tipo_prato=tipo_prato,tempo_preparo=tempo_preparo,requer_pre_preparo=requer_pre_preparo
     )
     db.session.add(novo_prato)
     db.session.commit()
-    if id_usuario:
-        registrar_log("CRIACAO PRATO", f"Usuário criou o prato {novo_prato.nome}")
+    registrar_log("CRIACAO PRATO", f"Usuário criou o prato {novo_prato.nome}")
     return novo_prato.id_prato
 
 
@@ -100,7 +99,7 @@ def listar_pratos():
     return None
 
 
-def atualizar_prato(id_prato: int, id_usuario: int = None, nome=None, descricao=None, tipo_prato=None, requer_pre_preparo=None, tempo_preparo=None):
+def atualizar_prato(id_prato: int, nome=None, descricao=None, tipo_prato=None, requer_pre_preparo=None, tempo_preparo=None):
     """Atualiza os dados do prato"""
     prato = db.session.get(Prato, id_prato)
     if not prato:
@@ -117,33 +116,30 @@ def atualizar_prato(id_prato: int, id_usuario: int = None, nome=None, descricao=
         prato.tempo_preparo = tempo_preparo
 
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "ATUALIZACAO PRATO", f"Usuário atualizou o prato {id_prato}")
+    registrar_log("ATUALIZACAO PRATO", f"Usuário atualizou o prato {id_prato}")
     return True
 
 
-def deletar_prato(id_prato: int, id_usuario: int = None):
+def deletar_prato(id_prato: int):
     """Deleta prato"""
     prato = db.session.get(Prato, id_prato)
     if not prato:
         return False
     db.session.delete(prato)
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "DELETAR PRATO", f"Usuário deletou o prato {id_prato}")
+    registrar_log("DELETAR PRATO", f"Usuário deletou o prato {id_prato}")
     return True
 
 
 """==================CRUD PRATO CARDAPIO============="""
 
-def associar_prato_cardapio(id_prato: int, id_cardapio: int, qtd: int, descricao: str = None, id_usuario: int = None):
+def associar_prato_cardapio(id_prato: int, id_cardapio: int, qtd: int, descricao: str = None):
     """Associa um prato a um cardápio"""
     novo_item = PratoCardapio(id_prato=id_prato,id_cardapio=id_cardapio,qtd=qtd,descricao=descricao
     )
     db.session.add(novo_item)
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "CRIACAO PRATO_CARDAPIO", f"Usuário associou o prato {id_prato} ao cardápio {id_cardapio}")
+    registrar_log("CRIACAO PRATO_CARDAPIO", f"Usuário associou o prato {id_prato} ao cardápio {id_cardapio}")
     return (id_prato, id_cardapio)
 
 
@@ -164,7 +160,7 @@ def listar_pratos_por_cardapio(id_cardapio: int):
     return None
 
 
-def atualizar_prato_cardapio(id_prato: int, id_cardapio: int, id_usuario: int = None, qtd=None, descricao=None):
+def atualizar_prato_cardapio(id_prato: int, id_cardapio: int, qtd=None, descricao=None):
     """Atualiza quantidade ou descrição do prato no cardápio"""
     item = db.session.get(PratoCardapio, (id_prato, id_cardapio))
     if not item:
@@ -175,33 +171,30 @@ def atualizar_prato_cardapio(id_prato: int, id_cardapio: int, id_usuario: int = 
         item.descricao = descricao
 
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "ATUALIZACAO PRATO_CARDAPIO", f"Usuário atualizou vínculo do prato {id_prato} no cardápio {id_cardapio}")
+    registrar_log("ATUALIZACAO PRATO_CARDAPIO", f"Usuário atualizou vínculo do prato {id_prato} no cardápio {id_cardapio}")
     return True
 
 
-def deletar_prato_cardapio(id_prato: int, id_cardapio: int, id_usuario: int = None):
+def deletar_prato_cardapio(id_prato: int, id_cardapio: int):
     """Deleta associação entre prato e cardápio"""
     item = db.session.get(PratoCardapio, (id_prato, id_cardapio))
     if not item:
         return False
     db.session.delete(item)
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "DELETAR PRATO_CARDAPIO", f"Usuário desvinculou o prato {id_prato} do cardápio {id_cardapio}")
+    registrar_log("DELETAR PRATO_CARDAPIO", f"Usuário desvinculou o prato {id_prato} do cardápio {id_cardapio}")
     return True
 
 
 """==================CRUD INGREDIENTE============="""
 
-def criar_ingrediente(nome: str, unidade: str, qtd: float = 0.0, qtd_min: float = 0.0, id_usuario: int = None):
+def criar_ingrediente(nome: str, unidade: str, qtd: float = 0.0, qtd_min: float = 0.0):
     """Cria um novo ingrediente"""
     novo_ingrediente = Ingrediente(nome=nome,unidade=unidade,qtd=qtd,qtd_min=qtd_min
     )
     db.session.add(novo_ingrediente)
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "CADASTRO INGREDIENTE", f"Usuário cadastrou o ingrediente {novo_ingrediente.nome}")
+    registrar_log("CADASTRO INGREDIENTE", f"Usuário cadastrou o ingrediente {novo_ingrediente.nome}")
     return novo_ingrediente.id_ingrediente
 
 
@@ -221,7 +214,7 @@ def listar_ingredientes():
     return None
 
 
-def atualizar_ingrediente(id_ingrediente: int, id_usuario: int = None, nome=None, unidade=None, qtd=None, qtd_min=None):
+def atualizar_ingrediente(id_ingrediente: int, nome=None, unidade=None, qtd=None, qtd_min=None):
     """Atualiza dados do ingrediente"""
     ingrediente = db.session.get(Ingrediente, id_ingrediente)
     if not ingrediente:
@@ -236,33 +229,30 @@ def atualizar_ingrediente(id_ingrediente: int, id_usuario: int = None, nome=None
         ingrediente.qtd_min = qtd_min
 
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "ATUALIZACAO INGREDIENTE", f"Usuário atualizou o ingrediente {id_ingrediente}")
+    registrar_log("ATUALIZACAO INGREDIENTE", f"Usuário atualizou o ingrediente {id_ingrediente}")
     return True
 
 
-def deletar_ingrediente(id_ingrediente: int, id_usuario: int = None):
+def deletar_ingrediente(id_ingrediente: int):
     """Deleta ingrediente"""
     ingrediente = db.session.get(Ingrediente, id_ingrediente)
     if not ingrediente:
         return False
     db.session.delete(ingrediente)
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "DELETAR INGREDIENTE", f"Usuário deletou o ingrediente {id_ingrediente}")
+    registrar_log("DELETAR INGREDIENTE", f"Usuário deletou o ingrediente {id_ingrediente}")
     return True
 
 
 """==================CRUD FICHA TECNICA============="""
 
-def criar_ficha_tecnica(id_prato: int, id_ingrediente: int, qtd_necessaria: float, id_usuario: int = None):
+def criar_ficha_tecnica(id_prato: int, id_ingrediente: int, qtd_necessaria: float):
     """Vincula ingrediente à ficha técnica de um prato"""
     nova_ficha = FichaTecnica(id_prato=id_prato,id_ingrediente=id_ingrediente,qtd_necessaria=qtd_necessaria
     )
     db.session.add(nova_ficha)
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "CRIACAO FICHA_TECNICA", f"Usuário adicionou o ingrediente {id_ingrediente} à ficha técnica do prato {id_prato}")
+    registrar_log("CRIACAO FICHA_TECNICA", f"Usuário adicionou o ingrediente {id_ingrediente} à ficha técnica do prato {id_prato}")
     return (id_prato, id_ingrediente)
 
 
@@ -295,28 +285,26 @@ def atualizar_ficha_tecnica(id_prato: int, id_ingrediente: int, qtd_necessaria: 
     return True
 
 
-def deletar_ficha_tecnica(id_prato: int, id_ingrediente: int, id_usuario: int = None):
+def deletar_ficha_tecnica(id_prato: int, id_ingrediente: int):
     """Remove um ingrediente da ficha técnica do prato"""
     ficha = db.session.get(FichaTecnica, (id_prato, id_ingrediente))
     if not ficha:
         return False
     db.session.delete(ficha)
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "DELETAR FICHA_TECNICA", f"Usuário removeu ingrediente {id_ingrediente} da ficha técnica do prato {id_prato}")
+    registrar_log("DELETAR FICHA_TECNICA", f"Usuário removeu ingrediente {id_ingrediente} da ficha técnica do prato {id_prato}")
     return True
 
 
 """==================CRUD LOTE============="""
 
-def criar_lote(num_lote: str, marca: str, data_recebimento: datetime, qtd_inicial: float, id_ingrediente: int = None, id_bebida: int = None, data_validade=None, id_usuario: int = None):
+def criar_lote(num_lote: str, marca: str, data_recebimento: datetime, qtd_inicial: float, id_ingrediente: int = None, id_bebida: int = None, data_validade=None):
     """Cria um novo lote (vinculado a um ingrediente OU bebida)"""
     novo_lote = Lote(num_lote=num_lote,marca=marca,data_recebimento=data_recebimento,data_validade=data_validade,qtd_inicial=qtd_inicial,id_ingrediente=id_ingrediente,id_bebida=id_bebida
     )
     db.session.add(novo_lote)
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "CRIACAO LOTE", f"Usuário criou o lote {novo_lote.num_lote}")
+    registrar_log("CRIACAO LOTE", f"Usuário criou o lote {novo_lote.num_lote}")
     return novo_lote.id_lote
 
 
@@ -336,7 +324,7 @@ def listar_lotes():
     return None
 
 
-def atualizar_lote(id_lote: int, id_usuario: int = None, num_lote=None, marca=None, data_recebimento=None, data_validade=None, qtd_inicial=None, id_ingrediente=None, id_bebida=None):
+def atualizar_lote(id_lote: int, num_lote=None, marca=None, data_recebimento=None, data_validade=None, qtd_inicial=None, id_ingrediente=None, id_bebida=None):
     """Atualiza dados do lote"""
     lote = db.session.get(Lote, id_lote)
     if not lote:
@@ -357,18 +345,16 @@ def atualizar_lote(id_lote: int, id_usuario: int = None, num_lote=None, marca=No
         lote.id_bebida = id_bebida
 
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "ATUALIZACAO LOTE", f"Usuário atualizou o lote {id_lote}")
+    registrar_log("ATUALIZACAO LOTE", f"Usuário atualizou o lote {id_lote}")
     return True
 
 
-def deletar_lote(id_lote: int, id_usuario: int = None):
+def deletar_lote(id_lote: int):
     """Deleta lote"""
     lote = db.session.get(Lote, id_lote)
     if not lote:
         return False
     db.session.delete(lote)
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "DELETAR LOTE", f"Usuário deletou o lote {id_lote}")
+    registrar_log("DELETAR LOTE", f"Usuário deletou o lote {id_lote}")
     return True    
