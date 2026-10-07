@@ -80,7 +80,7 @@ def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, 
     db.session.add(novo_prato)
     db.session.commit()
     if id_usuario:
-        registrar_log(id_usuario, "CRIACAO PRATO", f"Usuário criou o prato {novo_prato.nome}")
+        registrar_log("CRIACAO PRATO", f"Usuário criou o prato {novo_prato.nome}")
     return novo_prato.id_prato
 
 

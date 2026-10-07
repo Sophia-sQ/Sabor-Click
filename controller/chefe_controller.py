@@ -14,7 +14,7 @@ def aceitar_pedido():
     data_confirma=datetime.now(datetime.timezone.utc)
     atualizar_pedido(pedido.id_pedido, "em preparo", data_confirma, session.get("id"))
     chefe=buscar_usuario_por_id(session.get('id'))
-    registrar_log(session.get("id"), 'ACEITOU PEDIDO.', f"Em {data_confirma}, o chefe {chefe.nome} aceitou o pedido {pedido.id_pedido}.")
+    registrar_log('ACEITOU PEDIDO.', f"Em {data_confirma}, o chefe {chefe.nome} aceitou o pedido {pedido.id_pedido}.")
     
     # TODO:trigger para baixa de estoque
     

@@ -55,6 +55,6 @@ def cadastro():
     email=request.form.get("email", "").strip()
     senha=request.form.get("senha", "")
     
-    criar_usuario(cpf, nome, email, senha, Cargo.CLIENTE)
+    criar_usuario(cpf, nome, email, senha, Cargo.CLIENTE.value)
     
     return render_template("""TODO: colocar pagina de cadastro""")  

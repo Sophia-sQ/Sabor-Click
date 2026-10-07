@@ -18,8 +18,8 @@ db = SQLAlchemy(model_class=Base)
 # ADMIN INICIAL CADASTRO
 def criar_admin():
     # verifica se ja existe admin
-    email_admin = environ.get("ADMIN_EMAIL")
-    admin_existente= Usuario.query.filter_by(email=email_admin).first()
+    #email_admin = environ.get("ADMIN_EMAIL")
+    admin_existente = Usuario.query.filter_by(id_permissao=Cargo.ADMIN.value).first()
 
     if not admin_existente:
         id_admin = criar_usuario(
@@ -29,9 +29,9 @@ def criar_admin():
             senha=environ.get("ADMIN_PASSWORD"),
             id_permissao=Cargo.ADMIN._value_
         )
-        print(f"Admin inicial criado com sucesso! (ID: {id_admin})")
-    else:
-        print("Admin inicial já existe.")
+        #print(f"Admin inicial criado com sucesso! (ID: {id_admin})")
+    #else:
+    #    print("Admin inicial já existe.")
 
     #admin = criar_usuario(
     #cpf="00000000000",
@@ -41,6 +41,10 @@ def criar_admin():
     #id_permissao=Cargo.ADMIN
     #)        
 
+#CRIAÇÃO DE CARGOS
+def criar_cargos():
+    admin_existente = Usuario.query.filter_by(id_permissao=Cargo.ADMIN.value).first()
+
 # Inicializa o banco
 def init_app(app):
     db.init_app(app)
@@ -48,6 +52,5 @@ def init_app(app):
     # Cria automaticamente todas as tabelas no arquivo do banco se elas não existirem
     with app.app_context():
         db.create_all()
-        #TODO: criar cargos
         criar_admin()
 

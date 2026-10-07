@@ -1,7 +1,9 @@
 # Contém as tabelas: NivelPermissao, Usuario e LogAtividade
 from datetime import datetime
 from database import db
+from sqlite3 import IntegrityError
 
+from flask import session
 from werkzeug.security import check_password_hash,generate_password_hash
 
 from utils import gerar_hmac_cpf, criptografar_cpf
@@ -11,7 +13,7 @@ class NivelPermissao(db.Model):
     __tablename__ = "nivel_permissao"
 
     """Certificar que os id dos cargos estão de acordo com a Enum cargos em cargos.py"""
-    id_permissao = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_permissao = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(20), unique=True, nullable=False)  # Escolha: cliente, chefe, admin
 
 # Tabela do usuário
@@ -53,6 +55,24 @@ class LogAtividade(db.Model):
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
     
 # funções de consulta    
+
+def criar_cargo(id_permissao:int, nome:str):
+    """Cria novo cargo.
+    
+    Caso o cargo já exista, retorna None, senão retorna a nova instância."""
+   
+    cargo=NivelPermissao(id_permissao=id_permissao, nome=nome)
+    db.session.add(cargo)
+    
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return None
+    
+    registrar_log("NOVO CARGO", f"Novo cargo {nome} criado.")
+    return cargo
+
 def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    """Cria novo usuario."""
    
@@ -66,9 +86,10 @@ def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    registrar_log(novo_usuario.id_usuario, "CADASTRO", f"Novo usuário {cargo} {nome} cadastrado.")
    return novo_usuario.id_usuario
 
-def registrar_log(id_usuario: int, acao:str, descricao: str = None):
+def registrar_log(acao:str, descricao: str = None):
     """Registra uma atividade."""
-    log = LogAtividade(id_usuario=id_usuario, acao=acao, descricao=descricao )
+    
+    log = LogAtividade(session.get('id'), acao=acao, descricao=descricao )
     db.session.add(log)
     db.session.commit()
     
@@ -154,7 +175,7 @@ def atualizar_usuario(id_usuario:int, nome:str = None, email:str= None,nova_senh
         usuario.senha_hash = generate_password_hash(nova_senha)
    
     db.session.commit()
-    registrar_log(id_usuario, "ATUALIZACAO", "Dados cadastrais atualizados pelo usuário")        
+    registrar_log("ATUALIZACAO", f"Dados cadastrais atualizados pelo usuário {id_usuario}")        
     return True
 
 def deletar_usuario(id_usuario: int, soft_delete:bool = True):
@@ -167,7 +188,7 @@ def deletar_usuario(id_usuario: int, soft_delete:bool = True):
     if soft_delete: #Desativa
         usuario.ativo=False
         db.session.commit()
-        registrar_log(id_usuario,"DESATIVACAO", "Usuário desativado")
+        registrar_log("DESATIVACAO", f"Usuário {id_usuario} desativado")
     else: #Deleta
         db.session.delete(usuario)
         db.session.commit()
@@ -184,6 +205,6 @@ def reativar_usuario (id_usuario: int):
     
     usuario.ativo=True
     db.session.commit()
-    registrar_log(id_usuario,"REATIVACAO", "Conta reativada")
+    registrar_log("REATIVACAO", f"Conta do usuário {id_usuario} reativada")
     
     return True

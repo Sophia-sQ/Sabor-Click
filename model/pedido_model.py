@@ -75,5 +75,5 @@ def atualizar_pedido(id_pedido:int, status:str = None, confirmado_em:str = None,
         pedido.id_chefe = id_chefe
    
     db.session.commit()
-    registrar_log(id_pedido, "ATUALIZACAO", "Dados cadastrais atualizados pelo usuário")        
+    registrar_log("ATUALIZACAO", f"Dados cadastrais do {id_pedido} atualizados pelo usuário {pedido.id_cliente}")        
     return True

@@ -15,6 +15,6 @@ def cadastro():
     email=request.form.get("email", "").strip()
     senha=request.form.get("senha", "")
     
-    criar_usuario(cpf, nome, email, senha, Cargo.CHEFE)
+    criar_usuario(cpf, nome, email, senha, Cargo.CHEFE.value)
     
     return render_template("""TODO: colocar pagina de cadastro do admin""")

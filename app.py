@@ -44,10 +44,10 @@ def create_app(test_config=None):
         if request.endpoint == 'static':
             return
         
-        if request.blueprint=="admin" and session.get("cargo")<Cargo.ADMIN:
+        if request.blueprint=="admin" and session.get("cargo")<Cargo.ADMIN.value:
             return abort(403)
         
-        if request.blueprint=="chef" and session.get("cargo")<Cargo.CHEFE:
+        if request.blueprint=="chef" and session.get("cargo")<Cargo.CHEFE.value:
             return abort(403)
             
             

@@ -26,7 +26,7 @@ def fazer_pedido():
     
     # adicionar funcao de criação de pedido
     
-    registrar_log(session.get("id"), 'REALIZOU PEDIDO', 
+    registrar_log('REALIZOU PEDIDO', 
     "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****")
     
     enviar_email_nao_responda(f"Pedido Realizado às {"""data de criação da entidade pedido"""}",
@@ -42,7 +42,7 @@ def cancelar_pedido():
     
     # adicionar funcao de criação de pedido
     
-    registrar_log(session.get("id"), 'REALIZOU PEDIDO', 
+    registrar_log('REALIZOU PEDIDO', 
     "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****")
     
     enviar_email_nao_responda(f"Pedido Realizado às {"""data de criação da entidade pedido"""}",
