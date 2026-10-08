@@ -47,9 +47,6 @@ def formatar_moeda(centavos):
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-
-# ... (mantenha suas funções enviar_email_nao_responda, moeda_para_centavos, etc.)
-
 def obter_chave_fernet() -> Fernet:
     """Recupera a chave Fernet do arquivo .env e inicializa o objeto."""
     chave = env.get("FERNET_ENCRYPTION_KEY")

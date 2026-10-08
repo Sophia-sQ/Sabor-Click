@@ -81,7 +81,11 @@ def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    senha_criptografada=generate_password_hash(senha)
    novo_usuario=Usuario(cpf=cpf_criptografado, cpf_hmac=cpf_hmac, nome=nome, email=email, senha_hash=senha_criptografada,id_permissao=id_permissao)
    db.session.add(novo_usuario)
-   db.session.commit()
+   try:
+        db.session.commit()
+   except:
+       db.session.rollback()
+       return None
    cargo = db.session.get(NivelPermissao, id_permissao).nome
    registrar_log(novo_usuario.id_usuario, "CADASTRO", f"Novo usuário {cargo} {nome} cadastrado.")
    return novo_usuario.id_usuario
@@ -93,14 +97,15 @@ def registrar_log(acao:str, descricao: str = None):
     db.session.add(log)
     db.session.commit()
     
-def buscar_usuario_para_login(cpf:str, senha:str):
-    """Busca um usuário pelo CPF e senha e retorna o id.
+def buscar_usuario_para_login(credencial:str, senha:str):
+    """Busca um usuário pelo CPF ou email e senha e retorna o id.
     
     Se usuário nao existir, retorna None"""
     
     # retorna apenas uma entrada ou None 
+    
     usuario = db.session.execute(
-        db.select(Usuario).where(Usuario.cpf_hmac == gerar_hmac_cpf(cpf))
+        db.select(Usuario).where(Usuario.cpf_hmac == gerar_hmac_cpf(credencial))
     ).scalar_one_or_none()
 
     if usuario and check_password_hash(usuario.senha_hash, senha):
