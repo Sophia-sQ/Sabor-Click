@@ -6,7 +6,7 @@ from sqlite3 import IntegrityError
 from flask import session
 from werkzeug.security import check_password_hash,generate_password_hash
 
-from utils import gerar_hmac_cpf, criptografar_cpf
+from utils import gerar_hmac, criptografar
 
 # Tabela Nível de permissão do usuário
 class NivelPermissao(db.Model):
@@ -21,11 +21,12 @@ class Usuario(db.Model):
     __tablename__ = "usuario"
 
     id_usuario = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    cpf = db.Column(db.Text, nullable=False) 
-    #cpf_criptografado = db.Column(db.Text, nullable=False) 
+    #cpf = db.Column(db.Text, nullable=False) 
+    cpf_criptografado = db.Column(db.Text, nullable=False) 
     cpf_hmac = db.Column(db.String(64), unique=True, nullable=False) 
     nome = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    email_criptografado = db.Column(db.Text, nullable=False)
+    email_hmac = db.Column(db.String(64), unique=True, nullable=False)
     senha_hash = db.Column(db.String(255), nullable=False)
     ativo = db.Column(db.Boolean, default=True, nullable=False)
     criado_em = db.Column(db.DateTime, default=datetime.now(datetime.timezone.utc))
@@ -76,10 +77,16 @@ def criar_cargo(id_permissao:int, nome:str):
 def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    """Cria novo usuario."""
    
-   cpf_criptografado=criptografar_cpf(cpf)
-   cpf_hmac=gerar_hmac_cpf(cpf)
+   cpf_criptografado=criptografar(cpf)
+   cpf_hmac=gerar_hmac(cpf=cpf)
+   
+   email_criptografado=criptografar(email)
+   email_hmac=gerar_hmac(email=email)
+   
    senha_criptografada=generate_password_hash(senha)
-   novo_usuario=Usuario(cpf=cpf_criptografado, cpf_hmac=cpf_hmac, nome=nome, email=email, senha_hash=senha_criptografada,id_permissao=id_permissao)
+   
+   novo_usuario=Usuario(cpf_criptografado=cpf_criptografado, cpf_hmac=cpf_hmac, nome=nome, email=email_criptografado, email_hmac=email_hmac, senha_hash=senha_criptografada,id_permissao=id_permissao)
+   
    db.session.add(novo_usuario)
    try:
         db.session.commit()
@@ -104,10 +111,11 @@ def buscar_usuario_para_login(credencial:str, senha:str):
     
     # retorna apenas uma entrada ou None 
     
-    usuario = db.session.execute(
-        db.select(Usuario).where(Usuario.cpf_hmac == gerar_hmac_cpf(credencial))
-    ).scalar_one_or_none()
-
+    if '@' in credencial:
+        usuario=db.session.get(Usuario, gerar_hmac(email=credencial))
+    else:
+        usuario=db.session.get(Usuario, gerar_hmac(cpf=credencial))
+        
     if usuario and check_password_hash(usuario.senha_hash, senha):
         return usuario.id_usuario
     
@@ -124,37 +132,6 @@ def buscar_usuario_por_id(id:int):
     
     return None
     
-def buscar_usuario_por_cpf(cpf: str):
-    """Busca um usuário pelo CPF puro e retorna um dicionário/JSON.
-    
-    Retorna id, nome, email e cargo do usuário.
-    """
-    if not cpf:
-        return None
-
-    # Geramos o hash HMAC correspondente ao CPF enviado para fazer a busca indexada e segura
-    cpf_hash = gerar_hmac_cpf(cpf)
-    
-    # Realiza a busca comparando com a coluna cpf_hmac que já está no seu modelo
-    usuario = db.session.execute(
-        db.select(Usuario).where(Usuario.cpf_hmac == cpf_hash)
-    ).scalar_one_or_none()
-    
-    if usuario:
-        # Busca o nível de permissão associado ao id_permissao do usuário encontrado
-        permissao = db.session.execute(
-            db.select(NivelPermissao).where(NivelPermissao.id_permissao == usuario.id_permissao)
-        ).scalar_one()
-
-        return {
-            'id': usuario.id_usuario,
-            'nome': usuario.nome,
-            'email': usuario.email,
-            'cargo': permissao.nome  # Retorna o nome do cargo (ex: "cliente", "chefe", "admin")
-        }
-    
-    return None
-    
 def buscar_todos_usuarios():
     """Retorna todos os usuários registrados como uma lista.
     
@@ -167,18 +144,20 @@ def buscar_todos_usuarios():
     
     return None
 
-def atualizar_usuario(id_usuario:int, nome:str = None, email:str= None,nova_senha:str=None):
-    """Atualiza o usuário"""
-    usuario=db.session.get(Usuario,id_usuario)
+def atualizar_usuario(id_usuario:int, nome:str = None, email:str= None, nova_senha:str=None):
+    """Atualiza o usuário."""
+    
+    usuario=db.session.get(Usuario, id_usuario)
     if not usuario:
         return False
     if nome:
         usuario.nome= nome
     if email: 
-        usuario.email= email
+        usuario.email_criptografado = criptografar(email)
+        usuario.email_hmac = gerar_hmac(email)
     if nova_senha:
         usuario.senha_hash = generate_password_hash(nova_senha)
-   
+        
     db.session.commit()
     registrar_log("ATUALIZACAO", f"Dados cadastrais atualizados pelo usuário {id_usuario}")        
     return True
