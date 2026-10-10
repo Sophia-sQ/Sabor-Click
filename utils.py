@@ -1,14 +1,18 @@
+from os import environ as env
+
 import smtplib
 from email.message import EmailMessage
-from os import environ as env
+
 import hmac
 import hashlib
 
 from cryptography.fernet import Fernet
+
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
+#interação com cliente
 def enviar_email_nao_responda(assunto:str, destinatario:str, conteudo:str, conteudo_HTML:str):
-    """envia um email para um cliente.
+    """envia um email para um cliente. O email é descriptografado na função.
     
     conteudo_HTML deve ser uma f-string.
     """
@@ -17,7 +21,7 @@ def enviar_email_nao_responda(assunto:str, destinatario:str, conteudo:str, conte
 
     email["Subject"] = assunto
     email["From"] = env.get("EMAIL")
-    email["To"] = destinatario
+    email["To"] = descriptografar(destinatario)
 
     # Versão para clientes que não exibem HTML
     email.set_content(conteudo)
@@ -29,6 +33,7 @@ def enviar_email_nao_responda(assunto:str, destinatario:str, conteudo:str, conte
         smtp.login(env.get("EMAIL"), env.get("PASSWORD"))
         smtp.send_message(email)
 
+#formatação monetária
 def moeda_para_centavos(valor):
     """Pega um valor monetário e o transforma em centavos."""
     
@@ -46,41 +51,56 @@ def formatar_moeda(centavos):
     valor = Decimal(int(centavos)) / 100
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-
+#segurança
 def obter_chave_fernet() -> Fernet:
     """Recupera a chave Fernet do arquivo .env e inicializa o objeto."""
     chave = env.get("FERNET_ENCRYPTION_KEY")
+    
     if not chave:
         raise ValueError("A variável FERNET_ENCRYPTION_KEY não está configurada no .env")
-    # O Fernet exige que a chave esteja em bytes
-    return Fernet(chave.encode())
-
-def criptografar_cpf(cpf: str) -> str:
-    """Criptografa o CPF de forma bidirecional (retorna string)."""
-    if not cpf:
-        return ""
-    fernet = obter_chave_fernet()
-    # Transforma a string do CPF em bytes, criptografa e decodifica o resultado para string
-    cpf_criptografado = fernet.encrypt(cpf.encode())
-    return cpf_criptografado.decode()
-
-def descriptografar_cpf(cpf_criptografado: str) -> str:
-    """Descriptografa o CPF retornando a string original."""
-    if not cpf_criptografado:
-        return ""
-    fernet = obter_chave_fernet()
-    # Transforma a string criptografada em bytes, descriptografa e decodifica para string original
-    cpf_bytes = fernet.decrypt(cpf_criptografado.encode())
-    return cpf_bytes.decode()
-
-def gerar_hmac_cpf(cpf: str) -> str:
-    """Gera um hash determinístico do CPF para ser utilizado em buscas no banco de dados."""
-    if not cpf:
-        return ""
-    chave_secret_hmac = env.get("CPF_LOOKUP_HMAC_SECRET")
-    if not chave_secret_hmac:
-        raise ValueError("A variável CPF_LOOKUP_HMAC_SECRET não está configurada no .env")
     
-    # Gera o HMAC utilizando SHA-256
-    resultado = hmac.new(chave_secret_hmac.encode(), cpf.encode(), hashlib.sha256)
+    # O Fernet exige que a chave esteja em bytes
+    return Fernet(chave.encode("utf-8"))
+
+def criptografar(dado: str) -> str:
+    """Criptografa o dado de forma bidirecional (retorna string)."""
+    
+    if not dado:
+        return False
+    
+    fernet = obter_chave_fernet()
+    
+    # Transforma a string bytes, criptografa e decodifica o resultado para string
+    dado_criptografado = fernet.encrypt(dado.encode())
+    return dado_criptografado.decode()
+
+def descriptografar(dado_criptografado: str) -> str:
+    """Descriptografa o dado retornando a string original."""
+    
+    if not dado_criptografado:
+        return False
+    
+    fernet = obter_chave_fernet()
+    
+    # Transforma a string criptografada em bytes, descriptografa e decodifica para string original
+    dado_bytes = fernet.decrypt(dado_criptografado.encode())
+    return dado_bytes.decode()
+
+def gerar_hmac(cpf: str = None, email: str = None) -> str:
+    """Gera um hash determinístico do CPF ou email para ser utilizado em buscas no banco de dados.
+    
+    Warning: essa função trata apenas cpf ou email."""
+    
+    if cpf:
+        chave_secret_hmac = env.get("CPF_LOOKUP_HMAC_SECRET")
+        dado=cpf
+        
+    elif email:
+        chave_secret_hmac = env.get("EMAIL_LOOKUP_HMAC_SECRET")
+        dado=email
+    
+    if not chave_secret_hmac:
+        raise ValueError("A variável . . ._LOOKUP_HMAC_SECRET não está configurada no .env")
+            
+    resultado = hmac.new(chave_secret_hmac.encode(), dado.encode(), hashlib.sha256)
     return resultado.hexdigest()

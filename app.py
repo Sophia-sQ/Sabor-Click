@@ -1,4 +1,5 @@
 from os import environ as env
+from dotenv import load_dotenv
 
 from flask import Flask, redirect, render_template, request, session, url_for, abort
 
@@ -9,6 +10,8 @@ from utils import formatar_moeda
 from model.cargos import Cargo
 
 def create_app(test_config=None):
+    
+    load_dotenv()
 
     app.config["SECRET_KEY"] = env.get("SECRET_KEY")
     
