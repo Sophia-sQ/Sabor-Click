@@ -3,6 +3,9 @@
 login
 cadastro
 home page
+500 (será a página de erros inesperados usada como padrão)
+validação de codigo de login
+
 
 ========== nomes que devem estar nos formulários ==========
 login(

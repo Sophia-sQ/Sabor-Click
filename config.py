@@ -1,13 +1,15 @@
 import os
 from os import path
 from dotenv import load_dotenv
-
+from flask_mail import Mail
 #caminho da raiz do projeto
 basedir = path.abspath(path.dirname(__file__))
 
 # Procura por um arquivo .env na raiz do projeto
 if path.exists(path.join(basedir, '.env')):
     load_dotenv(path.join(basedir, '.env'))
+
+mail = Mail()
 
 class Config:
     """Configurações base"""

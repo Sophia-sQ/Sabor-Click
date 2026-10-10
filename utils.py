@@ -1,12 +1,11 @@
 from os import environ as env
 
-import smtplib
-from email.message import EmailMessage
-
-import hmac
-import hashlib
+from flask_mail import Message
+from config import mail
 
 from cryptography.fernet import Fernet
+import hmac
+import hashlib
 
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
@@ -14,24 +13,14 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 def enviar_email_nao_responda(assunto:str, destinatario:str, conteudo:str, conteudo_HTML:str):
     """envia um email para um cliente. O email é descriptografado na função.
     
-    conteudo_HTML deve ser uma f-string.
+    conteudo_HTML deve ser uma chamada de render_template.
     """
     
-    email = EmailMessage()
-
-    email["Subject"] = assunto
-    email["From"] = env.get("EMAIL")
-    email["To"] = descriptografar(destinatario)
-
-    # Versão para clientes que não exibem HTML
-    email.set_content(conteudo)
+    msg = Message(assunto, [descriptografar(destinatario)])
+    msg.body = conteudo
+    msg.html = conteudo_HTML
     
-    # Versão HTML
-    email.add_alternative(conteudo_HTML, subtype="html")
-    
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(env.get("EMAIL"), env.get("PASSWORD"))
-        smtp.send_message(email)
+    mail.send(msg)
 
 #formatação monetária
 def moeda_para_centavos(valor):

@@ -2,13 +2,13 @@ from os import environ as env
 
 from flask import Flask, redirect, render_template, request, session, url_for, abort
 
-from config import config_dict  # importa configurações gerais da aplicação
+from config import config_dict, mail  # importa configurações gerais da aplicação
 from database import init_app as init_database
 from utils import formatar_moeda
 
 from model.cargos import Cargo
 
-def create_app(test_config=None):
+def create_app():
     
     app = Flask(__name__, instance_relative_config=True)
     
@@ -57,6 +57,8 @@ def create_app(test_config=None):
         return render_template("500.html")
                
     init_database(app)
+    mail.init_app(app) 
+    
     return app
 
 app = create_app()
