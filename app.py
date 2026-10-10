@@ -1,9 +1,8 @@
 from os import environ as env
-from dotenv import load_dotenv
 
 from flask import Flask, redirect, render_template, request, session, url_for, abort
 
-from config import Config  # importa configurações gerais da aplicação
+from config import config_dict  # importa configurações gerais da aplicação
 from database import init_app as init_database
 from utils import formatar_moeda
 
@@ -11,18 +10,9 @@ from model.cargos import Cargo
 
 def create_app(test_config=None):
     
-    load_dotenv()
-
-    app.config["SECRET_KEY"] = env.get("SECRET_KEY")
-    
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object(Config)
-
-     #configuração do banco de dados
-    app.config.setdefault("SQLALCHEMY_DATABASE_URI", "sqlite:///banco.db")
-    app.config.from_object(Config)
-    if test_config: 
-        app.config.update(test_config)
+    
+    app.config.from_object(config_dict['default'])
 
     from controller.auth_controller import auth_bp
     from controller.admin_controller import admin_bp
@@ -61,10 +51,14 @@ def create_app(test_config=None):
     @app.errorhandler(403)  # forbidden
     def proibido(_erro):
         return render_template("403.html"), 403
+    
+    @app.errorhandler(Exception)  # forbidden
+    def default(_erro):
+        return render_template("500.html")
                
     init_database(app)
     return app
-        
+
 app = create_app()
 
 if __name__ == "__main__":
