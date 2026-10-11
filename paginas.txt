@@ -8,20 +8,20 @@ validação de codigo de login
 
 
 ========== nomes que devem estar nos formulários ==========
-login(
-    credencial
-    senha
+
+pagina de status de pedido(
+    json com chaves (referentes ao pedido em questão):
+    id 
+    status
 )
 
-cadastro(
+realizar pedido(
+    endereco (isso aqui vai ser o id do endereco que o cliente selecionou)
+    obs
+)
+
+adicionar endereco(
     nome
-    cpf
-    telefone
-    email
-    senha
-)
-
-fazer pedido(
     logadouro
     num
     compl

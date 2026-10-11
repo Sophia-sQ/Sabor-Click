@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from database import db
 from model.usuario_model import registrar_log
 

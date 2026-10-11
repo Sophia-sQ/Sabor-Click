@@ -1,7 +1,7 @@
 # Contém as tabelas: NivelPermissao, Usuario e LogAtividade
-from datetime import datetime
+from datetime import datetime, timezone
 from database import db
-from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 
 from flask import session
 from werkzeug.security import check_password_hash,generate_password_hash
@@ -29,7 +29,7 @@ class Usuario(db.Model):
     email_hmac = db.Column(db.String(64), unique=True, nullable=False)
     senha_hash = db.Column(db.String(255), nullable=False)
     ativo = db.Column(db.Boolean, default=True, nullable=False)
-    criado_em = db.Column(db.DateTime, default=datetime.now(datetime.timezone.utc))
+    criado_em = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     id_permissao = db.Column(db.Integer, db.ForeignKey("nivel_permissao.id_permissao"), nullable=False)
     
 # Tabela de endereços do usuário
@@ -37,7 +37,8 @@ class Endereco(db.Model):
     __tablename__ = "endereco"
 
     id_endereco = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_usuario = db.Column(db.Integer, db.ForeingKey("usuario.id_usuario"), primary_key=True) 
+    id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario")) 
+    nome = db.Column(db.String(150), nullable=False)
     logradouro = db.Column(db.String(150), nullable=False)
     numero = db.Column(db.String(20), nullable=False)
     complemento = db.Column(db.String(100), nullable=True)  # Opcional
@@ -50,7 +51,7 @@ class LogAtividade(db.Model):
     __tablename__ = "log_atividade"
 
     id_atividade = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    realizado_em = db.Column(db.DateTime, default=datetime.now(datetime.timezone.utc)) # Se vazio cria data e hora padrão
+    realizado_em = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False) # Se vazio cria data e hora padrão
     acao = db.Column(db.String(45), nullable=False)
     descricao = db.Column(db.Text, nullable=True)  
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
@@ -85,24 +86,25 @@ def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    
    senha_criptografada=generate_password_hash(senha)
    
-   novo_usuario=Usuario(cpf_criptografado=cpf_criptografado, cpf_hmac=cpf_hmac, nome=nome, email=email_criptografado, email_hmac=email_hmac, senha_hash=senha_criptografada,id_permissao=id_permissao)
+   novo_usuario=Usuario(cpf_criptografado=cpf_criptografado, cpf_hmac=cpf_hmac, nome=nome, email_criptografado=email_criptografado, email_hmac=email_hmac, senha_hash=senha_criptografada,id_permissao=id_permissao)
    
    db.session.add(novo_usuario)
    try:
         db.session.commit()
-   except:
+   except IntegrityError:
        db.session.rollback()
        return None
    cargo = db.session.get(NivelPermissao, id_permissao).nome
-   registrar_log(novo_usuario.id_usuario, "CADASTRO", f"Novo usuário {cargo} {nome} cadastrado.")
+   registrar_log("CADASTRO", f"Novo usuário {cargo} {nome} cadastrado.")
    return novo_usuario.id_usuario
 
 def registrar_log(acao:str, descricao: str = None):
     """Registra uma atividade."""
     
-    log = LogAtividade(session.get('id'), acao=acao, descricao=descricao )
+    log = LogAtividade(id_usuario=session.get('id'), acao=acao, descricao=descricao )
     db.session.add(log)
     db.session.commit()
+    return True
     
 def buscar_usuario_para_login(credencial:str, senha:str):
     """Busca um usuário pelo CPF ou email e senha e retorna o id.
@@ -112,10 +114,17 @@ def buscar_usuario_para_login(credencial:str, senha:str):
     # retorna apenas uma entrada ou None 
     
     if '@' in credencial:
-        usuario=db.session.get(Usuario, gerar_hmac(email=credencial))
+        credencial_hmac=gerar_hmac(email=credencial)
+        campo=Usuario.email_hmac
     else:
-        usuario=db.session.get(Usuario, gerar_hmac(cpf=credencial))
+        credencial_hmac=gerar_hmac(cpf=credencial)
+        campo=Usuario.cpf_hmac
         
+    usuario = db.session.execute(
+        db.select(Usuario).where(campo == credencial_hmac, Usuario.ativo.is_(True))
+    ).scalar_one_or_none()
+
+    
     if usuario and check_password_hash(usuario.senha_hash, senha):
         return usuario.id_usuario
     
@@ -125,7 +134,7 @@ def buscar_usuario_por_id(id:int):
     """Busca um usuário pelo id e retorna o objeto usuário equivalente."""
     
     # retorna apenas uma entrada ou None 
-    usuario = db.session.execute(db.select(Usuario).where(Usuario.id_usuario == id)).scalar_one_or_none()
+    usuario = db.session.execute(db.select(Usuario).where(Usuario.id_usuario == id, Usuario.ativo.is_(True))).scalar_one_or_none()
     
     if usuario:
         return usuario
@@ -137,7 +146,7 @@ def buscar_todos_usuarios():
     
     retorna dados sensíveis em texto criptografado."""
     
-    usuarios = db.session.execute(db.select(Usuario)).scalars().all()
+    usuarios = db.session.execute(db.select(Usuario).where(Usuario.ativo.is_(True))).scalars().all()
     
     if usuarios:
         return usuarios
@@ -192,3 +201,18 @@ def reativar_usuario (id_usuario: int):
     registrar_log("REATIVACAO", f"Conta do usuário {id_usuario} reativada")
     
     return True
+
+def adicionar_endereco(nome: str, logradouro: str, numero: str, complemento: str, bairro: str, cidade: str, cep: str) -> (Endereco | None):
+    """Adiciona novo endereço para o cliente."""
+    
+    endereco=Endereco(id_usuario=session.get("id"), nome=nome, logradouro=logradouro, numero=int(numero), complemento=complemento, bairro=bairro, cidade=cidade, cep=cep)
+    db.session.add(endereco)
+    
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return None
+    
+    registrar_log("NOVO ENDERECO", f"Novo endereco no id {endereco.id_endereco} criado.")
+    return endereco
