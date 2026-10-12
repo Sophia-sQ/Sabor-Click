@@ -49,12 +49,12 @@ class ServicoCardapio(db.Model):
 
 """==================CRUD BANCADA============="""
 
-def criar_bancada(nome: str, descricao: str, id_usuario: int):
+def criar_bancada(nome: str, descricao: str):
     """Cria uma nova bancada"""
     nova_bancada = Bancada(nome=nome, descricao=descricao)
     db.session.add(nova_bancada)
     db.session.commit()
-    registrar_log(id_usuario,"CRIACAO BANCADA", "Usuário criou nova bancada")
+    registrar_log("CRIACAO BANCADA", "Usuário criou nova bancada")
     return nova_bancada.id_bancada
     
 
@@ -99,12 +99,12 @@ def deletar_bancada(id_bancada, id_usuario: int):
 
 """==============CRUD SERVICO======"""
 
-def criar_servico(nome, descricao, id_usuario: int):
+def criar_servico(nome, descricao):
     """Cria serviço"""
     novo_servico = Servico(nome=nome, descricao=descricao)
     db.session.add(novo_servico)
     db.session.commit()
-    registrar_log(id_usuario,"CRIACAO SERVICO", "Usuário criou novo servico")
+    registrar_log("CRIACAO SERVICO", "Usuário criou novo servico")
 
     return novo_servico.id_servico
 
@@ -152,12 +152,12 @@ def deletar_servico(id_servico, id_usuario:int):
 """===============CRUD CARDÁPIO========="""
 
 
-def criar_cardapio(nome, descricao, preco_base, id_usuario: int):
+def criar_cardapio(nome, descricao, preco_base):
     '''cria cardapio'''
     novo_cardapio = Cardapio(nome=nome, descricao=descricao, preco_base=preco_base)
     db.session.add(novo_cardapio)
     db.session.commit()
-    registrar_log(id_usuario,"CRIACAO CARDAPIO", "Usuário criou novo cardapio")
+    registrar_log("CRIACAO CARDAPIO", "Usuário criou novo cardapio")
 
     return novo_cardapio.id_cardapio
 
