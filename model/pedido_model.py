@@ -111,8 +111,8 @@ def deletar_bebida(id_bebida: int):
     return True
 
 # CRUD - PEDIDO
-def criar_pedido(id_cliente: int,id_endereco: int , num_convidados: int, valor_total: float, data_evento: str, hora_inicio: str, hora_fim: str, observacao: str = None,bebidas: list[dict] = None) -> (Pedido | None):
-    """Cria um pedido e associa bebidas a ele caso tenha """
+def criar_pedido(id_cliente: int, id_endereco: int , num_convidados: int, valor_total: float, data_evento: str, hora_inicio: str, hora_fim: str, cardapios: list[dict], observacao: str = None, bebidas: list[dict] = None) -> (Pedido | None):
+    """Cria um pedido associando cardápios e bebidas a ele (caso tenha)."""
     novo_pedido = Pedido(
         id_cliente=id_cliente,
         id_endereco=id_endereco,
@@ -127,10 +127,20 @@ def criar_pedido(id_cliente: int,id_endereco: int , num_convidados: int, valor_t
         
     )
     db.session.add(novo_pedido)
+    
     try:
         db.session.flush()
+        
+        for cardapio in cardapios:
+            p_c = CardapioPedido(
+                id_cardapio=cardapio["id_cardapio"],
+                id_pedido=novo_pedido.id_pedido,
+            )
+            db.session.add(p_c)
+
+        db.session.flush()
     
-    #verifica se o pedido tem bebida, se tiver adiciona
+        #verifica se o pedido tem bebida, se tiver adiciona
         if bebidas:
             for item in bebidas:
                 p_b = PedidoBebida(
@@ -140,6 +150,8 @@ def criar_pedido(id_cliente: int,id_endereco: int , num_convidados: int, valor_t
                     valor_unitario=item["valor_unitario"]
                 )
                 db.session.add(p_b)
+
+        # TODO: adicionar triggers de baixa de estoque
 
         db.session.commit()
         
@@ -152,7 +164,7 @@ def criar_pedido(id_cliente: int,id_endereco: int , num_convidados: int, valor_t
 
 
 def buscar_pedido_por_id(id_pedido: int):
-    '''Busca pedido '''
+    '''Busca pedido.'''
     return db.session.get(Pedido, id_pedido)
 
 
