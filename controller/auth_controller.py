@@ -10,7 +10,7 @@ from re import fullmatch, match
 
 auth_bp = Blueprint("auth", __name__)
 
-@auth_bp.route("/login", methods=("GET", "POST"))
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method=='GET':
         return render_template("login.html")
@@ -61,16 +61,19 @@ def login():
     return render_template("login.html")
 
 
-@auth_bp.route("/logout", methods=("GET", "POST"))
+@auth_bp.route("/logout", methods=["POST"])
 def logout():
     "Remove o usuário da sessão e volta para página inicial."
     
     session.clear()
     return render_template("home.html")  
 
-@auth_bp.route("/cadastro", methods=("POST"))
+@auth_bp.route("/cadastro", methods=["GET","POST"])
 def cadastro():
     "adiciona um novo usuario cliente."
+
+    if request.method=='GET':
+        return render_template("cadastro.html")
 
     nome=request.form.get("nome", "").strip()
     cpf=request.form.get("cpf", "").strip()
@@ -79,9 +82,10 @@ def cadastro():
     
     usuario=criar_usuario(cpf, nome, email, senha, Cargo.CLIENTE.value)
     if not usuario:
+        flash("Falha no cadastro. Tente novamente", "danger")
         return render_template("cadastro.html")
     
-    return render_template('home.html')  
+    return render_template('login.html')  
 
 
 def validar_senha_forte(senha:str = None) -> bool:
