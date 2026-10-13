@@ -15,6 +15,10 @@ pagina de status de pedido(
     status
 )
 
+home(
+    ancora de servico = "#servicos"
+)
+
 realizar pedido(
     endereco (isso aqui vai ser o id do endereco que o cliente selecionou)
     obs
