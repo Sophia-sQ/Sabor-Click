@@ -43,6 +43,10 @@ def create_app():
         if request.blueprint=="chef" and session.get("cargo")<Cargo.CHEFE.value:
             return abort(403)
             
+    
+    @app.errorhandler(400)  # erro do lado do cliente
+    def pagina_nao_encontrada(_erro):
+        return render_template("400.html"), 400
             
     @app.errorhandler(404)  # url nao encontrada
     def pagina_nao_encontrada(_erro):
@@ -52,7 +56,7 @@ def create_app():
     def proibido(_erro):
         return render_template("403.html"), 403
     
-    @app.errorhandler(Exception)  # forbidden
+    @app.errorhandler(Exception)  # pagina de erro padrão
     def default(_erro):
         return render_template("500.html")
                
