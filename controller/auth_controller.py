@@ -8,6 +8,17 @@ from utils import enviar_email_nao_responda
 
 auth_bp = Blueprint("auth", __name__)
 
+@auth_bp.route("/verificacao", methods=("GET", "POST"))
+def verificacao():
+    """Exibe o formulário; integrar a consulta do código antes de liberar acesso."""
+    if request.method == "POST":
+        codigo = request.form.get("codigo", "").strip()
+        if len(codigo) != 6 or not codigo.isascii() or not codigo.isdigit():
+            return render_template("verificacao.html", erro="Digite os 6 números do código recebido por e-mail."), 400
+        # TODO: validar código, expiração e tentativas no banco para o usuário pendente.
+        return render_template("verificacao.html", erro="A verificação está temporariamente indisponível. Tente novamente mais tarde."), 503
+    return render_template("verificacao.html")
+
 @auth_bp.route("/login", methods=("GET", "POST"))
 def login():
     # TODO: garantir que os names da página batam

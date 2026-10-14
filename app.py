@@ -36,7 +36,7 @@ def create_app(test_config=None):
     
     @app.before_request
     def exigir_login():
-        rotas_publicas = {"auth.login", "auth.cadastro", "static"}
+        rotas_publicas = {"auth.login", "auth.cadastro", "auth.verificacao", "static"}
         if request.endpoint is None:
             return
         if request.endpoint not in rotas_publicas and "usuario_id" not in session:
