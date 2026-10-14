@@ -13,8 +13,8 @@ class Prato(db.Model):
         nullable=False
     )
     
-    requer_pre_preparo = db.Column(db.Boolean, default=False, nullable=False)
     tempo_preparo = db.Column(db.Integer, nullable=False)
+    requer_pre_preparo = db.Column(db.Boolean, default=False, nullable=False)
 
 class PratoCardapio(db.Model):
     __tablename__ = "prato_cardapio"
@@ -64,12 +64,12 @@ class Lote(db.Model):
     
    # Ou ingrediente ou bebida
     id_ingrediente = db.Column(db.Integer, db.ForeignKey("ingrediente.id_ingrediente"), nullable=True)
-    id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_bebida"), nullable=True)
+    #id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_bebida"), nullable=True)
 
-    __table_args__ = (
-       # UM dos campos seja NOT NULL
-        db.CheckConstraint("(id_ingrediente IS NULL) <> (id_bebida IS NULL)", name="ck_lote_item"),
-    )
+    #__table_args__ = (
+    #   # UM dos campos seja NOT NULL
+    #    db.CheckConstraint("(id_ingrediente IS NULL) <> (id_bebida IS NULL)", name="ck_lote_item"),
+    #)
 
 """==================CRUD PRATO============="""
 
@@ -86,6 +86,17 @@ def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, 
 def buscar_prato_por_id(id_prato: int):
     """Busca prato pelo id"""
     prato = db.session.get(Prato, id_prato)
+    if prato:
+        return prato
+    return None
+
+def buscar_prato_por_nome(nome_prato: str):
+    """Busca prato pelo id"""
+    
+    prato = db.session.execute(
+        db.session.select(Prato).where(Prato.nome == nome_prato)
+    ).scalar_one_or_none()
+    
     if prato:
         return prato
     return None
@@ -205,6 +216,17 @@ def buscar_ingrediente_por_id(id_ingrediente: int):
         return ingrediente
     return None
 
+def buscar_ingrediente_por_nome(nome_ingrediente: str):
+    """Busca ingrediente pelo id"""
+    
+    ingrediente = db.session.execute(
+        db.session.select(Ingrediente).where(Ingrediente.nome == nome_ingrediente)
+    ).scalar_one_or_none()
+    
+    if ingrediente:
+        return ingrediente
+    return None
+
 
 def listar_ingredientes():
     """Lista todos os ingredientes"""
@@ -311,6 +333,17 @@ def criar_lote(num_lote: str, marca: str, data_recebimento: datetime, qtd_inicia
 def buscar_lote_por_id(id_lote: int):
     """Busca lote pelo id"""
     lote = db.session.get(Lote, id_lote)
+    if lote:
+        return lote
+    return None
+
+def buscar_lote_por_numero(num_lote: str):
+    """Busca ingrediente pelo id"""
+    
+    lote = db.session.execute(
+        db.session.select(Lote).where(Lote.num_lote == num_lote)
+    ).scalar_one_or_none()
+    
     if lote:
         return lote
     return None
