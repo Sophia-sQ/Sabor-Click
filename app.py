@@ -37,6 +37,8 @@ def create_app(test_config=None):
     @app.before_request
     def exigir_login():
         rotas_publicas = {"auth.login", "auth.cadastro", "static"}
+        if request.endpoint is None:
+            return
         if request.endpoint not in rotas_publicas and "usuario_id" not in session:
             return redirect(url_for("auth.login", proxima=request.path))
     

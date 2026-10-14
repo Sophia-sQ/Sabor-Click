@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Erro{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/erro.css') }}">
+</head>
+<body class="pagina-erro">
+    <main class="conteudo-erro">
+        <section class="cartao-erro" aria-labelledby="titulo">
+            <header class="cabecalho">
+                <p class="codigo-erro" aria-label="Erro {% block codigo_acessivel %}{% endblock %}">{% block codigo %}{% endblock %}</p>
+                <h1 id="titulo">{% block mensagem %}{% endblock %}</h1>
+                <p class="descricao">{% block descricao %}{% endblock %}</p>
+            </header>
+            <a class="acao-erro" href="{{ url_for('auth.login') }}">Ir para o login</a>
+            <p class="ajuda-erro">{% block ajuda %}{% endblock %}</p>
+        </section>
+    </main>
+</body>
+</html>
