@@ -1,6 +1,8 @@
 """Armazena todos os valores padrão do banco de dados"""
 
 from datetime import datetime
+from database import db
+
 
 # ================================= Import ESTOQUE =================================
 
@@ -23,6 +25,7 @@ from model.ficha_model import (
 from model.cargos import Cargo
 from model.usuario_model import NivelPermissao
 from model.usuario_model import buscar_permissao_por_nome, atualizar_permissao
+from model.ficha_model import FichaTecnica
 
 __all__ = ["iniciar_bancadas", "iniciar_servicos", "iniciar_cardapios", "iniciar_pratos", "iniciar_ingredientes", "iniciar_lotes", "iniciar_cargos"]
 
@@ -151,6 +154,7 @@ ingredientes_carnes = [
     ("Frango_desfiado", "kg", 5.0, 1.0),
     ("Presunto", "kg", 3.0, 0.5),
     ("Bolinho_de_bacalhau", "kg", 5.0, 1.0),
+    ("Salame", "Kg", 10.0, 3.0)
 ]
 
 ingredientes_carboidratos = [
@@ -163,7 +167,7 @@ ingredientes_carboidratos = [
     ("Batata_palha", "kg", 5.0, 1.0),
     ("Nhoque_de_batata_pronto", "kg", 5.0, 1.0),
     ("Ravioli_fresco_de_queijo", "kg", 5.0, 1.0),
-    ("Pao_italiano", "unidade", 20.0, 5.0),
+    ("Pao_italiano", "Kg", 20.0, 5.0),
     ("Pao_brioche", "unidade", 30.0, 8.0),
     ("Pao_de_forma", "pacote", 10.0, 2.0),
     ("Mini_paes", "unidade", 100.0, 25.0),
@@ -171,7 +175,7 @@ ingredientes_carboidratos = [
     ("Tortilla_de_trigo", "unidade", 50.0, 10.0),
     ("Tapioca_granulada", "kg", 5.0, 1.0),
     ("Nachos", "kg", 5.0, 1.0),
-    ("Biscoito_base", "pacote", 15.0, 3.0),
+    ("Biscoito_base","Kg", 15.0, 3.0),
     ("Coxinha", "unidade", 100.0, 25.0),
     ("Risole", "unidade", 100.0, 25.0),
     ("Quibe", "unidade", 100.0, 25.0),
@@ -179,6 +183,7 @@ ingredientes_carboidratos = [
     ("Empada", "unidade", 100.0, 25.0),
     ("Bolinha_de_queijo", "unidade", 100.0, 25.0),
     ("Pastel_de_carne", "unidade", 100.0, 25.0),
+    ("Pastel_de_queijo", "unidade", 100.0,25.0)
 ]
 
 ingredientes_laticinios = [
@@ -671,7 +676,10 @@ lista_lotes = [
     ("LOTE-ING-138", "Nestlé", datetime(2026, 10, 12), 2.0, "Beijinho", datetime(2028, 5, 17)),
 
     ("LOTE-ING-139", "Pullman", datetime(2026, 10, 12), 2.0, "Bolo_comum_simples", datetime(2028, 5, 18)),
+    
+    ("LOTE-ING-140", "Sadia", datetime(2026, 10, 12), 3.0, "Pastel_de_queijo", datetime(2028, 6, 20)),
 
+    ("LOTE-ING-141", "Sadia", datetime(2026, 10, 12), 2.0, "Salame", datetime(2028, 7, 15)),
 ]
 
 lista_cargos = [
@@ -679,6 +687,275 @@ lista_cargos = [
     (2, "chefe"),
     (3, "admin"),
 ]
+
+# LISTA FICHA TECNICA
+lista_ficha_tecnica = [
+
+
+    # Mandioca frita
+    ("Mandioca_frita", "Mandioca_in_natura", 0.077),
+    ("Mandioca_frita", "Oleo_para_fritura", 0.005),
+    ("Mandioca_frita", "Sal", 0.002),
+
+    # Tábua de frios
+    ("Tabua_de_frios", "Salame", 0.050),
+    ("Tabua_de_frios", "Queijo_prato", 0.050),
+    ("Tabua_de_frios", "Azeitona", 0.032),
+
+    # Feijoada completa
+    ("Feijoada_completa", "Feijao_preto", 0.133),
+    ("Feijoada_completa", "Pe_de_porco", 0.020),
+    ("Feijoada_completa", "Rabo_de_porco", 0.015),
+    ("Feijoada_completa", "Costelinha_suina_defumada", 0.020),
+    ("Feijoada_completa", "Bacon", 0.015),
+    ("Feijoada_completa", "Linguica_calabresa", 0.020),
+    ("Feijoada_completa", "Lombo_de_porco", 0.019),
+    ("Feijoada_completa", "Temperos", 0.002),
+
+    # Arroz branco
+    ("Arroz_branco", "Arroz_branco", 0.132),
+
+    # Couve refogada
+    ("Couve_refogada", "Couve_manteiga", 0.040),
+    ("Couve_refogada", "Alho", 0.002),
+    ("Couve_refogada", "Azeite", 0.002),
+
+    # Farofa
+    ("Farofa", "Farinha_de_mandioca", 0.035),
+    ("Farofa", "Manteiga", 0.008),
+    ("Farofa", "Bacon", 0.008),
+    ("Farofa", "Cebola", 0.004),
+
+    # Vinagrete
+    ("Vinagrete", "Tomate", 0.035),
+    ("Vinagrete", "Cebola", 0.022),
+    ("Vinagrete", "Pimentao", 0.018),
+    ("Vinagrete", "Cebolinha", 0.004),
+    ("Vinagrete", "Vinagre", 0.006),
+    ("Vinagrete", "Azeite", 0.003),
+
+    # Molho de pimenta
+    ("Molho_de_pimenta", "Molho_de_pimenta", 0.022),
+
+    
+    ("Salada_fresca", "Folhas_hidroponicas", 0.090),
+    ("Salada_fresca", "Tomate_cereja", 0.035),
+    ("Salada_fresca", "Azeite", 0.007),
+
+    # Bobó de camarão
+    ("Bobo_de_camarao", "Camarao_medio_limpo", 0.123),
+    ("Bobo_de_camarao", "Mandioca_in_natura", 0.108),
+    ("Bobo_de_camarao", "Leite_de_coco", 0.046),
+    ("Bobo_de_camarao", "Azeite_de_dende", 0.015),
+    ("Bobo_de_camarao", "Temperos", 0.016),
+
+    # Salada de frutas frescas com creme
+    ("Salada_de_fruta_fresca_com_creme", "Frutas_frescas_in_natura", 0.095),
+    ("Salada_de_fruta_fresca_com_creme", "Creme_de_leite", 0.040),
+    ("Salada_de_fruta_fresca_com_creme", "Leite_condensado", 0.0225),
+
+    # Bruschetta
+    ("Bruschetta", "Pao_italiano", 0.090),
+    ("Bruschetta", "Tomate", 0.025),
+    ("Bruschetta", "Manjericao", 0.003),
+    ("Bruschetta", "Azeite", 0.003),
+
+    # Filé de tilápia
+    ("File_de_tilapia", "File_de_tilapia", 0.198),
+
+    # Molho de manteiga com alcaparras
+    ("Molho_de_mateiga_com_alcaparras", "Manteiga", 0.025),
+    ("Molho_de_mateiga_com_alcaparras", "Alcaparras", 0.010),
+    ("Molho_de_mateiga_com_alcaparras", "Limao", 0.007),
+    ("Molho_de_mateiga_com_alcaparras", "Salsinha", 0.002),
+
+    # Iogurte natural com morangos e mel
+    ("Iorgute_Natural_com_morangos_e_mel", "Iogurte_natural", 0.082),
+    ("Iorgute_Natural_com_morangos_e_mel", "Morango_fresco", 0.041),
+    ("Iorgute_Natural_com_morangos_e_mel", "Mel", 0.0135),
+
+    # Salada Caesar
+    ("Salada_ceaser", "Alface_romana", 0.070),
+    ("Salada_ceaser", "Frango_grelhado", 0.035),
+    ("Salada_ceaser", "Parmesao_ralado", 0.010),
+    ("Salada_ceaser", "Molho_Caesar", 0.020),
+    ("Salada_ceaser", "Croutons", 0.008),
+
+    # Strogonoff de filé mignon
+    ("Stogonoff_de_file_mignon", "File_mignon_bovino", 0.133),
+    ("Stogonoff_de_file_mignon", "Creme_de_leite", 0.060),
+    ("Stogonoff_de_file_mignon", "Champignon", 0.036),
+    ("Stogonoff_de_file_mignon", "Catchup", 0.0065),
+    ("Stogonoff_de_file_mignon", "Mostarda", 0.0065),
+    ("Stogonoff_de_file_mignon", "Arroz_branco", 0.198),
+    ("Stogonoff_de_file_mignon", "Batata_palha", 0.055),
+
+    # Nhoque ao molho — versão bolonhesa
+    ("Nhoque_ao_molho", "Nhoque_de_batata_pronto", 0.275),
+    ("Nhoque_ao_molho", "Carne_moida_de_primeira", 0.099),
+    ("Nhoque_ao_molho", "Molho_de_tomate", 0.110),
+    ("Nhoque_ao_molho", "Temperos", 0.011),
+
+    # Salada que acompanha o nhoque
+    ("Nhoque_ao_molho", "Folhas_variadas", 0.075),
+    ("Nhoque_ao_molho", "Tomate_cereja", 0.030),
+    ("Nhoque_ao_molho", "Azeite", 0.005),
+
+    # Mousse de maracujá
+    ("Mousse_de_maracuja", "Suco_de_maracuja", 0.0385),
+    ("Mousse_de_maracuja", "Leite_condensado", 0.044),
+    ("Mousse_de_maracuja", "Creme_de_leite", 0.0385),
+    ("Mousse_de_maracuja", "Gelatina", 0.00605),
+
+    # Risoto de cogumelos com tiras de filé mignon
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Arroz_arborio", 0.158),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Cogumelos_frescos", 0.106),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Parmesao_ralado", 0.035),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Vinho_branco", 0.035),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Manteiga", 0.018),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "File_mignon_bovino", 0.165),
+
+    # Brownie de chocolate
+    ("Brownie_de_chocolate", "Chocolate_meio_amargo", 0.040),
+    ("Brownie_de_chocolate", "Manteiga", 0.025),
+    ("Brownie_de_chocolate", "Ovos", 0.5),
+    ("Brownie_de_chocolate", "Nozes", 0.015),
+
+    # Dadinho de tapioca
+    ("Dadinho_de_tapioca", "Tapioca_granulada", 0.070),
+    ("Dadinho_de_tapioca", "Queijo_coalho", 0.035),
+
+    # Escondidinho de carne-seca com mandioca
+    ("Escondidinho_de_carne_seca_com_mandioca", "Carne_seca", 0.207),
+    ("Escondidinho_de_carne_seca_com_mandioca", "Mandioca_in_natura", 0.248),
+    ("Escondidinho_de_carne_seca_com_mandioca", "Queijo_mucarela", 0.074),
+
+    # Geleia de pimenta
+    ("Geleia_de_pimenta", "Geleia_de_pimenta", 0.022),
+
+    # Cheesecake de frutas vermelhas
+    ("Cheesecake_de_frutas_vermelhas", "Cream_cheese", 0.055),
+    ("Cheesecake_de_frutas_vermelhas", "Biscoito_base", 0.034),
+    ("Cheesecake_de_frutas_vermelhas", "Frutas_vermelhas_congeladas", 0.048),
+
+    # Ravioli de queijo ao molho bolonhesa
+    ("Ravioli_de_queijo_ao_molho_bolanhesa", "Ravioli_fresco_de_queijo", 0.286),
+    ("Ravioli_de_queijo_ao_molho_bolanhesa", "Carne_moida_de_primeira", 0.089),
+    ("Ravioli_de_queijo_ao_molho_bolanhesa", "Molho_de_tomate", 0.099),
+    ("Ravioli_de_queijo_ao_molho_bolanhesa", "Temperos", 0.010),
+    ("Ravioli_de_queijo_ao_molho_bolanhesa", "Parmesao_ralado", 0.011),
+
+    # Mousse de chocolate
+    ("Mousse_de_chocolate", "Chocolate_meio_amargo", 0.046),
+    ("Mousse_de_chocolate", "Creme_de_leite", 0.040),
+    ("Mousse_de_chocolate", "Ovos", 0.5),
+
+
+    # Sorvete
+    ("Sorvete", "Leite_condensado", 0.055),
+    ("Sorvete", "Creme_de_leite", 0.055),
+
+    # Pudim
+    ("Pudim_de_leite_condensado", "Leite_condensado", 0.110),
+    ("Pudim_de_leite_condensado", "Leite_integral", 0.110),
+    ("Pudim_de_leite_condensado", "Ovos", 1.1),
+
+    # Salgados
+    ("Coxinha", "Coxinha", 3.3),
+    ("Risole", "Risole", 3.3),
+    ("Quibe", "Quibe", 3.3),
+    ("Bolinha_de_queijo", "Bolinha_de_queijo", 3.3),
+    ("Empada", "Empada", 3.3),
+    ("Croquete", "Croquete", 3.3),
+
+    # Batata frita.
+    ("Batata_frita", "Batata", 0.220),
+    ("Batata_frita", "Oleo_para_fritura", 0.0055),
+    ("Batata_frita", "Sal", 0.0022),
+
+    # Mesa de salgados
+    ("Queijo", "Queijo_prato", 0.055),
+
+    # Embutidos: estimativa de 50 g por pessoa + 10%.
+    ("Embutido", "Salame", 0.055),
+
+    # Pão: estimativa de 2 mini pães por pessoa + 10%.
+    ("Pao", "Mini_paes", 2.2),
+
+    # Doces: estimativa de 2 unidades por pessoa + 10%.
+    ("Brigadeiro", "Brigadeiro", 2.2),
+    ("Beijinho", "Beijinho", 2.2),
+
+    # Bolo: estimativa de 100 g por pessoa + 10%.
+    ("Bolo", "Bolo_comum_simples", 0.110),
+
+    # Hambúrguer tradicional: quantidades do cardápio + 10%.
+    ("Hamburguer_tradicional", "Pao_brioche", 1.1),
+    ("Hamburguer_tradicional", "Carne_moida_blend_patinho_acem", 0.198),
+    ("Hamburguer_tradicional", "Queijo_cheddar", 0.022),
+    ("Hamburguer_tradicional", "Alface_americana", 0.0165),
+    ("Hamburguer_tradicional", "Tomate", 0.022),
+    ("Hamburguer_tradicional", "Cebola_caramelizada", 0.033),
+    ("Hamburguer_tradicional", "Maionese_temperada", 0.0165),
+    ("Hamburguer_tradicional", "Molho_barbecue", 0.0165),
+    ("Hamburguer_tradicional", "Manteiga", 0.0055),
+    ("Hamburguer_tradicional", "Batata", 0.220),
+    ("Hamburguer_tradicional", "Molho_mostarda_e_mel", 0.0165),
+    ("Hamburguer_tradicional", "Onion_rings", 0.110),
+
+    # Hambúrguer smash: quantidades do cardápio + 10%.
+    ("Hamburguer_smash", "Pao_brioche", 1.1),
+    ("Hamburguer_smash", "Carne_moida_blend_patinho_acem", 0.099),
+    ("Hamburguer_smash", "Queijo_prato", 0.0077),
+    ("Hamburguer_smash", "Queijo_cheddar", 0.022),
+    ("Hamburguer_smash", "Maionese_temperada", 0.0165),
+    ("Hamburguer_smash", "Manteiga", 0.0055),
+    ("Hamburguer_smash", "Cebola_caramelizada", 0.022),
+    ("Hamburguer_smash", "Batata", 0.220),
+    ("Hamburguer_smash", "Onion_rings", 0.110),
+
+    # Hambúrguer mega bacon
+    ("Hamburguer_mega_bacon", "Pao_brioche", 1.1),
+    ("Hamburguer_mega_bacon", "Carne_moida_blend_patinho_acem", 0.396),
+    ("Hamburguer_mega_bacon", "Bacon", 0.033),
+    ("Hamburguer_mega_bacon", "Queijo_cheddar", 0.088),
+    ("Hamburguer_mega_bacon", "Alface_americana", 0.0165),
+    ("Hamburguer_mega_bacon", "Cebola_caramelizada", 0.0385),
+    ("Hamburguer_mega_bacon", "Maionese_temperada", 0.022),
+    ("Hamburguer_mega_bacon", "Molho_barbecue", 0.0165),
+    ("Hamburguer_mega_bacon", "Manteiga", 0.0055),
+    ("Hamburguer_mega_bacon", "Batata", 0.220),
+    ("Hamburguer_mega_bacon", "Molho_mostarda_e_mel", 0.0165),
+    ("Hamburguer_mega_bacon", "Onion_rings", 0.110),
+
+    # Tortilha mexicana
+    ("Tortilha_mexicana", "Tortilla_de_milho", 3.3),
+    ("Tortilha_mexicana", "Carne_moida_de_primeira", 0.165),
+    ("Tortilha_mexicana", "Alface_americana", 0.033),
+    ("Tortilha_mexicana", "Tomate", 0.033),
+    ("Tortilha_mexicana", "Queijo_ralado", 0.033),
+    ("Tortilha_mexicana", "Nachos", 0.110),
+    ("Tortilha_mexicana", "Guacamole", 0.055),
+    ("Tortilha_mexicana", "Tortilla_de_trigo", 1.1),
+    ("Tortilha_mexicana", "Frango_desfiado", 0.088),
+    ("Tortilha_mexicana", "Pimentao", 0.022),
+
+    # Pastel de carne: estimativa de 3 unidades + 10%.
+    ("Pastel_de_carne", "Pastel_de_carne", 3.3),
+
+    # Bolinho de bacalhau: estimativa de 3 unidades + 10%.
+    ("Bolinho_de_bacalhau", "Bolinho_de_bacalhau", 3.3),
+
+    # Linguiça acebolada:
+    ("Liguica_acebolada", "Linguica_acebolada", 0.110),
+    ("Liguica_acebolada", "Cebola", 0.033),
+
+
+    #Pastel de queijo:
+
+    ("Pastel_de_queijo", "Pastel_de_queijo", 3.3),
+]
+
 
 # ================================= Inicialização ESTOQUE ================================= 
 
@@ -845,3 +1122,36 @@ def iniciar_cargos() -> list[NivelPermissao]:
         cargos.append(cargo)
         
     return cargos
+# ================================== Inicialização FICHA TECNICA ================================== 
+
+def iniciar_ficha_tecnica() -> list[FichaTecnica]:
+    """Inicializa todas as fichas técnicas padrão que não constam no banco no momento da inicialização.
+
+    Returns:
+        list[FichaTecnica]: todos os objetos FichaTecnica a serem inicializados.
+    """
+
+    fichas_tecnicas = []
+
+    for nome_prato, nome_ingrediente, qtd_necessaria in lista_ficha_tecnica:
+        prato = buscar_prato_por_nome(nome_prato)
+        ingrediente = buscar_ingrediente_por_nome(nome_ingrediente)
+
+        if not prato or not ingrediente:
+            continue
+
+        if db.session.get(
+            FichaTecnica,
+            (prato.id_prato, ingrediente.id_ingrediente)
+        ):
+            continue
+
+        ficha = FichaTecnica(
+            prato.id_prato,
+            ingrediente.id_ingrediente,
+            qtd_necessaria
+        )
+
+        fichas_tecnicas.append(ficha)
+
+    return fichas_tecnicas
