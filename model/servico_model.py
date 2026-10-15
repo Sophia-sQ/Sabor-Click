@@ -72,6 +72,17 @@ def buscar_bancada_por_id(id_bancada):
         return bancada
     return None
 
+def buscar_bancada_por_nome(nome_bancada) -> (Bancada | None):
+    """Busca por id."""
+    
+    bancada = db.session.execute(
+            db.select(Bancada).where(Bancada.nome == nome_bancada)
+    ).scalar_one_or_none()
+    
+    if bancada:
+        return bancada
+    return None
+
 def listar_bancadas():
     """Lista todas bancadas"""
     bancadas = db.session.execute(db.select(Bancada)).scalars().all()
@@ -123,11 +134,22 @@ def buscar_servico_por_id(id_servico):
         return servico
     return None
 
+def buscar_servico_por_nome(nome_servico) -> (Servico | None):
+    """Busca por id."""
+    
+    servico = db.session.execute(
+            db.select(Servico).where(Servico.nome == nome_servico)
+    ).scalar_one_or_none()
+    
+    if servico:
+        return servico
+    return None
+
 def buscar_servico_por_slug(slug_servico:str) -> (Servico | None):
     """Busca um servico pelo seu slug e retorna o servico, se existir."""
         
     servico = db.session.execute(
-        db.select(servico).where(Servico.slug == slug_servico)
+        db.select(Servico).where(Servico.slug == slug_servico)
     ).scalar_one_or_none()
     
     if servico:
@@ -183,6 +205,17 @@ def criar_cardapio(nome, descricao, preco_base):
 def buscar_cardapio_por_id(id_cardapio):
     '''busca cardapio'''
     cardapio = db.session.get(Cardapio, id_cardapio)
+    if cardapio:
+        return cardapio
+    return None
+
+def buscar_cardapio_por_nome(nome_cardapio) -> (Cardapio | None):
+    """Busca por id."""
+    
+    cardapio = db.session.execute(
+            db.select(Cardapio).where(Cardapio.nome == nome_cardapio)
+    ).scalar_one_or_none()
+    
     if cardapio:
         return cardapio
     return None

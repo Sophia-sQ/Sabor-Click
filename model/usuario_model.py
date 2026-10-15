@@ -75,6 +75,48 @@ def criar_cargo(id_permissao:int, nome:str):
     registrar_log("NOVO CARGO", f"Novo cargo {nome} criado.")
     return cargo
 
+def buscar_permissao_por_nome(nome_permissao: str) -> (NivelPermissao | None):
+    """Procura uma permissão no banco de dado de nome equivalente.
+
+    Args:
+        nome_permissao (str): nome da permissão alvo.
+
+    Returns:
+        NivelPermissao: Instância da tabela NivelPermissao.
+    """
+    
+    permissao = db.session.execute(
+        db.session.select(NivelPermissao).where(NivelPermissao.nome == nome_permissao.lower())
+    ).scalar_one_or_none()
+
+    if permissao:
+        return permissao
+    return None
+
+def atualizar_permissao(id_cargo: int, nome: str) -> (NivelPermissao | None):
+    """Procura uma permissão no banco de dado de nome equivalente.
+
+    Args:
+        nome_permissao (str): nome da permissão alvo.
+
+    Returns:
+        NivelPermissao: Instância da tabela NivelPermissao.
+    """
+    
+    cargo=db.session.get(NivelPermissao, id_cargo)
+    if not cargo:
+        return None
+    
+    if nome:
+        cargo_conflitante=buscar_permissao_por_nome(nome)
+        cargo.nome, cargo_conflitante.nome = nome, cargo.nome
+        
+    db.session.commit()
+    registrar_log("ATUALIZACAO", f"Cargo {id_cargo} atualizado.")        
+    return cargo
+
+
+
 def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    """Cria novo usuario."""
    
