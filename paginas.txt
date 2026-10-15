@@ -5,6 +5,7 @@ cadastro
 home page
 500 (será a página de erros inesperados usada como padrão)
 validação de codigo de login
+admin (o painel de controle)
 
 
 ========== nomes que devem estar nos formulários ==========

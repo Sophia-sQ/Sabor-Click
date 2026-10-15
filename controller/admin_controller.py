@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, session
+from flask import Blueprint, request, render_template, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash
 
 from model.usuario_model import criar_usuario
@@ -19,27 +19,16 @@ from model.servico_model import (
     deletar_cardapio as deletar_cardapio_model,
 )
 
+from re import fullmatch, match
+from auth_controller import validar_senha_forte
+
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
-# =========================
-# CADASTRAR FUNCIONÁRIO
-# =========================
 
-@admin_bp.route("/cadastro", methods=("POST",))
-def cadastro():
-    "adiciona um novo usuario funcionário."
 
-    nome=request.form.get("nome", "").strip()
-    cpf=request.form.get("cpf", "").strip()
-    telefone=request.form.get("telefone", "").strip()
-    email=request.form.get("email", "").strip()
-    senha=request.form.get("senha", "")
-    
-    criar_usuario(cpf, nome, email, senha, Cargo.CHEFE.value)
-    
-    return render_template("""TODO: colocar pagina de cadastro do admin""")
+# ========================= PAINEL ADM =========================
 
-@admin_bp.route("/", methods=("GET",))
+@admin_bp.route("", methods=("GET",))
 def home():
     """Exibe o painel inicial administrativo."""
 
@@ -49,7 +38,7 @@ def home():
     lotes = listar_lotes() or []
 
     # Parâmetro de pesquisa enviado pela URL.
-    busca = request.args.get("busca", "").strip().casefold() # TODO: criar formulário no HTML com name="busca".
+    busca = request.args.get("busca", "").strip().casefold()
 
     # Identifica ingredientes que atingiram ou ficaram abaixo
     # da quantidade mínima configurada.
@@ -87,8 +76,9 @@ def home():
             or busca in str(ingrediente.id_ingrediente)
         ]
 
+
     return render_template(
-        "admin/home.html",
+        "", # TODO: fazer um admin.html
         busca=busca,
         pratos=pratos,
         ingredientes=ingredientes,
@@ -96,11 +86,44 @@ def home():
         ingredientes_baixo_estoque=ingredientes_baixo_estoque,
     )
 
+# ========================= CADASTRAR FUNCIONÁRIO =========================
 
+@admin_bp.route("/cadastro", methods=("POST",))
+def cadastro():
+    "adiciona um novo usuario funcionário."
 
-# =========================
-# ATUALIZAR SERVIÇO
-# =========================
+    nome=request.form.get("nome", "").strip()
+    cpf=request.form.get("cpf", "").strip()
+    email=request.form.get("email", "").strip()
+    senha=request.form.get("senha", "")
+
+    # estabelece qual o formato de um email válido
+    regex=r"^['A-Za-z0-9._%+-']+@[A-Za-z0-9.-]+\.['A-Za-z']{2,}$"
+    
+    tipo_login=request.form.get("tipo_login", "")
+    credencial=request.form.get("credencial", "").strip()
+    senha=request.form.get("senha", "")
+
+    # validação de email, cpf e senha com variáveis booleanas
+    if tipo_login=='email':
+        email_invalido = (tipo_login == 'email' and not fullmatch(regex, credencial))
+    elif tipo_login=='cpf':
+        cpf = credencial.replace(".", "").replace("-", "")
+        cpf_invalido = (tipo_login == 'cpf' and (len(cpf) != 11 or not cpf.isdigit()))
+
+    senha_invalida = not validar_senha_forte(senha)
+
+    if email_invalido or cpf_invalido or senha_invalida:  
+        flash(f"{tipo_login} ou senha inválidos.", 'danger')
+        return redirect(url_for('')) # TODO: fazer um admin.html
+        
+    
+    criar_usuario(cpf, nome, email, senha, Cargo.CHEFE.value)
+
+    flash("novo funcionaria cadastrado", "success")
+    return render_template('')# TODO: colocar pagina de cadastro de funcionário
+
+# ========================= ATUALIZAR SERVIÇO =========================
 
 @admin_bp.route("/atualizar_servico/<int:id_servico>", methods=("POST",))
 def atualizar_servico(id_servico):
@@ -108,7 +131,9 @@ def atualizar_servico(id_servico):
     descricao = request.form.get("descricao", "").strip()
 
     if not nome or not descricao:
-        return "Nome e descrição são obrigatórios.", 400
+       flash("Falha ao tentar deletar o serviço", "danger")
+       return redirect(url_for('')) # TODO: fazer um admin.html
+
 
     sucesso = atualizar_servico_model(
         id_servico=id_servico,
@@ -118,14 +143,13 @@ def atualizar_servico(id_servico):
     )
 
     if not sucesso:
-        return "Serviço não encontrado.", 404
+       flash("Falha ao tentar atualizar o serviço", "danger")
+       return redirect(url_for('')) # TODO: fazer um admin.html
 
-    return redirect(url_for("admin.home"))
+    flash("Serviço atualizado.", "success")
+    return redirect(url_for('')) # TODO: fazer um admin.html
 
-
-# =========================
-# DELETAR SERVIÇO
-# =========================
+# ========================= DELETAR SERVIÇO =========================
 
 @admin_bp.route("/deletar_servico/<int:id_servico>", methods=("POST",))
 def deletar_servico(id_servico):
@@ -135,14 +159,12 @@ def deletar_servico(id_servico):
     )
 
     if not sucesso:
-        return "Serviço não encontrado.", 404
+        flash("Falha ao tentar deletar o serviço", "danger")
 
-    return redirect(url_for("admin.home"))
+    flash("Serviço deletado.", "success")
+    return redirect(url_for('')) # TODO: fazer um admin.html
 
-
-# =========================
-# CRIAR CARDÁPIO
-# =========================
+# ========================= CRIAR CARDÁPIO =========================
 
 @admin_bp.route("/criar_cardapio", methods=("POST",))
 def criar_cardapio():
@@ -151,15 +173,15 @@ def criar_cardapio():
     preco_texto = request.form.get("preco_base", "").strip()
 
     if not nome or not descricao or not preco_texto:
-        return "Preencha todos os campos.", 400
+        flash("Preencha todos os campos", "danger")
 
     try:
         preco_base = Decimal(preco_texto.replace(",", "."))
     except InvalidOperation:
-        return "Preço inválido.", 400
+        flash("Preço inválido.", "danger")
 
     if not preco_base.is_finite() or preco_base < 0:
-        return "O preço deve ser válido e não negativo.", 400
+        flash("O preço deve ser válido e não negativo.", "danger")
 
     criar_cardapio_model(
         nome=nome,
@@ -168,12 +190,12 @@ def criar_cardapio():
         id_usuario=session.get("id"),
     )
 
-    return redirect(url_for("admin.home"))
+    flash("Cardápio criado.", "success")
+    return redirect(url_for('')) # TODO: fazer um admin.html
 
 
-# =========================
-# ATUALIZAR CARDÁPIO
-# =========================
+# ========================= ATUALIZAR CARDÁPIO =========================
+
 
 @admin_bp.route(
     "/atualizar_cardapio/<int:id_cardapio>",
@@ -185,15 +207,15 @@ def atualizar_cardapio(id_cardapio):
     preco_texto = request.form.get("preco_base", "").strip()
 
     if not nome or not descricao or not preco_texto:
-        return "Preencha todos os campos.", 400
+        flash("Preencha todos os campos.", "danger")
 
     try:
         preco_base = Decimal(preco_texto.replace(",", "."))
     except InvalidOperation:
-        return "Preço inválido.", 400
+        flash("Preço inválido.", "danger")
 
     if not preco_base.is_finite() or preco_base < 0:
-        return "O preço deve ser válido e não negativo.", 400
+        flash("O preço deve ser válido e não negativo.", "danger")
 
     sucesso = atualizar_cardapio_model(
         id_cardapio=id_cardapio,
@@ -204,14 +226,12 @@ def atualizar_cardapio(id_cardapio):
     )
 
     if not sucesso:
-        return "Cardápio não encontrado.", 404
+        flash("Cardápio não encontrado.", "danger")
 
-    return redirect(url_for("admin.home"))
+    flash("Cardápio atualizado.", "success")
+    return redirect(url_for('')) # TODO: fazer um admin.html
 
-
-# =========================
-# DELETAR CARDÁPIO
-# =========================
+# ========================= DELETAR CARDÁPIO =========================
 
 @admin_bp.route(
     "/deletar_cardapio/<int:id_cardapio>",
@@ -224,7 +244,7 @@ def deletar_cardapio(id_cardapio):
     )
 
     if not sucesso:
-        return "Cardápio não encontrado.", 404
+        flash("Cardápio não encontrado.", "danger")
 
-    return redirect(url_for("admin.home"))
-
+    flash("Cardápio deletado.", "success")
+    return redirect(url_for('')) # TODO: fazer um admin.html
