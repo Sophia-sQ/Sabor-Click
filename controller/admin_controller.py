@@ -49,7 +49,7 @@ def home():
     lotes = listar_lotes() or []
 
     # Parâmetro de pesquisa enviado pela URL.
-    busca = request.args.get("busca", "").strip().casefold()
+    busca = request.args.get("busca", "").strip().casefold() # TODO: criar formulário no HTML com name="busca".
 
     # Identifica ingredientes que atingiram ou ficaram abaixo
     # da quantidade mínima configurada.
