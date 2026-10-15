@@ -27,7 +27,9 @@ from model.usuario_model import NivelPermissao
 from model.usuario_model import buscar_permissao_por_nome, atualizar_permissao
 from model.ficha_model import FichaTecnica
 
-__all__ = ["iniciar_bancadas", "iniciar_servicos", "iniciar_cardapios", "iniciar_pratos", "iniciar_ingredientes", "iniciar_lotes", "iniciar_cargos"]
+__all__ = ["iniciar_bancadas", "iniciar_servicos", "iniciar_cardapios", 
+           "iniciar_pratos", "iniciar_ingredientes", "iniciar_lotes", 
+           "iniciar_cargos", "iniciar_ficha_tecnica"]
 
 # ================================= "Tabelas" ESTOQUE =================================
 
@@ -82,58 +84,58 @@ lista_cardapios = [
 ]
 
 lista_pratos = [
-    ("Mandioca_frita", "Pedacos de mandioca frita em oleo", "entrada", 40, True) #requer-preparo, pois tem que levar ela cozida e fritar no local
-    ("Tabua_de_frios", "Tabua contendo aperitivos: Salame, queijo, azeitona", "entrada", 15, False)
-    ("Feijoada_completa", "Feijoada", "prato principal", 120, True)
-    ("Arroz_branco", "Arroz cozido", "acompanhamento", 20, False)
-    ("Couve_refogada", "Couve picada refogada", "acompanhamento", 10, False) # A colve comprada é picada ja
-    ("Farofa", "Farofa comprada", "acompanhamento", 0, False)
-    ("Vinagrete", "Vinagrete completo: Ceblo, tomate, pimentao,cebolinha,vinagre", "acompanhamento", 15, True) #Levar cortado as coisas, e temperar no local
-    ("Molho_de_pimenta", "Molho de pimenta pronto", "acompanhamento", 0, False)
-    ("Sorvete", "Sorvete comprado de maracuja e limao", "sobremesa", 0, False)
-    ("Salada_fresca", "Salada de folhas hidroponicas e tomate cereja", "entrada", 5, True) #Lavar antes
-    ("Bobo_de_camarao", "Bobo de camarao completo", "prato principal", 120, True)
-    ("Salada_de_fruta_fresca_com_creme", "Salada de frutas com creme de leite e leite condensado", "sobremesa", 0, False)
-    ("Bruschetta", "Bruscretta de pao italiano, tomate e manjericao", "entrada", 5, False)
-    ("File_de_tilapia", "File de tilapia grelhado", "prato principal", 30, True) #Limpar o file de tilapia
-    ("Molho_de_mateiga_com_alcaparras", "Molho de acompanhamento de manteiga e alcaparras", "Acomapanhamento", 10, False)
-    ("Iorgute_Natural_com_morangos_e_mel", "Iorgute com pedacos de fruta e adocado com mel", "sobremesa", 5, False)
-    ("Salada_ceaser", "Salada de alface, croutons e molho caesar", "entrada", 20, False)
-    ("Stogonoff_de_file_mignon", "Strogonoff cremoso de filé mignon", "prato principal", 120, True)
-    ("Batata_palha", "Batata palha crocante pronta", "acompanhamento", 0, False)
-    ("Pudim_de_leite_condensado", "Pudim de leite tradicional com calda de caramelo", "sobremesa", 120, True)
-    ("Nhoque_ao_molho", "Nhoque de batata ao molho de tomate", "prato principal", 120, True)
-    ("Mousse_de_maracuja", "Mousse leve e aerada de maracujá", "sobremesa", 40, True)
-    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Risoto cremoso de cogumelos acompanhado de filé mignon", "prato principal", 60, True)
-    ("Brownie_de_chocolate", "Brownie caseiro de chocolate denso", "sobremesa", 60, True)
-    ("Dadinho_de_tapioca", "Dadinhos de tapioca com queijo coalho fritos", "entrada", 40, True)
-    ("Escondidinho_de_carne_seca_com_mandioca", "Escondidinho de carne seca com purê de mandioca", "prato principal", 180, True)
-    ("Geleia_de_pimenta", "Geia doce e levemente picante de pimenta", "acompanhamento", 0, False)
-    ("Cheesecake_de_frutas_vermelhas", "Cheesecake assado com calda de frutas vermelhas", "sobremesa", 60, True)
-    ("Ravioli_de_queijo_ao_molho_bolanhesa", "Ravioli recheado com queijo ao molho bolonhesa", "prato principal", 120, True)
-    ("Parmesao_ralado", "Queijo parmesão ralado fino", "acompanhamento", 0, False)
-    ("Mousse_de_chocolate", "Mousse cremosa de chocolate meio amargo", "sobremesa", 40, True)
-    ("Coxinha", "Salgado frito recheado com frango desfiado", "prato principal", 6, False)
-    ("Risole", "Salgado frito em formato de meia-lua recheado", "prato principal", 6, False)
-    ("Quibe", "Salgado de carne moída com trigo para quibe", "prato principal", 6, False)
-    ("Bolinha_de_queijo", "Salgadinho frito recheado com queijo", "prato principal", 6, False)
-    ("Empada", "Empada de massa podre recheada", "prato principal", 15, False)
-    ("Croquete", "Croquete frito de carne temperada", "prato principal", 10, False)
-    ("Batata_frita", "Porção de batata frita crocante", "prato principal", 15, False)
-    ("Queijo", "Fatias ou cubos de queijo variados", "prato principal", 0, False)
-    ("Embutido", "Porção de embutidos fatiados", "prato principal", 0, False)
-    ("Pao", "Cesta de pães frescos fatiados", "prato principal", 0, False)
-    ("Brigadeiro", "Docinho tradicional de chocolate com granulado", "prato principal", 30, True)
-    ("Beijinho", "Docinho tradicional de coco com cravo", "prato principal", 30, True)
-    ("Bolo", "Bolo caseiro fofinho", "prato principal", 240, True)
-    ("Hamburguer_tradicional", "Hambúrguer artesanal de carne bovina", "prato principal", 25, False)
-    ("Hamburguer_smash", "Hambúrguer prensado na chapa crocante", "prato principal", 25, False)
-    ("Hamburguer_mega_bacon", "Hambúrguer de carne com extra de bacon crocante", "prato principal", 25, False)
-    ("Tortilha_mexicana", "Tortilha recheada estilo mexicana", "prato principal", 30, False)
-    ("Pastel_de_carne", "Pastel frito recheado com carne moída temperada", "prato principal", 6, False)
-    ("Bolinho_de_bacalhau", "Bolinho tradicional de bacalhau e batata", "prato principal", 6, False)
-    ("Liguica_acebolada", "Porção de linguiça frita com cebola", "prato principal", 10, False)
-    ("Pastel_de_queijo", "Pastel frito recheado com queijo derretido", "prato principal", 6, False)
+    ("Mandioca_frita", "Pedacos de mandioca frita em oleo", "entrada", 40, True) #requer-preparo, pois tem que levar ela cozida e fritar no local,
+    ("Tabua_de_frios", "Tabua contendo aperitivos: Salame, queijo, azeitona", "entrada", 15, False),
+    ("Feijoada_completa", "Feijoada", "prato principal", 120, True),
+    ("Arroz_branco", "Arroz cozido", "acompanhamento", 20, False),
+    ("Couve_refogada", "Couve picada refogada", "acompanhamento", 10, False) # A colve comprada é picada ja,
+    ("Farofa", "Farofa comprada", "acompanhamento", 0, False),
+    ("Vinagrete", "Vinagrete completo: Ceblo, tomate, pimentao,cebolinha,vinagre", "acompanhamento", 15, True) #Levar cortado as coisas, e temperar no local,
+    ("Molho_de_pimenta", "Molho de pimenta pronto", "acompanhamento", 0, False),
+    ("Sorvete", "Sorvete comprado de maracuja e limao", "sobremesa", 0, False),
+    ("Salada_fresca", "Salada de folhas hidroponicas e tomate cereja", "entrada", 5, True) #Lavar antes,
+    ("Bobo_de_camarao", "Bobo de camarao completo", "prato principal", 120, True),
+    ("Salada_de_fruta_fresca_com_creme", "Salada de frutas com creme de leite e leite condensado", "sobremesa", 0, False),
+    ("Bruschetta", "Bruscretta de pao italiano, tomate e manjericao", "entrada", 5, False),
+    ("File_de_tilapia", "File de tilapia grelhado", "prato principal", 30, True) #Limpar o file de tilapia,
+    ("Molho_de_mateiga_com_alcaparras", "Molho de acompanhamento de manteiga e alcaparras", "Acomapanhamento", 10, False),
+    ("Iorgute_Natural_com_morangos_e_mel", "Iorgute com pedacos de fruta e adocado com mel", "sobremesa", 5, False),
+    ("Salada_ceaser", "Salada de alface, croutons e molho caesar", "entrada", 20, False),
+    ("Stogonoff_de_file_mignon", "Strogonoff cremoso de filé mignon", "prato principal", 120, True),
+    ("Batata_palha", "Batata palha crocante pronta", "acompanhamento", 0, False),
+    ("Pudim_de_leite_condensado", "Pudim de leite tradicional com calda de caramelo", "sobremesa", 120, True),
+    ("Nhoque_ao_molho", "Nhoque de batata ao molho de tomate", "prato principal", 120, True),
+    ("Mousse_de_maracuja", "Mousse leve e aerada de maracujá", "sobremesa", 40, True),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Risoto cremoso de cogumelos acompanhado de filé mignon", "prato principal", 60, True),
+    ("Brownie_de_chocolate", "Brownie caseiro de chocolate denso", "sobremesa", 60, True),
+    ("Dadinho_de_tapioca", "Dadinhos de tapioca com queijo coalho fritos", "entrada", 40, True),
+    ("Escondidinho_de_carne_seca_com_mandioca", "Escondidinho de carne seca com purê de mandioca", "prato principal", 180, True),
+    ("Geleia_de_pimenta", "Geia doce e levemente picante de pimenta", "acompanhamento", 0, False),
+    ("Cheesecake_de_frutas_vermelhas", "Cheesecake assado com calda de frutas vermelhas", "sobremesa", 60, True),
+    ("Ravioli_de_queijo_ao_molho_bolanhesa", "Ravioli recheado com queijo ao molho bolonhesa", "prato principal", 120, True),
+    ("Parmesao_ralado", "Queijo parmesão ralado fino", "acompanhamento", 0, False),
+    ("Mousse_de_chocolate", "Mousse cremosa de chocolate meio amargo", "sobremesa", 40, True),
+    ("Coxinha", "Salgado frito recheado com frango desfiado", "prato principal", 6, False),
+    ("Risole", "Salgado frito em formato de meia-lua recheado", "prato principal", 6, False),
+    ("Quibe", "Salgado de carne moída com trigo para quibe", "prato principal", 6, False),
+    ("Bolinha_de_queijo", "Salgadinho frito recheado com queijo", "prato principal", 6, False),
+    ("Empada", "Empada de massa podre recheada", "prato principal", 15, False),
+    ("Croquete", "Croquete frito de carne temperada", "prato principal", 10, False),
+    ("Batata_frita", "Porção de batata frita crocante", "prato principal", 15, False),
+    ("Queijo", "Fatias ou cubos de queijo variados", "prato principal", 0, False),
+    ("Embutido", "Porção de embutidos fatiados", "prato principal", 0, False),
+    ("Pao", "Cesta de pães frescos fatiados", "prato principal", 0, False),
+    ("Brigadeiro", "Docinho tradicional de chocolate com granulado", "prato principal", 30, True),
+    ("Beijinho", "Docinho tradicional de coco com cravo", "prato principal", 30, True),
+    ("Bolo", "Bolo caseiro fofinho", "prato principal", 240, True),
+    ("Hamburguer_tradicional", "Hambúrguer artesanal de carne bovina", "prato principal", 25, False),
+    ("Hamburguer_smash", "Hambúrguer prensado na chapa crocante", "prato principal", 25, False),
+    ("Hamburguer_mega_bacon", "Hambúrguer de carne com extra de bacon crocante", "prato principal", 25, False),
+    ("Tortilha_mexicana", "Tortilha recheada estilo mexicana", "prato principal", 30, False),
+    ("Pastel_de_carne", "Pastel frito recheado com carne moída temperada", "prato principal", 6, False),
+    ("Bolinho_de_bacalhau", "Bolinho tradicional de bacalhau e batata", "prato principal", 6, False),
+    ("Liguica_acebolada", "Porção de linguiça frita com cebola", "prato principal", 10, False),
+    ("Pastel_de_queijo", "Pastel frito recheado com queijo derretido", "prato principal", 6, False),
 ]
 
 ingredientes_carnes = [

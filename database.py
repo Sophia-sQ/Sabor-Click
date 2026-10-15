@@ -72,6 +72,9 @@ def criar_estoque():
     # CRIAÇÃO DE LOTES
     lotes = iniciar_lotes()
     db.session.add_all(lotes)
+    
+    fichas_tecnicas = iniciar_ficha_tecnica()
+    db.session.add_all(fichas_tecnicas)
 
     # Inicializa o banco
 
