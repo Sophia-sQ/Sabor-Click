@@ -139,168 +139,169 @@ lista_pratos = [
 ]
 
 ingredientes_carnes = [
-    ("Pe_de_porco", "kg", 10.0, 3.0),
-    ("Rabo_de_porco", "kg", 5.0, 1.5),
-    ("Costelinha_suina_defumada", "kg", 8.0, 2.0),
-    ("Bacon", "kg", 5.0, 1.0),
-    ("Linguica_calabresa", "kg", 8.0, 2.0),
-    ("Linguica_acebolada", "kg", 5.0, 1.0),
-    ("Lombo_de_porco", "kg", 8.0, 2.0),
-    ("Carne_seca", "kg", 8.0, 2.0),
-    ("Camarao_medio_limpo", "kg", 5.0, 1.0),
-    ("File_de_tilapia", "kg", 8.0, 2.0),
-    ("File_mignon_bovino", "kg", 8.0, 2.0),
-    ("Carne_moida_de_primeira", "kg", 10.0, 3.0),
-    ("Carne_moida_blend_patinho_acem", "kg", 8.0, 2.0),
-    ("Frango_grelhado", "kg", 8.0, 2.0),
-    ("Frango_desfiado", "kg", 5.0, 1.0),
-    ("Presunto", "kg", 3.0, 0.5),
-    ("Bolinho_de_bacalhau", "kg", 5.0, 1.0),
-    ("Salame", "Kg", 10.0, 3.0)
+        ('Pe_de_porco', 'g', 30, 9)
+        ('Rabo_de_porco', 'g', 15, 4)
+        ('Costelinha_suina_defumada', 'g', 24, 6)
+        ('Bacon', 'g', 15, 3)
+        ('Linguica_calabresa', 'g', 24, 6)
+        ('Linguica_acebolada', 'g', 15, 3)
+        ('Lombo_de_porco', 'g', 24, 6)
+        ('Carne_seca', 'g', 24, 6)
+        ('Camarao_medio_limpo', 'g', 15, 3)
+        ('File_de_tilapia', 'g', 24, 6)
+        ('File_mignon_bovino', 'g', 24, 6)
+        ('Carne_moida_de_primeira', 'g', 30, 9)
+        ('Carne_moida_blend_patinho_acem', 'g', 24, 6)
+        ('Frango_grelhado', 'g', 24, 6)
+        ('Frango_desfiado', 'g', 15, 3)
+        ('Presunto', 'g', 9, 1)
+        ('Bolinho_de_bacalhau', 'g', 15, 3)
+        ('Salame', 'Kg', 10.0, 3.0)
 ]
 
 ingredientes_carboidratos = [
-    ("Feijao_preto", "kg", 15.0, 4.0),
-    ("Arroz_branco", "kg", 20.0, 5.0),
-    ("Arroz_arborio", "kg", 8.0, 2.0),
-    ("Mandioca_in_natura", "kg", 10.0, 3.0),
-    ("Farinha_de_mandioca", "kg", 8.0, 2.0),
-    ("Batata", "kg", 20.0, 5.0),
-    ("Batata_palha", "kg", 5.0, 1.0),
-    ("Nhoque_de_batata_pronto", "kg", 5.0, 1.0),
-    ("Ravioli_fresco_de_queijo", "kg", 5.0, 1.0),
-    ("Pao_italiano", "Kg", 20.0, 5.0),
-    ("Pao_brioche", "unidade", 30.0, 8.0),
-    ("Pao_de_forma", "pacote", 10.0, 2.0),
-    ("Mini_paes", "unidade", 100.0, 25.0),
-    ("Tortilla_de_milho", "unidade", 50.0, 10.0),
-    ("Tortilla_de_trigo", "unidade", 50.0, 10.0),
-    ("Tapioca_granulada", "kg", 5.0, 1.0),
-    ("Nachos", "kg", 5.0, 1.0),
-    ("Biscoito_base","Kg", 15.0, 3.0),
-    ("Coxinha", "unidade", 100.0, 25.0),
-    ("Risole", "unidade", 100.0, 25.0),
-    ("Quibe", "unidade", 100.0, 25.0),
-    ("Croquete", "unidade", 100.0, 25.0),
-    ("Empada", "unidade", 100.0, 25.0),
-    ("Bolinha_de_queijo", "unidade", 100.0, 25.0),
-    ("Pastel_de_carne", "unidade", 100.0, 25.0),
-    ("Pastel_de_queijo", "unidade", 100.0,25.0)
+        ('Feijao_preto', 'g', 45, 12)
+        ('Arroz_branco', 'g', 60, 15)
+        ('Arroz_arborio', 'g', 24, 6)
+        ('Mandioca_in_natura', 'g', 30, 9)
+        ('Farinha_de_mandioca', 'g', 24, 6)
+        ('Batata', 'g', 60, 15)
+        ('Batata_palha', 'g', 15, 3)
+        ('Nhoque_de_batata_pronto', 'g', 15, 3)
+        ('Ravioli_fresco_de_queijo', 'g', 15, 3)
+        ('Pao_italiano', 'Kg', 20.0, 5.0)
+        ('Pao_brioche', 'unidade', 30, 8)
+        ('Pao_de_forma', 'pacote', 10.0, 2.0)
+        ('Mini_paes', 'unidade', 100, 25)
+        ('Tortilla_de_milho', 'unidade', 50, 10)
+        ('Tortilla_de_trigo', 'unidade', 50, 10)
+        ('Tapioca_granulada', 'g', 15, 3)
+        ('Nachos', 'g', 15, 3)
+        ('Biscoito_base', 'Kg', 15.0, 3.0)
+        ('Coxinha', 'unidade', 100, 25)
+        ('Risole', 'unidade', 100, 25)
+        ('Quibe', 'unidade', 100, 25)
+        ('Croquete', 'unidade', 100, 25)
+        ('Empada', 'unidade', 100, 25)
+        ('Bolinha_de_queijo', 'unidade', 100, 25)
+        ('Pastel_de_carne', 'unidade', 100, 25)
+        ('Pastel_de_queijo', 'unidade', 100, 25)
 ]
 
 ingredientes_laticinios = [
-    ("Manteiga", "kg", 5.0, 1.0),
-    ("Queijo_mucarela", "kg", 8.0, 2.0),
-    ("Queijo_prato", "kg", 5.0, 1.0),
-    ("Queijo_cheddar", "kg", 4.0, 1.0),
-    ("Queijo_coalho", "kg", 5.0, 1.0),
-    ("Queijo_ralado", "kg", 2.0, 0.5),
-    ("Parmesao_ralado", "kg", 3.0, 0.5),
-    ("Creme_de_leite", "L", 8.0, 2.0),
-    ("Leite_condensado", "L", 8.0, 2.0),
-    ("Leite_integral", "L", 15.0, 4.0),
-    ("Leite_de_coco", "L", 5.0, 1.0),
-    ("Iogurte_natural", "L", 5.0, 1.0),
-    ("Cream_cheese", "kg", 4.0, 1.0),
-    ("Ovos", "unidade", 180.0, 36.0),
+        ('Manteiga', 'g', 15, 3)
+        ('Queijo_mucarela', 'g', 24, 6)
+        ('Queijo_prato', 'g', 15, 3)
+        ('Queijo_cheddar', 'g', 12, 3)
+        ('Queijo_coalho', 'g', 15, 3)
+        ('Queijo_ralado', 'g', 6, 1)
+        ('Parmesao_ralado', 'g', 9, 1)
+        ('Creme_de_leite', 'mL', 24, 6)
+        ('Leite_condensado', 'mL', 24, 6)
+        ('Leite_integral', 'mL', 45, 12)
+        ('Leite_de_coco', 'mL', 15, 3)
+        ('Iogurte_natural', 'mL', 15, 3)
+        ('Cream_cheese', 'g', 12, 3)
+        ('Ovos', 'unidade', 180, 36)
 ]
 
 ingredientes_vegetais = [
-    ("Folhas_hidroponicas", "kg", 3.0, 0.8),
-    ("Folhas_variadas", "kg", 3.0, 0.8),
-    ("Alface_romana", "unidade", 20.0, 5.0),
-    ("Alface_americana", "unidade", 20.0, 5.0),
-    ("Couve_manteiga", "kg", 3.0, 0.8),
-    ("Tomate", "kg", 10.0, 2.0),
-    ("Tomate_cereja", "kg", 4.0, 1.0),
-    ("Cebola", "kg", 10.0, 2.0),
-    ("Cebola_caramelizada", "kg", 3.0, 0.5),
-    ("Pimentao", "kg", 4.0, 1.0),
-    ("Cebolinha", "kg", 1.0, 0.2),
-    ("Alho", "kg", 3.0, 0.5),
-    ("Manjericao", "kg", 0.5, 0.1),
-    ("Salsinha", "kg", 1.0, 0.2),
-    ("Limao", "kg", 8.0, 2.0),
-    ("Laranja", "kg", 8.0, 2.0),
-    ("Cogumelos_frescos", "kg", 3.0, 0.5),
-    ("Champignon", "kg", 3.0, 0.5),
-    ("Morango_fresco", "kg", 5.0, 1.0),
-    ("Frutas_frescas_in_natura", "kg", 10.0, 2.0),
-    ("Frutas_vermelhas_congeladas", "kg", 4.0, 1.0),
-    ("Nozes", "kg", 2.0, 0.5),
+        ('Folhas_hidroponicas', 'g', 9, 2)
+        ('Folhas_variadas', 'g', 9, 2)
+        ('Alface_romana', 'unidade', 20, 5)
+        ('Alface_americana', 'unidade', 20, 5)
+        ('Couve_manteiga', 'g', 9, 2)
+        ('Tomate', 'g', 30, 6)
+        ('Tomate_cereja', 'g', 12, 3)
+        ('Cebola', 'g', 30, 6)
+        ('Cebola_caramelizada', 'g', 9, 1)
+        ('Pimentao', 'g', 12, 3)
+        ('Cebolinha', 'g', 3, 0)
+        ('Alho', 'g', 9, 1)
+        ('Manjericao', 'g', 1, 0)
+        ('Salsinha', 'g', 3, 0)
+        ('Limao', 'g', 24, 6)
+        ('Laranja', 'g', 24, 6)
+        ('Cogumelos_frescos', 'g', 9, 1)
+        ('Champignon', 'g', 9, 1)
+        ('Morango_fresco', 'g', 15, 3)
+        ('Frutas_frescas_in_natura', 'g', 30, 6)
+        ('Frutas_vermelhas_congeladas', 'g', 12, 3)
+        ('Nozes', 'g', 6, 1)
 ]
 
 ingredientes_temperos = [
-    ("Oleo_de_soja", "L", 10.0, 2.0),
-    ("Oleo_para_fritura", "L", 20.0, 5.0),
-    ("Sal", "kg", 8.0, 2.0),
-    ("Temperos", "kg", 3.0, 0.5),
-    ("Vinagre", "L", 5.0, 1.0),
-    ("Azeite", "L", 5.0, 1.0),
-    ("Azeite_de_dende", "L", 3.0, 0.5),
-    ("Molho_de_pimenta", "L", 2.0, 0.5),
-    ("Geleia_de_pimenta", "kg", 3.0, 0.5),
-    ("Alcaparras", "kg", 1.0, 0.2),
-    ("Molho_de_tomate", "L", 8.0, 2.0),
-    ("Catchup", "L", 5.0, 1.0),
-    ("Mostarda", "L", 3.0, 0.5),
-    ("Molho_mostarda_e_mel", "L", 3.0, 0.5),
-    ("Molho_Caesar", "L", 3.0, 0.5),
-    ("Croutons", "kg", 2.0, 0.5),
-    ("Maionese_temperada", "L", 5.0, 1.0),
-    ("Molho_barbecue", "L", 3.0, 0.5),
-    ("Vinho_branco", "L", 5.0, 1.0),
-    ("Guacamole", "kg", 3.0, 0.5),
-    ("Gelatina", "kg", 3.0, 0.5),
-    ("Chocolate_meio_amargo", "kg", 5.0, 1.0),
-    ("Mel", "kg", 3.0, 0.5),
-    ("Azeitona", "kg", 3.0, 0.5),
+        ('Oleo_de_soja', 'mL', 30, 6)
+        ('Oleo_para_fritura', 'mL', 60, 15)
+        ('Sal', 'g', 24, 6)
+        ('Acucar', 'g', 24, 6)
+        ('Temperos', 'g', 9, 1)
+        ('Vinagre', 'mL', 15, 3)
+        ('Azeite', 'mL', 15, 3)
+        ('Azeite_de_dende', 'mL', 9, 1)
+        ('Molho_de_pimenta', 'mL', 6, 1)
+        ('Geleia_de_pimenta', 'g', 9, 1)
+        ('Alcaparras', 'g', 3, 0)
+        ('Molho_de_tomate', 'mL', 24, 6)
+        ('Catchup', 'mL', 15, 3)
+        ('Mostarda', 'mL', 9, 1)
+        ('Molho_mostarda_e_mel', 'mL', 9, 1)
+        ('Molho_Caesar', 'mL', 9, 1)
+        ('Croutons', 'g', 6, 1)
+        ('Maionese_temperada', 'mL', 15, 3)
+        ('Molho_barbecue', 'mL', 9, 1)
+        ('Vinho_branco', 'mL', 15, 3)
+        ('Guacamole', 'g', 9, 1)
+        ('Gelatina', 'g', 9, 1)
+        ('Chocolate_meio_amargo', 'g', 15, 3)
+        ('Mel', 'g', 9, 1)
+        ('Azeitona', 'g', 9, 1)
 ]
 
 ingredientes_bebidas_sem_alcool = [
-    ("Suco_de_limao", "L", 5.0, 1.0),
-    ("Xarope_de_groselha_framboesa", "L", 3.0, 0.5),
-    ("Agua_com_gas", "L", 20.0, 5.0),
-    ("Xarope_simples_de_acucar", "L", 3.0, 0.5),
-    ("Suco_de_abacaxi", "L", 8.0, 2.0),
-    ("Xarope_de_maca_verde", "L", 2.0, 0.5),
-    ("Polpa_de_frutas_vermelhas", "kg", 5.0, 1.0),
-    ("Suco_de_laranja", "L", 10.0, 2.0),
-    ("Refrigerante_de_guarana", "L", 20.0, 5.0),
-    ("Cha_preto", "kg", 1.0, 0.2),
-    ("Xarope_de_pessego", "L", 2.0, 0.5),
-    ("Xarope_de_grenadine", "L", 2.0, 0.5),
-    ("Agua_de_coco", "L", 8.0, 2.0),
-    ("Suco_de_maracuja", "L", 8.0, 2.0),
-    ("Xarope_de baunilha", "L", 2.0, 0.5),
-    ("Suco_de_melancia", "L", 5.0, 1.0),
-    ("Suco_de_gengibre", "L", 2.0, 0.5),
+        ('Suco_de_limao', 'mL', 15, 3)
+        ('Xarope_de_groselha_framboesa', 'mL', 9, 1)
+        ('Agua_com_gas', 'mL', 60, 15)
+        ('Xarope_simples_de_acucar', 'mL', 9, 1)
+        ('Suco_de_abacaxi', 'mL', 24, 6)
+        ('Xarope_de_maca_verde', 'mL', 6, 1)
+        ('Polpa_de_frutas_vermelhas', 'g', 15, 3)
+        ('Suco_de_laranja', 'mL', 30, 6)
+        ('Refrigerante_de_guarana', 'mL', 60, 15)
+        ('Cha_preto', 'g', 3, 0)
+        ('Xarope_de_pessego', 'mL', 6, 1)
+        ('Xarope_de_grenadine', 'mL', 6, 1)
+        ('Agua_de_coco', 'mL', 24, 6)
+        ('Suco_de_maracuja', 'mL', 24, 6)
+        ('Xarope_de baunilha', 'mL', 6, 1)
+        ('Suco_de_melancia', 'mL', 15, 3)
+        ('Suco_de_gengibre', 'mL', 6, 1)
 ]
 
 ingredientes_bebidas_alcoolicas = [
-    ("Cachaca", "L", 5.0, 1.0),
-    ("Tequila", "L", 3.0, 0.5),
-    ("Cointreau_triple_sec", "L", 2.0, 0.5),
-    ("Gin", "L", 5.0, 1.0),
-    ("Campari", "L", 3.0, 0.5),
-    ("Vermute_tinto", "L", 3.0, 0.5),
-    ("Vodka", "L", 5.0, 1.0),
-    ("Ginger_beer", "L", 8.0, 2.0),
-    ("Suco_de_cranberry", "L", 5.0, 1.0),
-    ("Rum_branco", "L", 3.0, 0.5),
-    ("Rum_escuro", "L", 3.0, 0.5),
-    ("Xarope_de_amendoa_orgeat", "L", 2.0, 0.5),
-    ("Uisque_bourbon", "L", 3.0, 0.5),
-    ("Angostura_bitters", "ml", 500.0, 100.0),
-    ("Uisque_de_centeio_rye", "L", 3.0, 0.5),
-    ("Cereja_marasquino", "kg", 2.0, 0.5),
+        ('Cachaca', 'mL', 15, 3)
+        ('Tequila', 'mL', 9, 1)
+        ('Cointreau_triple_sec', 'mL', 6, 1)
+        ('Gin', 'mL', 15, 3)
+        ('Campari', 'mL', 9, 1)
+        ('Vermute_tinto', 'mL', 9, 1)
+        ('Vodka', 'mL', 15, 3)
+        ('Ginger_beer', 'mL', 24, 6)
+        ('Suco_de_cranberry', 'mL', 15, 3)
+        ('Rum_branco', 'mL', 9, 1)
+        ('Rum_escuro', 'mL', 9, 1)
+        ('Xarope_de_amendoa_orgeat', 'mL', 6, 1)
+        ('Uisque_bourbon', 'mL', 9, 1)
+        ('Angostura_bitters', 'ml', 500.0, 100.0)
+        ('Uisque_de_centeio_rye', 'mL', 9, 1)
+        ('Cereja_marasquino', 'g', 6, 1)
 ]
 
 ingredientes_diversos = [
-    ("Onion_rings", "kg", 5.0, 1.0),
-    ("Brigadeiro", "unidade", 100.0, 25.0),
-    ("Beijinho", "unidade", 100.0, 25.0),
-    ("Bolo_comum_simples", "kg", 5.0, 1.0),
+        ('Onion_rings', 'g', 15, 3)
+        ('Brigadeiro', 'unidade', 100, 25)
+        ('Beijinho', 'unidade', 100, 25)
+        ('Bolo_comum_simples', 'g', 15, 3)
 ]
 
 lista_ingredientes = [
@@ -861,6 +862,7 @@ lista_ficha_tecnica = [
     ("Pudim_de_leite_condensado", "Leite_condensado", 0.110),
     ("Pudim_de_leite_condensado", "Leite_integral", 0.110),
     ("Pudim_de_leite_condensado", "Ovos", 1.1),
+    ("Pudim_de_leite_condensado", "Acucar", 0.02),
 
     # Salgados
     ("Coxinha", "Coxinha", 3.3),
