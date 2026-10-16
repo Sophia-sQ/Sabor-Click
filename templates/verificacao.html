@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar acesso — Sabor &amp; Click</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/verificacao.css') }}">
+</head>
+<body class="pagina-acesso">
+    <a class="voltar" href="{{ url_for('auth.login') }}">
+        <span class="seta" aria-hidden="true">←</span><span>Voltar</span>
+        <span class="divisor" aria-hidden="true"></span><span class="marca">Sabor &amp; Click</span>
+    </a>
+    <main class="login">
+        <section class="cartao" aria-labelledby="titulo">
+            <header class="cabecalho">
+                <p class="identidade">SABOR &amp; CLICK</p>
+                <h1 id="titulo">Verifique seu acesso</h1>
+                <p class="descricao">Insira o código de verificação recebido por e-mail.</p>
+            </header>
+            {% if erro %}<p class="mensagem-erro" role="alert" id="erro-codigo">{{ erro }}</p>{% endif %}
+            <form class="formulario" action="{{ url_for('auth.verificacao') }}" method="post">
+                <div class="campo">
+                    <label for="codigo">Código de verificação</label>
+                    <input id="codigo" name="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" minlength="6" placeholder="000000" required aria-describedby="ajuda-codigo{% if erro %} erro-codigo{% endif %}" {% if erro %}aria-invalid="true"{% endif %} title="Digite os 6 números do código recebido por e-mail.">
+                    <p class="ajuda" id="ajuda-codigo">Digite os 6 números do e-mail. Você pode colar o código completo.</p>
+                </div>
+                <button class="entrar" type="submit">Verificar código</button>
+                <p class="ajuda dica">Não encontrou o e-mail? Confira a caixa de spam ou lixo eletrônico.</p>
+                <a class="cadastro" href="{{ url_for('auth.login') }}">Voltar ao login</a>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
