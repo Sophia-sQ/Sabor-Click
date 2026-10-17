@@ -50,30 +50,30 @@ lista_bancadas = [
 ]
 
 cardapios_quentes=[
-    ("Feijoada_completa", " ", 0),
-    ("Bobo_de_camarao ", " ", 0),
-    ("File_de_tilapia_ao_molho_manteiga_e_alcaparras ", " ", 0),
-    ("Strogonoff_de_file_Mignon ", " ", 0),
-    ("Nhoque_ao_molho", " ", 0),
-    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", " ", 0),
-    ("Escondinho_de_carne_seca_com_mandioca ", " ", 0),
-    ("Raviolli_de_queijo_ao_molho_bolonhesa ", " ", 0),
+    ("Feijoada_completa", "14990", 0),
+    ("Bobo_de_camarao ", "13990", 0),
+    ("File_de_tilapia_ao_molho_manteiga_e_alcaparras ", "12990", 0),
+    ("Strogonoff_de_file_Mignon ", "12990", 0),
+    ("Nhoque_ao_molho", "11990", 0),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "13990", 0),
+    ("Escondinho_de_carne_seca_com_mandioca ", "12990", 0),
+    ("Raviolli_de_queijo_ao_molho_bolonhesa ", "12990", 0),
 ]
 
 cardapios_salgados=[
-    ("Salgados_completo ", " ", 0),
-    ("Salgados_Reduzido", " ", 0),
-    ("Hamburguer_tradicional ", " ", 0),
-    ("Hamburguer_smash ", " ", 0),
-    ("Hamburguer_mega_bacon ", " ", 0),
-    ("Mexicano ", " ", 0),
-    ("Boteco_brasileiro", " ", 0),
+    ("Salgados_completo ", "12990", 0),
+    ("Salgados_Reduzido", "9990", 0),
+    ("Hamburguer_tradicional ", "7990", 0),
+    ("Hamburguer_smash ", "8990", 0),
+    ("Hamburguer_mega_bacon ", "9990", 0),
+    ("Mexicano ", "8990", 0),
+    ("Boteco_brasileiro", "6990", 0),
 ]
 
 cardapios_bebidas=[
-    ("Bebida_sem_alcool", " ", 0),
-    ("Bebida_com_alcool", " ", 0),
-    ("Bebida_mista", " ", 0),
+    ("Bebida_sem_alcool", "16990", 0),
+    ("Bebida_com_alcool", "18990", 0),
+    ("Bebida_mista", "17990", 0),
 
 ]
 
