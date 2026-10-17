@@ -78,6 +78,7 @@ cardapios_bebidas=[
 ]
 
 lista_cardapios = [
+    # nome, descrição, preço base
     cardapios_quentes,
     cardapios_salgados,
     cardapios_bebidas
@@ -305,6 +306,7 @@ ingredientes_diversos = [
 ]
 
 lista_ingredientes = [
+    # nome, unidade de medida, estoque atual, estoque minimo
     ingredientes_carnes,
     ingredientes_carboidratos,
     ingredientes_laticinios,
@@ -694,7 +696,7 @@ lista_cargos = [
 # LISTA FICHA TECNICA
 lista_ficha_tecnica = [
 
-
+    # prato, ingrediente, quantidade
     # Mandioca frita
     ("Mandioca_frita", "Mandioca_in_natura", 0.077),
     ("Mandioca_frita", "Oleo_para_fritura", 0.005),

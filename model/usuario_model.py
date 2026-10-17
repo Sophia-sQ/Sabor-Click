@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from flask import session
 from werkzeug.security import check_password_hash,generate_password_hash
 
-from utils import gerar_hmac, criptografar
+from security import gerar_hmac, criptografar
 
 # Tabela Nível de permissão do usuário
 class NivelPermissao(db.Model):

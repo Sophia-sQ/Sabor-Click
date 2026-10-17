@@ -1,17 +1,19 @@
 # Contém a tabela: Pedido
 from model.usuario_model import registrar_log
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from database import db
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import extract
 
+# TABELAS
 class Pedido(db.Model):
     __tablename__ = "pedido"
 
     id_pedido = db.Column(db.Integer, primary_key=True, autoincrement=True)
     observacao = db.Column(db.Text, nullable=True)  # Opcional
     status = db.Column(
-        db.Enum("aguardando", "confirmado", "em preparo", "concluído", "cancelado", name="status_pedido"),default="aguardando",nullable=False)
+        db.Enum("aguardando", "confirmado", "em preparo", "concluido", "cancelado", name="status_pedido"),default="aguardando",nullable=False)
     confirmado_em = db.Column(db.DateTime, nullable=True)
     criado_em = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
     num_convidados = db.Column(db.Integer, nullable=False, default=1)
@@ -31,7 +33,6 @@ class Pedido(db.Model):
         db.CheckConstraint("valor_total >= 0", name="ck_pedido_valor"),
     )
 
-
 class Bebida(db.Model):
     __tablename__ = "bebida"
 
@@ -44,7 +45,6 @@ class Bebida(db.Model):
     __table_args__ = (
         db.CheckConstraint("qtd >= 0 AND qtd_min >= 0", name="ck_bebida_qtd"),
     )
-
 
 class PedidoBebida(db.Model):
     __tablename__ = "pedido_bebida"
@@ -65,7 +65,9 @@ class CardapioPedido(db.Model):
     
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
     id_pedido = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), primary_key=True)
-    
+
+# ======================================================
+
 # CRUD BEBIDA
 def criar_bebida(nome: str, descricao: str, qtd: int = 0, qtd_min: int = 0):
     '''Cria a bebida'''
@@ -97,7 +99,6 @@ def atualizar_bebida(id_bebida: int, novo_nome: str = None, novo_preco: float = 
         
     db.session.commit()
     return True
-
 
 def deletar_bebida(id_bebida: int):
     '''Deleta a bebida'''
@@ -162,15 +163,43 @@ def criar_pedido(id_cliente: int, id_endereco: int , num_convidados: int, valor_
     registrar_log("PEDIDO", f"Pedido {novo_pedido.id_pedido} criado.")
     return novo_pedido
 
-
 def buscar_pedido_por_id(id_pedido: int):
     '''Busca pedido.'''
     return db.session.get(Pedido, id_pedido)
 
-
 def listar_pedidos_por_cliente(id_cliente: int) :
     '''Lista os pedidos realizados pelo clientre'''
     return db.session.query(Pedido).filter_by(id_cliente=id_cliente).all()
+
+def listar_pedidos_periodo(ano:int|str, mes:int|str, dia:int|str) -> list[Pedido] | None:
+    """Retorna todos os pedidos concluidos até certa data.
+
+    Args:
+        ano (int | str): Ano de referencia. Deve ser um dígito. 
+        mes (int | str): Mês de referencia. Deve ser um dígito. 
+        dia (int | str): Dia de referencia. Deve ser um dígito. 
+
+    Returns:
+        list[Pedido] | None: Retorna uma lista vazia caso não existam pedidos no periodo ou None se um dos parâmetros não for dígito. Do contrário, retorna uma lista de objetos Pedido.
+    """
+    try:
+        ano=int(ano)
+        mes=int(mes)
+        dia=int(dia)
+    except (ValueError, TypeError):
+        return None
+    
+    if not 1 <= mes <= 12 or not 1 <= dia <= 31:
+        return None
+    
+    return db.session.execute(
+        db.select(Pedido).where(
+            Pedido.status=='concluido', 
+            extract('month', Pedido.data_evento) == mes, 
+            extract('year', Pedido.data_evento) == ano,
+            extract('day', Pedido.data_evento) <= dia,
+        )
+    ).scalars().all()
 
 
 def atualizar_pedido(
@@ -221,7 +250,6 @@ def deletar_pedido(id_pedido: int):
 
 
 #PEDIDO_BEBIDA
-
 def adicionar_bebida_ao_pedido(id_pedido: int, id_bebida: int, qtd: int, valor_unitario: float) -> bool:
     pedido = db.session.get(Pedido, id_pedido)
     bebida = db.session.get(Bebida, id_bebida)
@@ -244,7 +272,6 @@ def adicionar_bebida_ao_pedido(id_pedido: int, id_bebida: int, qtd: int, valor_u
     db.session.commit()
     return True
 
-
 def remover_bebida_do_pedido(id_pedido: int, id_bebida: int) -> bool:
     item = db.session.get(PedidoBebida, (id_pedido, id_bebida))
     if not item:
@@ -254,9 +281,7 @@ def remover_bebida_do_pedido(id_pedido: int, id_bebida: int) -> bool:
     db.session.commit()
     return True
 
-
 # CRUD CardapioPedido
-
 def criar_cardapio_pedido(id_cardapio: int, id_pedido: int) -> (CardapioPedido | None):
     """Relaciona um cardapio a um pedido."""
     
