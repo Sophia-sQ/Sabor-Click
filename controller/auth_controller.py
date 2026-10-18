@@ -8,6 +8,8 @@ from services import enviar_email_nao_responda
 
 from re import fullmatch, match
 
+from security.token_auth import enviar_token, validar_token
+
 auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -36,30 +38,71 @@ def login():
         flash(f"{tipo_login} ou senha inválidos.", 'danger')
         return redirect(url_for("auth.login"))
     
-    # credenciais são válidas    
-    id_usuario=buscar_usuario_para_login(credencial, senha)
-    usuario = buscar_usuario_por_id(id_usuario)
-    
-    #geração de token
-    tamanho = 6
-    codigo = "".join(str(randbelow(10)) for _ in range(tamanho))
-    
-    
-    if usuario: #não envia emails para contas que não existem 
-        enviar_email_nao_responda("Código de validação", usuario.email, 
-    f"""seu codigo de validação: {codigo}.
-    
-    Ele permanecerá ativo por 10 minutos.""",
-    render_template('email_token.html', token=codigo))
-    
-    if id_usuario is not None:
-        session.clear()
-        session["id"]=id_usuario
-        session["cargo"]=usuario.id_permissao
-        return render_template("home.html")    
-    
-    return render_template("login.html")
+    # Credenciais são válidas
+    id_usuario = buscar_usuario_para_login(credencial, senha)
 
+    if id_usuario is None:
+        flash("Credenciais inválidas.", "danger")
+        return redirect(url_for("auth.login"))
+
+    usuario = buscar_usuario_por_id(id_usuario)
+
+    if usuario is None:
+        flash("Não foi possível localizar o usuário.", "danger")
+        return redirect(url_for("auth.login"))
+
+    # Solicita o token 
+    try:
+        enviar_token(usuario.email)
+    except Exception:
+        from flask import current_app
+
+        current_app.logger.exception("Falha ao enviar o código de verificação.")
+        flash("Não foi possível enviar o código.", "danger")
+        return redirect(url_for("auth.login"))
+
+    # Guarda os dados necessários para concluir a autenticação.
+    # O usuário ainda não está autenticado.
+    session.clear()
+    session["usuario_pendente_id"] = id_usuario
+    session["email_pendente"] = usuario.email
+
+    flash("Código enviado. Verifique seu e-mail.", "info")
+
+    return redirect(url_for("auth.verificar_token"))
+
+@auth_bp.route("/verificar-token", methods=["GET", "POST"])
+def verificar_token():
+    email_pendente = session.get("email_pendente")
+    id_pendente = session.get("usuario_pendente_id")
+
+    if email_pendente is None or id_pendente is None:
+        flash("Faça login para solicitar um código.", "warning")
+        return redirect(url_for("auth.login"))
+
+    erro = None
+
+    if request.method == "POST":
+        codigo = request.form.get("codigo", "").strip()
+
+        if validar_token(email_pendente, codigo):
+            usuario = buscar_usuario_por_id(id_pendente)
+
+            if usuario is None:
+                session.clear()
+                flash("Usuário não encontrado.", "danger")
+                return redirect(url_for("auth.login"))
+
+            session.clear()
+            session["id"] = id_pendente
+            session["cargo"] = usuario.id_permissao
+
+            flash("E-mail verificado com sucesso!", "success")
+            return render_template("home.html")
+
+        erro = "Código inválido ou expirado. Tente novamente."
+
+    return render_template("verificacao.html", erro=erro)
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
