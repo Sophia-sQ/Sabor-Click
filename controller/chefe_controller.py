@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 from model.pedido_model import buscar_pedido_por_id, atualizar_pedido
 from model.usuario_model import registrar_log, buscar_usuario_por_id
 from services import enviar_email_nao_responda
+from triggers import criar_trigger_baixa_estoque
 
 chefe_bp = Blueprint("chefe", __name__, url_prefix='/pedido')
 
@@ -18,7 +19,8 @@ def aceitar_pedido():
     registrar_log('ACEITOU PEDIDO.', f"Em {data_confirma}, o chefe {chefe.nome} aceitou o pedido {pedido.id_pedido}.")
     data_confirma=data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
     
-    # TODO:trigger para baixa de estoque
+    criar_trigger_baixa_estoque()
+
     
     cliente=buscar_usuario_por_id(pedido.id_cliente)
     enviar_email_nao_responda("Seu pedido foi aceito.", cliente.email, "Seu pedido foi aceito.",
