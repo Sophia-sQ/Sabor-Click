@@ -46,9 +46,28 @@ def criar_estoque():
     # CRIAÇÃO DE LOTES
     lotes = iniciar_lotes()
     db.session.add_all(lotes)
-    
+
+    # Inicializa a ficha tecnica dos ingredientes
     fichas_tecnicas = iniciar_ficha_tecnica()
     db.session.add_all(fichas_tecnicas)
+
+     # Inicializa a ficha tecnica das bebidas
+    fichas_tecnicas_bebidas = iniciar_ficha_tecnica_bebida()
+    db.session.add_all(fichas_tecnicas_bebidas)
+
+    # Inicializa a associacao de servicoBancada
+    servico_bancada = iniciar_servico_bancada()
+    db.session.add_all(servico_bancada)
+
+    # Inicializa a associacao de servicoCardapio
+    servico_cardapio= iniciar_servico_cardapio()
+    db.session.add_all(servico_cardapio)
+
+    # Inicializa a associacao de pratocardapio
+    prato_cardapio= iniciar_prato_cardapio()
+    db.session.add_all(prato_cardapio)
+    
+    
 
     # Inicializa o banco
 
