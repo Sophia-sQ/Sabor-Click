@@ -65,6 +65,7 @@ class CardapioPedido(db.Model):
     
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
     id_pedido = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), primary_key=True)
+    id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
 
 # ======================================================
 
@@ -171,8 +172,8 @@ def listar_pedidos_por_cliente(id_cliente: int) :
     '''Lista os pedidos realizados pelo clientre'''
     return db.session.query(Pedido).filter_by(id_cliente=id_cliente).all()
 
-def listar_pedidos_periodo(ano:int|str, mes:int|str, dia:int|str) -> list[Pedido] | None:
-    """Retorna todos os pedidos concluidos até certa data.
+def listar_pedidos_periodo(ano:int|str, mes:int|str, dia:int|str, status=None) -> list[Pedido] | None:
+    """Retorna todos os pedidos concluidos até certo dia de mês e ano específicos.
 
     Args:
         ano (int | str): Ano de referencia. Deve ser um dígito. 
@@ -194,13 +195,58 @@ def listar_pedidos_periodo(ano:int|str, mes:int|str, dia:int|str) -> list[Pedido
     
     return db.session.execute(
         db.select(Pedido).where(
-            Pedido.status=='concluido', 
+            Pedido.status==status, 
             extract('month', Pedido.data_evento) == mes, 
             extract('year', Pedido.data_evento) == ano,
             extract('day', Pedido.data_evento) <= dia,
         )
     ).scalars().all()
 
+def listar_pedidos_entre_datas(ano:int|str, mes:int|str, dia:int|str, ano_final:int|str = None, mes_final:int|str = None, dia_final:int|str = None, status='concluido') -> list[Pedido] | None:
+    """Retorna os pedidos concluídos entre duas datas, Caso data final seja None, considera como sendo a data de hoje.
+
+    Args:
+        ano (int | str): Ano da data inicial.
+        mes (int | str): Mês da data inicial, de 1 a 12.
+        dia (int | str): Dia da data inicial.
+        ano_final (int | str, optional): Ano da data final.
+        mes_final (int | str, optional): Mês da data final.
+        dia_final (int | str, optional): Dia da data final.
+
+    Returns:
+        list[Pedido] | None:
+            Retorna uma lista de objetos Pedido cujo status é
+            'concluido' e cuja data_evento está entre as datas
+            inicial e final, inclusive.
+
+            Retorna uma lista vazia se nenhum pedido for encontrado
+            e None se os parâmetros forem inválidos ou se a data
+            final for anterior à data inicial.
+    """
+    
+    from utils import para_data, hoje
+    
+    if not (ano_final or mes_final or dia_final):
+        ano_final=hoje().year
+        mes_final=hoje().month
+        dia_final=hoje().day 
+    
+    try:
+        data_inicio = para_data(int(ano), int(mes), int(dia))
+        data_fim = para_data(int(ano_final), int(mes_final), int(dia_final))
+    except (ValueError, TypeError):
+        return None
+
+    if data_fim < data_inicio:
+        return None
+
+    return db.session.execute(
+        db.select(Pedido).where(
+            Pedido.status == status,
+            Pedido.data_evento >= data_inicio,
+            Pedido.data_evento <= data_fim
+        )
+    ).scalars().all()
 
 def atualizar_pedido(
     id_pedido: int,
@@ -282,10 +328,10 @@ def remover_bebida_do_pedido(id_pedido: int, id_bebida: int) -> bool:
     return True
 
 # CRUD CardapioPedido
-def criar_cardapio_pedido(id_cardapio: int, id_pedido: int) -> (CardapioPedido | None):
+def criar_cardapio_pedido(id_cardapio: int, id_pedido: int, id_servico: int) -> (CardapioPedido | None):
     """Relaciona um cardapio a um pedido."""
     
-    cardapio_pedido=CardapioPedido(id_cardapio, id_pedido)
+    cardapio_pedido=CardapioPedido(id_cardapio, id_pedido, id_servico)
     
     db.session.add(cardapio_pedido)
     

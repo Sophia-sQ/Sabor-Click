@@ -1,12 +1,8 @@
 from os import environ as env
 
-
-
-
-
-from datetime import datetime
 from zoneinfo import ZoneInfo
 from calendar import monthrange
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
@@ -70,3 +66,57 @@ def mes_passado() -> datetime:
         datetime: data de hoje.
     """
     return datetime.now(ZoneInfo("America/Sao_Paulo")) - relativedelta(months=1)
+
+def semana_passada(num_semanas: int) -> tuple[date, date]:
+    """Retorna o primeiro e o último dia de uma semana anterior.
+
+    Considera a semana de segunda-feira a domingo.
+
+    Args:
+        num_semanas (int): Quantas semanas antes da atual.
+            1 representa a semana passada, 2 a retrasada, etc.
+
+    Returns:
+        tuple[date, date]: Data inicial (segunda-feira) e
+        data final (domingo).
+
+    Raises:
+        ValueError: Se num_semanas for menor que 1.
+    """
+    if num_semanas < 1:
+        raise ValueError("num_semanas deve ser maior ou igual a 1")
+
+    data_hoje = hoje().date()
+
+    inicio_semana_atual = data_hoje - timedelta(days=data_hoje.weekday())
+
+    inicio_semana_passada = inicio_semana_atual - timedelta(weeks=num_semanas)
+
+    fim_semana_passada = inicio_semana_passada + timedelta(days=6)
+    
+    return (inicio_semana_passada, fim_semana_passada)
+
+def ultimos_30_dias():
+    """Calcula a data de exatamente 30 dias atrás.
+
+    Returns:
+        datetime: data de exatamente 30 dias atrás.
+    """
+    
+    trita_dias_atras = hoje() - timedelta(days=30)
+
+    return trita_dias_atras
+
+def para_data(dia: int, mes: int, ano: int) -> datetime:
+    """_summary_
+
+    Args:
+        dia (int): dia da data.
+        mes (int): mês da data.
+        ano (int): ano da data.
+
+    Returns:
+        datetime: data em formato YY/MM/DD.
+    """
+    
+    return datetime(ano, mes, dia).date()
