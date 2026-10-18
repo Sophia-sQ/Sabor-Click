@@ -59,6 +59,13 @@ class PedidoBebida(db.Model):
     __table_args__ = (
         db.CheckConstraint("qtd > 0", name="ck_pedido_bebida_qtd"),
     )
+# Tabela de associação entre cardápio e bebida 
+
+class bebidaCardapio(db.Model):
+    __tablename__ = "bebida_cardapio"
+
+    id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_servico"), primary_key=True)
+    id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)    
     
 class CardapioPedido(db.Model):
     __tablename__ = "cardapio_pedido"
@@ -111,6 +118,15 @@ def deletar_bebida(id_bebida: int):
     registrar_log("REMOCAO BEBIDA", f"Usuario deletou bebida {bebida.nome}")        
 
     return True
+
+def associar_bebida_cardapio(id_bebida: int, id_cardapio: int):
+    """Associa uma bebida a um cardápio"""
+    novo_item = bebidaCardapio(id_bebida=id_bebida,id_cardapio=id_cardapio
+    )
+    db.session.add(novo_item)
+    db.session.commit()
+    registrar_log("CRIACAO BEBIDA_CARDAPIO", f"Usuário associou a bebida {id_bebida} ao cardápio {id_cardapio}")
+    return (id_bebida, id_cardapio)
 
 # CRUD - PEDIDO
 def criar_pedido(id_cliente: int, id_endereco: int , num_convidados: int, valor_total: float, data_evento: str, hora_inicio: str, hora_fim: str, cardapios: list[dict], observacao: str = None, bebidas: list[dict] = None) -> (Pedido | None):
