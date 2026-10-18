@@ -76,34 +76,32 @@ lista_servicos_bancadas = [
 
 ]
 
-cardapios_quentes=[
-    ("Feijoada_completa", "14990", 0),
-    ("Bobo_de_camarao ", "13990", 0),
-    ("File_de_tilapia_ao_molho_manteiga_e_alcaparras ", "12990", 0),
-    ("Strogonoff_de_file_Mignon ", "12990", 0),
-    ("Nhoque_ao_molho", "11990", 0),
-    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "13990", 0),
-    ("Escondinho_de_carne_seca_com_mandioca ", "12990", 0),
-    ("Raviolli_de_queijo_ao_molho_bolonhesa ", "12990", 0),
+cardapios_quentes = [
+    ("Feijoada_completa", "Feijoada completa com carnes suínas, feijão preto e acompanhamentos.", 14990),
+    ("Bobo_de_camarao ", "Bobó de camarão preparado com mandioca, leite de coco e temperos.", 13990),
+    ("File_de_tilapia_ao_molho_manteiga_e_alcaparras ", "Filé de tilápia ao molho de manteiga e alcaparras.", 12990),
+    ("Strogonoff_de_file_Mignon ", "Strogonoff de filé-mignon ao molho cremoso.", 12990),
+    ("Nhoque_ao_molho", "Nhoque servido com molho especial.", 11990),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Risoto de cogumelos acompanhado de tiras de filé-mignon.", 13990),
+    ("Escondinho_de_carne_seca_com_mandioca ", "Escondidinho de carne-seca com purê de mandioca.", 12990),
+    ("Raviolli_de_queijo_ao_molho_bolonhesa ", "Ravioli recheado com queijo e servido ao molho à bolonhesa.", 12990),
 ]
 
-cardapios_salgados=[
-    ("Salgados_completo ", "12990", 0),
-    ("Salgados_Reduzido", "9990", 0),
-    ("Hamburguer_tradicional ", "7990", 0),
-    ("Hamburguer_smash ", "8990", 0),
-    ("Hamburguer_mega_bacon ", "9990", 0),
-    ("Mexicano ", "8990", 0),
-    ("Boteco_brasileiro", "6990", 0),
+cardapios_salgados = [
+    ("Salgados_completo ", "Seleção completa de salgados variados para festas e eventos.", 12990),
+    ("Salgados_Reduzido", "Seleção reduzida de salgados variados para festas e eventos.", 9990),
+    ("Hamburguer_tradicional ", "Hambúrguer tradicional preparado com carne, pão e acompanhamentos.", 7990),
+    ("Hamburguer_smash ", "Hambúrguer smash com carne prensada na chapa e acompanhamentos.", 8990),
+    ("Hamburguer_mega_bacon ", "Hambúrguer com carne, bastante bacon e acompanhamentos.", 9990),
+    ("Mexicano ", "Seleção de comidas inspiradas na culinária mexicana.", 8990),
+    ("Boteco_brasileiro", "Seleção de petiscos tradicionais de boteco brasileiro.", 6990),
 ]
 
-cardapios_bebidas=[
-    ("Bebida_sem_alcool", "16990", 0),
-    ("Bebida_com_alcool", "18990", 0),
-    ("Bebida_mista", "17990", 0),
-
+cardapios_bebidas = [
+    ("Bebida_sem_alcool", "Seleção de bebidas sem álcool para eventos.", 16990),
+    ("Bebida_com_alcool", "Seleção de bebidas alcoólicas para eventos.", 18990),
+    ("Bebida_mista", "Seleção de bebidas alcoólicas e não alcoólicas para eventos.", 17990),
 ]
-
 lista_cardapios = [
     # nome, descrição, preço base
     cardapios_quentes,
@@ -1068,6 +1066,120 @@ lista_ficha_tecnica = [
 
     ("Pastel_de_queijo", "Pastel_de_queijo", 3.3),
 ]
+
+lista_prato_cardapio = [
+    # FEIJOADA COMPLETA
+    ("Mandioca_frita", "Feijoada_completa", 77, "77 g por pessoa"),
+    ("Tabua_de_frios", "Feijoada_completa", 88, "88 g por pessoa"),
+    ("Feijoada_completa", "Feijoada_completa", 242, "242 g por pessoa"),
+    ("Arroz_branco", "Feijoada_completa", 132, "132 g por pessoa"),
+    ("Couve_refogada", "Feijoada_completa", 44, "44 g por pessoa"),
+    ("Farofa", "Feijoada_completa", 55, "55 g por pessoa"),
+    ("Vinagrete", "Feijoada_completa", 88, "88 g por pessoa"),
+    ("Molho_de_pimenta", "Feijoada_completa", 22, "22 g por pessoa"),
+    ("Sorvete", "Feijoada_completa", 1, "Sobremesa por porção"),
+
+    # BOBÓ DE CAMARÃO
+    ("Salada_fresca", "Bobo_de_camarao", 132, "132 g por pessoa"),
+    ("Bobo_de_camarao", "Bobo_de_camarao", 308, "308 g por pessoa"),
+    ("Arroz_branco", "Bobo_de_camarao", 187, "187 g por pessoa"),
+    ("Salada_de_fruta_fresca_com_creme", "Bobo_de_camarao", 158, "Aproximadamente 158 g por pessoa"),
+
+    # FILÉ DE TILÁPIA
+    ("Bruschetta", "File_de_tilapia_ao_molho_manteiga_e_alcaparras", 121, "121 g por pessoa"),
+    ("File_de_tilapia", "File_de_tilapia_ao_molho_manteiga_e_alcaparras", 198, "198 g por pessoa"),
+    ("Arroz_branco", "File_de_tilapia_ao_molho_manteiga_e_alcaparras", 220, "220 g por pessoa"),
+    ("Molho_de_mateiga_com_alcaparras", "File_de_tilapia_ao_molho_manteiga_e_alcaparras", 44, "44 g por pessoa"),
+    ("Iorgute_Natural_com_morangos_e_mel", "File_de_tilapia_ao_molho_manteiga_e_alcaparras", 137, "Aproximadamente 137 g por pessoa"),
+
+    # STROGONOFF
+    ("Salada_ceaser", "Strogonoff_de_file_Mignon", 143, "143 g por pessoa"),
+    ("Stogonoff_de_file_mignon", "Strogonoff_de_file_Mignon", 242, "242 g por pessoa"),
+    ("Arroz_branco", "Strogonoff_de_file_Mignon", 198, "198 g por pessoa"),
+    ("Batata_palha", "Strogonoff_de_file_Mignon", 55, "55 g por pessoa"),
+    ("Pudim_de_leite_condensado", "Strogonoff_de_file_Mignon", 120, "120 g por pessoa"),
+
+    # NHOQUE
+    ("Salada_fresca", "Nhoque_ao_molho", 110, "110 g por pessoa"),
+    ("Nhoque_ao_molho", "Nhoque_ao_molho", 275, "275 g por pessoa"),
+    ("Mousse_de_maracuja", "Nhoque_ao_molho", 116, "Aproximadamente 116 g por pessoa"),
+
+    # RISOTO
+    ("Bruschetta", "Risoto_de_cogumelos_com_tiras_de_file_mignon", 121, "121 g por pessoa"),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Risoto_de_cogumelos_com_tiras_de_file_mignon", 352, "352 g por pessoa"),
+    ("Brownie_de_chocolate", "Risoto_de_cogumelos_com_tiras_de_file_mignon", 105, "105 g por pessoa"),
+
+    # ESCONDIDINHO
+    ("Dadinho_de_tapioca", "Escondinho_de_carne_seca_com_mandioca", 110, "110 g por pessoa"),
+    ("Escondidinho_de_carne_seca_com_mandioca", "Escondinho_de_carne_seca_com_mandioca", 495, "495 g por pessoa"),
+    ("Geleia_de_pimenta", "Escondinho_de_carne_seca_com_mandioca", 22, "22 g por pessoa"),
+    ("Cheesecake_de_frutas_vermelhas", "Escondinho_de_carne_seca_com_mandioca", 137, "Aproximadamente 137 g por pessoa"),
+
+    # RAVIOLI
+    ("Tabua_de_frios", "Raviolli_de_queijo_ao_molho_bolonhesa", 132, "132 g por pessoa"),
+    ("Ravioli_de_queijo_ao_molho_bolanhesa", "Raviolli_de_queijo_ao_molho_bolonhesa", 286, "286 g por pessoa"),
+    ("Parmesao_ralado", "Raviolli_de_queijo_ao_molho_bolonhesa", 11, "11 g por pessoa"),
+    ("Mousse_de_chocolate", "Raviolli_de_queijo_ao_molho_bolonhesa", 116, "Aproximadamente 116 g por pessoa"),
+]
+
+lista_bebida_cardapio = [
+    # BEBIDAS SEM ÁLCOOL
+    ("Agua_com_gas", "Bebida_sem_alcool"),
+    ("Suco_de_abacaxi", "Bebida_sem_alcool"),
+    ("Refrigerante_de_guarana", "Bebida_sem_alcool"),
+    ("Cha_preto", "Bebida_sem_alcool"),
+    ("Agua_de_coco", "Bebida_sem_alcool"),
+    ("Suco_de_melancia", "Bebida_sem_alcool"),
+
+    # DRINKS SEM ÁLCOOL
+    ("Pink Lemonade", "Bebida_sem_alcool"),
+    ("Mojito Sem Álcool", "Bebida_sem_alcool"),
+    ("Piña Colada Zero", "Bebida_sem_alcool"),
+    ("Soda Italiana de Maçã Verde", "Bebida_sem_alcool"),
+    ("Coquetel de Frutas Vermelhas", "Bebida_sem_alcool"),
+    ("Iced Tea de Pêssego e Limão", "Bebida_sem_alcool"),
+    ("Sunrise de Laranja e Grenadine", "Bebida_sem_alcool"),
+    ("Coquetel Tropical de Coco", "Bebida_sem_alcool"),
+    ("Lemonade de Extrato de Manjericão", "Bebida_sem_alcool"),
+    ("Refresco de Melancia e Gengibre", "Bebida_sem_alcool"),
+
+    # BEBIDAS COM ÁLCOOL
+    ("Gin", "Bebida_com_alcool"),
+    ("Uisque_de_centeio_rye", "Bebida_com_alcool"),
+    ("Caipirinha", "Bebida_com_alcool"),
+    ("Margarita", "Bebida_com_alcool"),
+    ("Negroni", "Bebida_com_alcool"),
+    ("Moscow Mule", "Bebida_com_alcool"),
+    ("Cosmopolitan", "Bebida_com_alcool"),
+    ("Mai Tai", "Bebida_com_alcool"),
+    ("Old Fashioned", "Bebida_com_alcool"),
+    ("Manhattan", "Bebida_com_alcool"),
+    ("Piña Colada", "Bebida_com_alcool"),
+
+    # BEBIDAS MISTAS
+    
+    ("Suco_de_abacaxi", "Bebida_mista"),
+    ("Refrigerante_de_guarana", "Bebida_mista"),
+    ("Agua_de_coco", "Bebida_mista"),
+    ("Suco_de_melancia", "Bebida_mista"),
+    ("Gin", "Bebida_mista"),
+    ("Uisque_de_centeio_rye", "Bebida_mista"),
+    ("Pink Lemonade", "Bebida_mista"),
+    ("Mojito Sem Álcool", "Bebida_mista"),
+    ("Piña Colada Zero", "Bebida_mista"),
+    ("Soda Italiana de Maçã Verde", "Bebida_mista"),
+    ("Caipirinha", "Bebida_mista"),
+    ("Margarita", "Bebida_mista"),
+    ("Negroni", "Bebida_mista"),
+    ("Moscow Mule", "Bebida_mista"),
+    ("Cosmopolitan", "Bebida_mista"),
+    ("Mai Tai", "Bebida_mista"),
+    ("Old Fashioned", "Bebida_mista"),
+    ("Manhattan", "Bebida_mista"),
+   
+]
+
+
 ficha_bebidas = [
     #BEBIDAS QUE O CLIENTE ESCOLHE SEM SER DO BAR
    
