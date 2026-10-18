@@ -88,6 +88,17 @@ def buscar_bebida_por_id(id_bebida: int) :
     '''Busca a bebidada pelo id'''
     return db.session.get(Bebida, id_bebida)
 
+def buscar_bebida_por_nome(nome_bebida: str):
+    """Busca bebida pelo nome"""
+    
+    bebida = db.session.execute(
+        db.session.select(Bebida).where(Bebida.nome == nome_bebida)
+    ).scalar_one_or_none()
+    
+    if bebida:
+        return bebida
+    return None
+
 def listar_bebidas():
     '''Lista as bebidas disponíveis'''
     return db.session.query(Bebida).all()

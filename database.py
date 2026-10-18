@@ -1,12 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 
-from model.cargos import Cargo
-from model.usuario_model import Usuario, NivelPermissao, criar_usuario
-
 from seeds import *
-
-from os import environ
 
 #classe base: Não contém nada, pois utiliza o padrão do Python
 class Base(DeclarativeBase):
@@ -17,29 +12,8 @@ db = SQLAlchemy(model_class=Base)
 
 # ADMIN INICIAL CADASTRO
 def criar_admin():
-    # verifica se ja existe admin
-    #email_admin = environ.get("ADMIN_EMAIL")
-    admin_existente = Usuario.query.filter_by(id_permissao=Cargo.ADMIN.value).first()
-
-    if not admin_existente:
-        criar_usuario(
-            cpf="00000000000",
-            nome="Admin",
-            email=environ.get("ADMIN_EMAIL"),
-            senha=environ.get("ADMIN_PASSWORD"),
-            id_permissao=Cargo.ADMIN.value
-        )
-        #print(f"Admin inicial criado com sucesso! (ID: {id_admin})")
-    #else:
-    #    print("Admin inicial já existe.")
-
-    #admin = criar_usuario(
-    #cpf="00000000000",
-    #nome="Admin",
-    #email="emailexemplo@gmail.com",
-    #senha="senha-super-segura123",
-    #id_permissao=Cargo.ADMIN
-    #)        
+    admin = iniciar_admin()
+    db.session.add(admin)
 
 # CRIAÇÃO DE CARGOS
 def criar_cargos():
@@ -72,9 +46,28 @@ def criar_estoque():
     # CRIAÇÃO DE LOTES
     lotes = iniciar_lotes()
     db.session.add_all(lotes)
-    
+
+    # Inicializa a ficha tecnica dos ingredientes
     fichas_tecnicas = iniciar_ficha_tecnica()
     db.session.add_all(fichas_tecnicas)
+
+     # Inicializa a ficha tecnica das bebidas
+    fichas_tecnicas_bebidas = iniciar_ficha_tecnica_bebida()
+    db.session.add_all(fichas_tecnicas_bebidas)
+
+    # Inicializa a associacao de servicoBancada
+    servico_bancada = iniciar_servico_bancada()
+    db.session.add_all(servico_bancada)
+
+    # Inicializa a associacao de servicoCardapio
+    servico_cardapio= iniciar_servico_cardapio()
+    db.session.add_all(servico_cardapio)
+
+    # Inicializa a associacao de pratocardapio
+    prato_cardapio= iniciar_prato_cardapio()
+    db.session.add_all(prato_cardapio)
+    
+    
 
     # Inicializa o banco
 
