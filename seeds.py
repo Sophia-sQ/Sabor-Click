@@ -25,11 +25,13 @@ from model.ficha_model import (
 from model.cargos import Cargo
 from model.usuario_model import NivelPermissao
 from model.usuario_model import buscar_permissao_por_nome, atualizar_permissao
+from model.pedido_model import buscar_bebida_por_nome
+from model.servico_model import ServicoBancada, ServicoCardapio
 from model.ficha_model import FichaTecnica, FichaTecnica_bebida
 
 __all__ = ["iniciar_bancadas", "iniciar_servicos", "iniciar_cardapios", 
            "iniciar_pratos", "iniciar_ingredientes", "iniciar_lotes", 
-           "iniciar_cargos", "iniciar_ficha_tecnica"]
+           "iniciar_cargos", "iniciar_ficha_tecnica", "iniciar_ficha_tecnica_bebida", "iniciar_servico_bancada", "iniciar_servico_cardapio", "iniciar_prato_cardapio"]
 
 # ================================= "Tabelas" ESTOQUE =================================
 
@@ -47,6 +49,29 @@ lista_bancadas = [
     ("Bancada_bar_portatil", "Equipamento que organiza e prepara as bebidas"),
     ("Maquina_de_gelo", "Equipamento responsavel por fazer gelo"),
     ("Limpeza", "Equipamentos responsaveis pela limpeza final no evento"),
+    ("Fritadeira", "Equipamento para fritar salgados")
+]
+
+# Associa um servico a uma bancada
+lista_servicos_bancadas = [
+    ("Chef_em_casa", "Kit_loucas"),
+    ("Chef_em_casa","Limpeza"),
+    ("Chef_em_casa","Maquina_de_gelo"),
+    ("Buffet","Rechauds"),
+    ("Buffet","Kit_loucas"),
+    ("Buffet","Maquina_de_gelo"),
+    ("Buffet","Limpeza"),
+    ("Bar","Kit_loucas"),
+    ("Bar"," Bancada_bar_portatil"),
+    ("Bar","Maquina_de_gelo"),
+    ("Bar","Limpeza"),
+    ("Mesa_de_salgados","Kit_loucas"),
+    ("Mesa_de_salgados","Fritadeira"),
+    ("Mesa_de_salgados","Chapa_hamburguer_portatil"),
+    ("Mesa_de_salgados","Limpeza")
+    
+
+
 ]
 
 cardapios_quentes=[
@@ -83,6 +108,43 @@ lista_cardapios = [
     cardapios_salgados,
     cardapios_bebidas
 ]
+# Associa um servico aos cardapios
+lista_servicos_cardapios = [
+    # SERVIÇO CHEF EM CASA - PRATOS QUENTES
+    ("Chef_em_casa", "Feijoada_completa"),
+    ("Chef_em_casa", "Bobo_de_camarao"),
+    ("Chef_em_casa", "File_de_tilapia_ao_molho_manteiga_e_alcaparras"),
+    ("Chef_em_casa", "Strogonoff_de_file_Mignon"),
+    ("Chef_em_casa", "Nhoque_ao_molho"),
+    ("Chef_em_casa", "Risoto_de_cogumelos_com_tiras_de_file_mignon"),
+    ("Chef_em_casa", "Escondinho_de_carne_seca_com_mandioca"),
+    ("Chef_em_casa", "Raviolli_de_queijo_ao_molho_bolonhesa"),
+
+    # SERVIÇO BUFFET - PRATOS QUENTES
+    ("Buffet", "Feijoada_completa"),
+    ("Buffet", "Bobo_de_camarao"),
+    ("Buffet", "File_de_tilapia_ao_molho_manteiga_e_alcaparras"),
+    ("Buffet", "Strogonoff_de_file_Mignon"),
+    ("Buffet", "Nhoque_ao_molho"),
+    ("Buffet", "Risoto_de_cogumelos_com_tiras_de_file_mignon"),
+    ("Buffet", "Escondinho_de_carne_seca_com_mandioca"),
+    ("Buffet", "Raviolli_de_queijo_ao_molho_bolonhesa"),
+
+    # SERVIÇO BAR - BEBIDAS
+    ("Bar", "Bebida_sem_alcool"),
+    ("Bar", "Bebida_com_alcool"),
+    ("Bar", "Bebida_mista"),
+
+    # SERVIÇO MESA DE SALGADOS - CARDÁPIOS DE SALGADOS
+    ("Mesa_de_salgados", "Salgados_completo"),
+    ("Mesa_de_salgados", "Salgados_Reduzido"),
+    ("Mesa_de_salgados", "Hamburguer_tradicional"),
+    ("Mesa_de_salgados", "Hamburguer_smash"),
+    ("Mesa_de_salgados", "Hamburguer_mega_bacon"),
+    ("Mesa_de_salgados", "Mexicano"),
+    ("Mesa_de_salgados", "Boteco_brasileiro"),
+]
+
 
 lista_pratos = [
     ("Mandioca_frita", "Pedacos de mandioca frita em oleo", "entrada", 40, True) #requer-preparo, pois tem que levar ela cozida e fritar no local,
@@ -138,6 +200,9 @@ lista_pratos = [
     ("Liguica_acebolada", "Porção de linguiça frita com cebola", "prato principal", 10, False),
     ("Pastel_de_queijo", "Pastel frito recheado com queijo derretido", "prato principal", 6, False),
 ]
+
+# Associa um prato a um cardapio
+lista_prato_cardapio= []
 
 #NOME DAS BEBIDAS 
 lista_bebida = [
@@ -1319,3 +1384,96 @@ def iniciar_ficha_tecnica() -> list[FichaTecnica]:
         fichas_tecnicas.append(ficha)
 
     return fichas_tecnicas
+
+
+def iniciar_ficha_tecnica_bebida() -> list[FichaTecnica_bebida]:
+    """Inicializa todas as fichas técnicas de bebidas padrão que não constam no banco no momento da inicialização.
+
+    Returns:
+        list[FichaTecnica_bebida]: todos os objetos FichaTecnica_bebida a serem inicializados.
+    """
+
+    fichas_tecnicas_bebidas = []
+
+    for nome_bebida, nome_ingrediente, qtd_necessaria in ficha_bebidas:
+        bebida = buscar_bebida_por_nome(nome_bebida)
+        ingrediente = buscar_ingrediente_por_nome(nome_ingrediente)
+
+        if not bebida or not ingrediente:
+            continue
+
+        if db.session.get(
+            FichaTecnica_bebida,
+            (bebida.id_bebida, ingrediente.id_ingrediente)
+        ):
+            continue
+
+        ficha = FichaTecnica_bebida(
+            bebida.id_bebida,
+            ingrediente.id_ingrediente,
+            qtd_necessaria
+        )
+
+        fichas_tecnicas_bebidas.append(ficha)
+
+    return fichas_tecnicas_bebidas 
+
+
+def iniciar_servico_bancada() -> list[ServicoBancada]:
+    """Inicializa a associacao servico bancada. Responsável por associar a bancada a seus devidos servicos
+    """
+
+    associacao_servico_bancada = []
+
+    for nome_servico, nome_bancada in lista_servicos_bancadas:
+        servico = buscar_servico_por_nome(nome_servico)
+        bancada = buscar_bancada_por_nome(nome_bancada)
+
+        if not servico or not bancada:
+            continue
+
+        if db.session.get(
+            ServicoBancada,
+            (servico.id_servico, bancada.id_bancada)
+        ):
+            continue
+
+        associacao = ServicoBancada(
+            servico.id_servico,
+            bancada.id_bancada
+            
+        )
+
+        associacao_servico_bancada.append(associacao)
+
+    return associacao_servico_bancada
+
+def iniciar_servico_cardapio() -> list[ServicoCardapio]:
+    """Inicializa a associacao servico cardapio. Responsável por associar a cardapio a seus devidos servicos
+    """
+
+    associacao_servico_cardapio = []
+
+    for nome_servico, nome_cardapio in lista_servicos_cardapios:
+        servico = buscar_servico_por_nome(nome_servico)
+        cardapio = buscar_cardapio_por_nome(nome_cardapio)
+
+        if not servico or not cardapio:
+            continue
+
+        if db.session.get(
+            ServicoCardapio,
+            (servico.id_servico, cardapio.id_cardapio)
+        ):
+            continue
+
+        associacao = ServicoCardapio(
+            servico.id_servico,
+            cardapio.id_cardapio
+            
+        )
+
+        associacao_servico_cardapio.append(associacao)
+
+    return associacao_servico_cardapio
+
