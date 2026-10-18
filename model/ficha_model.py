@@ -54,10 +54,10 @@ class FichaTecnica(db.Model):
 class FichaTecnica_bebida(db.Model):
     __tablename__ = "ficha_tecnica"
 
-    id_bebida = db.Column(db.Integer, db.ForeignKey("prato.id_prato"), primary_key=True)
+    id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_bebida"), primary_key=True)
     id_ingrediente = db.Column(db.Integer, db.ForeignKey("ingrediente.id_ingrediente"), primary_key=True)
     
-    qtd_necessaria = db.Column(int, nullable=False)
+    qtd_necessaria = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
         db.CheckConstraint("qtd_necessaria > 0", name="ck_ficha_qtd"),
