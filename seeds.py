@@ -25,7 +25,7 @@ from model.ficha_model import (
 from model.cargos import Cargo
 from model.usuario_model import NivelPermissao
 from model.usuario_model import buscar_permissao_por_nome, atualizar_permissao
-from model.ficha_model import FichaTecnica
+from model.ficha_model import FichaTecnica, FichaTecnica_bebida
 
 __all__ = ["iniciar_bancadas", "iniciar_servicos", "iniciar_cardapios", 
            "iniciar_pratos", "iniciar_ingredientes", "iniciar_lotes", 
@@ -50,30 +50,30 @@ lista_bancadas = [
 ]
 
 cardapios_quentes=[
-    ("Feijoada_completa", " ", 0),
-    ("Bobo_de_camarao ", " ", 0),
-    ("File_de_tilapia_ao_molho_manteiga_e_alcaparras ", " ", 0),
-    ("Strogonoff_de_file_Mignon ", " ", 0),
-    ("Nhoque_ao_molho", " ", 0),
-    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", " ", 0),
-    ("Escondinho_de_carne_seca_com_mandioca ", " ", 0),
-    ("Raviolli_de_queijo_ao_molho_bolonhesa ", " ", 0),
+    ("Feijoada_completa", "14990", 0),
+    ("Bobo_de_camarao ", "13990", 0),
+    ("File_de_tilapia_ao_molho_manteiga_e_alcaparras ", "12990", 0),
+    ("Strogonoff_de_file_Mignon ", "12990", 0),
+    ("Nhoque_ao_molho", "11990", 0),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "13990", 0),
+    ("Escondinho_de_carne_seca_com_mandioca ", "12990", 0),
+    ("Raviolli_de_queijo_ao_molho_bolonhesa ", "12990", 0),
 ]
 
 cardapios_salgados=[
-    ("Salgados_completo ", " ", 0),
-    ("Salgados_Reduzido", " ", 0),
-    ("Hamburguer_tradicional ", " ", 0),
-    ("Hamburguer_smash ", " ", 0),
-    ("Hamburguer_mega_bacon ", " ", 0),
-    ("Mexicano ", " ", 0),
-    ("Boteco_brasileiro", " ", 0),
+    ("Salgados_completo ", "12990", 0),
+    ("Salgados_Reduzido", "9990", 0),
+    ("Hamburguer_tradicional ", "7990", 0),
+    ("Hamburguer_smash ", "8990", 0),
+    ("Hamburguer_mega_bacon ", "9990", 0),
+    ("Mexicano ", "8990", 0),
+    ("Boteco_brasileiro", "6990", 0),
 ]
 
 cardapios_bebidas=[
-    ("Bebida_sem_alcool", " ", 0),
-    ("Bebida_com_alcool", " ", 0),
-    ("Bebida_mista", " ", 0),
+    ("Bebida_sem_alcool", "16990", 0),
+    ("Bebida_com_alcool", "18990", 0),
+    ("Bebida_mista", "17990", 0),
 
 ]
 
@@ -137,6 +137,41 @@ lista_pratos = [
     ("Bolinho_de_bacalhau", "Bolinho tradicional de bacalhau e batata", "prato principal", 6, False),
     ("Liguica_acebolada", "Porção de linguiça frita com cebola", "prato principal", 10, False),
     ("Pastel_de_queijo", "Pastel frito recheado com queijo derretido", "prato principal", 6, False),
+]
+
+#NOME DAS BEBIDAS 
+lista_bebida = [
+    #BEBIDAS DE ESCOLHA SEM SER DO BAR 
+    ('Agua_com_gas','Agua_com_gas', 0, 0),
+    ('Suco_de_abacaxi','Suco_de_abacaxi', 0, 0),
+    ('Suco_de_abacaxi','Suco_de_abacaxi', 0, 0),
+    ('Refrigerante_de_guarana','Refrigerante_de_guarana', 0, 0),
+    ('Cha_preto','Cha_preto', 0, 0),
+    ('Agua_de_coco','Agua_de_coco', 0, 0),
+    ('Suco_de_melancia','Suco_de_melancia', 0, 0),
+    ('Gin','Gin', 0, 0),
+    ('Uisque_de_centeio_rye','Uisque_de_centeio_rye', 0, 0)
+    #SEM ALCOOL - BAR
+    ("Pink Lemonade", "Bebida sem álcool feita com suco de limão-siciliano, xarope de groselha ou framboesa, água com gás, gelo e suco de limão-tahiti.", 0, 0),
+    ("Mojito Sem Álcool", "Bebida sem álcool preparada com folhas de hortelã, xarope simples de açúcar, água com gás e gelo.", 0, 0),
+    ("Piña Colada Zero", "Bebida sem álcool feita com suco de abacaxi, leite de coco, leite condensado e gelo triturado.", 0, 0),
+    ("Soda Italiana de Maçã Verde", "Bebida sem álcool preparada com xarope de maçã verde, água com gás, suco de limão e gelo.", 0, 0),
+    ("Coquetel de Frutas Vermelhas", "Bebida sem álcool feita com polpa ou purê de frutas vermelhas, suco de laranja, refrigerante de guaraná ou soda e gelo.", 0, 0),
+    ("Iced Tea de Pêssego e Limão", "Bebida sem álcool preparada com chá preto gelado, xarope ou suco concentrado de pêssego, suco de limão e gelo.", 0, 0),
+    ("Sunrise de Laranja e Grenadine", "Bebida sem álcool feita com suco de laranja natural e xarope de grenadine ou groselha.", 0, 0),
+    ("Coquetel Tropical de Coco", "Bebida sem álcool preparada com água de coco, suco de maracujá, xarope de baunilha e gelo.", 0, 0),
+    ("Lemonade de Extrato de Manjericão", "Bebida sem álcool feita com suco de limão-tahiti, folhas frescas de manjericão, xarope de açúcar e água filtrada gelada.", 0, 0),
+    ("Refresco de Melancia e Gengibre", "Bebida sem álcool preparada com suco de melancia fresco, suco de gengibre, açúcar e gelo picado.", 0, 0),
+    # COM ALCOOL - BAR
+    ("Caipirinha", "Drink alcoólico preparado com cachaça, limão e gelo.", 0, 0),
+    ("Margarita", "Drink alcoólico feito com tequila, Cointreau, suco de limão, sal e gelo.", 0, 0),
+    ("Negroni", "Drink alcoólico preparado com gin, Campari, vermute tinto, gelo e casca de laranja.", 0, 0),
+    ("Moscow Mule", "Drink alcoólico feito com vodka, suco de limão, ginger beer, gelo e rodela de limão.", 0, 0),
+    ("Cosmopolitan", "Drink alcoólico preparado com vodka, Cointreau, suco de cranberry, suco de limão e gelo.", 0, 0),
+    ("Mai Tai", "Drink alcoólico feito com rum branco, rum escuro, Cointreau, xarope de amêndoa e suco de limão.", 0, 0),
+    ("Old Fashioned", "Drink alcoólico preparado com uísque bourbon, açúcar, Angostura bitters, gelo e casca de laranja.", 0, 0),
+    ("Manhattan", "Drink alcoólico feito com uísque de centeio, vermute tinto, Angostura bitters, gelo e cereja marasquino.", 0, 0),
+    ("Piña Colada", "Drink alcoólico preparado com rum branco, suco de abacaxi, leite de coco e gelo.", 0, 0)
 ]
 
 ingredientes_carnes = [
@@ -229,6 +264,7 @@ ingredientes_vegetais = [
         ('Frutas_frescas_in_natura', 'g', 30, 6)
         ('Frutas_vermelhas_congeladas', 'g', 12, 3)
         ('Nozes', 'g', 6, 1)
+        
 ]
 
 ingredientes_temperos = [
@@ -257,6 +293,7 @@ ingredientes_temperos = [
         ('Chocolate_meio_amargo', 'g', 15, 3)
         ('Mel', 'g', 9, 1)
         ('Azeitona', 'g', 9, 1)
+        ('Folha_de_hortela', 'unidade', 300,50)
 ]
 
 ingredientes_bebidas_sem_alcool = [
@@ -269,7 +306,7 @@ ingredientes_bebidas_sem_alcool = [
         ('Polpa_de_frutas_vermelhas', 'g', 15, 3)
         ('Suco_de_laranja', 'mL', 30, 6)
         ('Refrigerante_de_guarana', 'mL', 60, 15)
-        ('Cha_preto', 'g', 3, 0)
+        ('Cha_preto', 'ml', 3, 0)
         ('Xarope_de_pessego', 'mL', 6, 1)
         ('Xarope_de_grenadine', 'mL', 6, 1)
         ('Agua_de_coco', 'mL', 24, 6)
@@ -304,6 +341,7 @@ ingredientes_diversos = [
         ('Beijinho', 'unidade', 100, 25)
         ('Bolo_comum_simples', 'g', 15, 3)
 ]
+
 
 lista_ingredientes = [
     # nome, unidade de medida, estoque atual, estoque minimo
@@ -685,6 +723,8 @@ lista_lotes = [
     ("LOTE-ING-140", "Sadia", datetime(2026, 10, 12), 3.0, "Pastel_de_queijo", datetime(2028, 6, 20)),
 
     ("LOTE-ING-141", "Sadia", datetime(2026, 10, 12), 2.0, "Salame", datetime(2028, 7, 15)),
+
+    ("LOTE-ING-142", "Nature", datetime(2026, 10, 11), 2.0, "Folha_de_hortela", datetime(2028,4,1))
 ]
 
 lista_cargos = [
@@ -961,7 +1001,125 @@ lista_ficha_tecnica = [
 
     ("Pastel_de_queijo", "Pastel_de_queijo", 3.3),
 ]
+ficha_bebidas = [
+    #BEBIDAS QUE O CLIENTE ESCOLHE SEM SER DO BAR
+   
+    ("Agua_com_gas", "Agua_com_gas", 200),
+    ("Suco_de_abacaxi", "Suco_de_abacaxi", 200),
+    ("Refrigerante_de_guarana", "Refrigerante_de_guarana", 200),
+    ("Cha_preto", "Cha_preto", 200),
+    ("Agua_de_coco", "Agua_de_coco", 200),
+    ("Suco_de_melancia", "Suco_de_melancia", 200),
+    ("Gin", "Gin", 70),
+    ("Uisque_de_centeio_rye", "Uisque_de_centeio_rye", 70),
 
+    # SEM ÁLCOOL - BAR
+
+    # Pink Lemonade
+    ("Pink Lemonade", "Suco_de_limao", 50),
+    ("Pink Lemonade", "Xarope_de_groselha_framboesa", 20),
+    ("Pink Lemonade", "Agua_com_gas", 150),
+
+    # Mojito Sem Álcool
+    ("Mojito Sem Álcool", "Suco_de_limao", 30),
+    ("Mojito Sem Álcool", "Xarope_simples_de_acucar", 20),
+    ("Mojito Sem Álcool", "Agua_com_gas", 150),
+     ("Mojito Sem Álcool", "Folha_de_hortela", 10)
+
+
+    # Piña Colada Zero
+    ("Piña Colada Zero", "Suco_de_abacaxi", 120),
+    ("Piña Colada Zero", "Leite_de_coco", 50),
+    ("Piña Colada Zero", "Leite_condensado", 30),
+
+    # Soda Italiana de Maçã Verde
+    ("Soda Italiana de Maçã Verde", "Xarope_de_maca_verde", 30),
+    ("Soda Italiana de Maçã Verde", "Agua_com_gas", 180),
+    ("Soda Italiana de Maçã Verde", "Suco_de_limao", 10),
+
+    # Coquetel de Frutas Vermelhas
+    ("Coquetel de Frutas Vermelhas", "Polpa_de_frutas_vermelhas", 50),
+    ("Coquetel de Frutas Vermelhas", "Suco_de_laranja", 50),
+    ("Coquetel de Frutas Vermelhas", "Refrigerante_de_guarana", 100),
+
+    # Iced Tea de Pêssego e Limão
+    ("Iced Tea de Pêssego e Limão", "Cha_preto", 150),
+    ("Iced Tea de Pêssego e Limão", "Xarope_de_pessego", 40),
+    ("Iced Tea de Pêssego e Limão", "Suco_de_limao", 15),
+
+    # Sunrise de Laranja e Grenadine
+    ("Sunrise de Laranja e Grenadine", "Suco_de_laranja", 180),
+    ("Sunrise de Laranja e Grenadine", "Xarope_de_grenadine", 20),
+
+    # Coquetel Tropical de Coco
+    ("Coquetel Tropical de Coco", "Agua_de_coco", 100),
+    ("Coquetel Tropical de Coco", "Suco_de_maracuja", 50),
+    ("Coquetel Tropical de Coco", "Xarope_de baunilha", 15),
+
+    # Lemonade de Extrato de Manjericão
+    ("Lemonade de Extrato de Manjericão", "Suco_de_limao", 40),
+    ("Lemonade de Extrato de Manjericão", "Manjericao", 1),
+    ("Lemonade de Extrato de Manjericão", "Xarope_simples_de_acucar", 25),
+
+    # Refresco de Melancia e Gengibre
+    ("Refresco de Melancia e Gengibre", "Suco_de_melancia", 150),
+    ("Refresco de Melancia e Gengibre", "Suco_de_gengibre", 5),
+    ("Refresco de Melancia e Gengibre", "Acucar", 25),
+
+    # COM ÁLCOOL - BAR
+
+    # Caipirinha
+    ("Caipirinha", "Cachaca", 50),
+    ("Caipirinha", "Limao", 50),
+    ("Caipirinha", "Acucar", 25),
+
+    # Margarita
+    ("Margarita", "Tequila", 50),
+    ("Margarita", "Cointreau_triple_sec", 25),
+    ("Margarita", "Suco_de_limao", 25),
+    ("Margarita", "Sal", 1),
+
+    # Negroni
+    ("Negroni", "Gin", 30),
+    ("Negroni", "Campari", 30),
+    ("Negroni", "Vermute_tinto", 30),
+    ("Negroni", "Laranja", 5),
+
+    # Moscow Mule
+    ("Moscow Mule", "Vodka", 50),
+    ("Moscow Mule", "Suco_de_limao", 15),
+    ("Moscow Mule", "Ginger_beer", 120),
+
+    # Cosmopolitan
+    ("Cosmopolitan", "Vodka", 40),
+    ("Cosmopolitan", "Cointreau_triple_sec", 15),
+    ("Cosmopolitan", "Suco_de_cranberry", 30),
+    ("Cosmopolitan", "Suco_de_limao", 15),
+
+    # Mai Tai
+    ("Mai Tai", "Rum_branco", 40),
+    ("Mai Tai", "Rum_escuro", 20),
+    ("Mai Tai", "Cointreau_triple_sec", 15),
+    ("Mai Tai", "Xarope_de_amendoa_orgeat", 15),
+    ("Mai Tai", "Suco_de_limao", 10),
+
+    # Old Fashioned
+    ("Old Fashioned", "Uisque_bourbon", 60),
+    ("Old Fashioned", "Acucar", 4),
+    ("Old Fashioned", "Angostura_bitters", 1),
+    ("Old Fashioned", "Laranja", 5),
+
+    # Manhattan
+    ("Manhattan", "Uisque_de_centeio_rye", 60),
+    ("Manhattan", "Vermute_tinto", 30),
+    ("Manhattan", "Angostura_bitters", 1),
+    ("Manhattan", "Cereja_marasquino", 6),
+
+    # Piña Colada
+    ("Piña Colada", "Rum_branco", 50),
+    ("Piña Colada", "Suco_de_abacaxi", 90),
+    ("Piña Colada", "Leite_de_coco", 30),
+]
 
 # ================================= Inicialização ESTOQUE ================================= 
 
