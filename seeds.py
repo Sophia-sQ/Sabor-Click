@@ -23,7 +23,7 @@ from model.ficha_model import (
 # ================================== Import CARGOS ==================================
 
 from model.cargos import Cargo
-from model.usuario_model import NivelPermissao
+from model.usuario_model import NivelPermissao, Usuario
 from model.usuario_model import buscar_permissao_por_nome, atualizar_permissao
 from model.pedido_model import buscar_bebida_por_nome
 from model.servico_model import ServicoBancada, ServicoCardapio
@@ -31,7 +31,9 @@ from model.ficha_model import FichaTecnica, FichaTecnica_bebida
 
 __all__ = ["iniciar_bancadas", "iniciar_servicos", "iniciar_cardapios", 
            "iniciar_pratos", "iniciar_ingredientes", "iniciar_lotes", 
-           "iniciar_cargos", "iniciar_ficha_tecnica", "iniciar_ficha_tecnica_bebida", "iniciar_servico_bancada", "iniciar_servico_cardapio", "iniciar_prato_cardapio"]
+           "iniciar_cargos", "iniciar_ficha_tecnica", "iniciar_admin",
+           "iniciar_cargos", "iniciar_ficha_tecnica", "iniciar_ficha_tecnica_bebida", 
+           "iniciar_servico_bancada", "iniciar_servico_cardapio", "iniciar_prato_cardapio"]
 
 # ================================= "Tabelas" ESTOQUE =================================
 
@@ -1351,6 +1353,24 @@ def iniciar_cargos() -> list[NivelPermissao]:
         cargos.append(cargo)
         
     return cargos
+
+def iniciar_admin():
+    import security
+    from os import environ
+    from werkzeug.security import generate_password_hash
+    admin_existente = Usuario.query.filter_by(id_permissao=Cargo.ADMIN.value).first()
+
+    if not admin_existente:
+        return Usuario(
+            cpf_criptografado=security.criptografar("00000000000"),
+            cpf_hmac=security.gerar_hmac(cpf="00000000000"),
+            nome="Admin",
+            email_criptogradafo=security.criptografar(environ.get("ADMIN_EMAIL")),
+            email_hmac=security.gerar_hmac(environ.get("ADMIN_EMAIL")),
+            senha_hash=generate_password_hash(environ.get("ADMIN_PASSWORD")),
+            id_permissao=Cargo.ADMIN.value
+        )      
+
 # ================================== Inicialização FICHA TECNICA ================================== 
 
 def iniciar_ficha_tecnica() -> list[FichaTecnica]:
