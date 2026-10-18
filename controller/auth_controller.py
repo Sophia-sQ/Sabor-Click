@@ -4,7 +4,7 @@ from model.usuario_model import buscar_usuario_para_login, buscar_usuario_por_id
 from model.cargos import Cargo
 
 from flask import Blueprint, render_template, request, session, flash, redirect, url_for
-from utils import enviar_email_nao_responda
+from services import enviar_email_nao_responda
 
 from re import fullmatch, match
 

@@ -4,7 +4,7 @@ from model.usuario_model import registrar_log, buscar_usuario_por_id, adicionar_
 from model.pedido_model import atualizar_pedido, criar_pedido
 from model.servico_model import buscar_cardapio_por_id, buscar_servico_por_slug, listar_cardapios_do_servico
 
-from utils import enviar_email_nao_responda
+from services import enviar_email_nao_responda
 
 cliente_bp = Blueprint("cliente", __name__, url_prefix='/home')
  

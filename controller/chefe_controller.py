@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from model.pedido_model import buscar_pedido_por_id, atualizar_pedido
 from model.usuario_model import registrar_log, buscar_usuario_por_id
-from utils import enviar_email_nao_responda
+from services import enviar_email_nao_responda
 
 chefe_bp = Blueprint("chefe", __name__, url_prefix='/pedido')
 
