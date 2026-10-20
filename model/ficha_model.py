@@ -332,13 +332,43 @@ def deletar_ficha_tecnica(id_prato: int, id_ingrediente: int):
 
 """==================CRUD LOTE============="""
 
-def criar_lote(num_lote: str, marca: str, data_recebimento: datetime, qtd_inicial: float, id_ingrediente: int = None, id_bebida: int = None, data_validade=None):
-    """Cria um novo lote (vinculado a um ingrediente OU bebida)"""
-    novo_lote = Lote(num_lote=num_lote,marca=marca,data_recebimento=data_recebimento,data_validade=data_validade,qtd_inicial=qtd_inicial,id_ingrediente=id_ingrediente,id_bebida=id_bebida
+def criar_lote(
+    num_lote: str,
+    marca: str,
+    data_recebimento: datetime,
+    qtd_inicial: float,
+    id_ingrediente: int = None,
+    id_bebida: int = None,
+    data_validade=None
+):
+    """Cria um novo lote (vinculado a um ingrediente OU bebida)."""
+
+    novo_lote = Lote(
+        num_lote=num_lote,
+        marca=marca,
+        data_recebimento=data_recebimento,
+        data_validade=data_validade,
+        qtd_inicial=qtd_inicial,
+        id_ingrediente=id_ingrediente,
+        id_bebida=id_bebida
     )
+
     db.session.add(novo_lote)
+
+    # NOVO: soma a quantidade do lote ao estoque do ingrediente
+    if id_ingrediente is not None:
+        ingrediente = db.session.get(Ingrediente, id_ingrediente)
+
+        if ingrediente:
+            ingrediente.qtd = (ingrediente.qtd or 0) + qtd_inicial
+
     db.session.commit()
-    registrar_log("CRIACAO LOTE", f"Usuário criou o lote {novo_lote.num_lote}")
+
+    registrar_log(
+        "CRIACAO LOTE",
+        f"Usuário criou o lote {novo_lote.num_lote}"
+    )
+
     return novo_lote.id_lote
 
 
