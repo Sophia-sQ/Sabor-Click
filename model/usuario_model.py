@@ -1,5 +1,5 @@
 # Contém as tabelas: NivelPermissao, Usuario e LogAtividade
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from database import db
 from sqlalchemy.exc import IntegrityError
 
@@ -56,7 +56,64 @@ class LogAtividade(db.Model):
     descricao = db.Column(db.Text, nullable=True)  
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
     
-# funções de consulta    
+# Tabelas de tokens
+class Token(db.Model):
+    __tablename__ = "token"
+
+    id_token = db.Column(db.Integer, primary_key=True, autoincrement=True),
+    codigo_hash = db.Column(db.Text, nullable=False),
+    ativo = db.Column(db.Boolean, nullable=False, default=True),
+    tentativas = db.Column(db.integer, nullable=False, default=0),
+    id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
+    criado_em = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False),
+
+# funções de consulta   
+
+def criar_token(hash: str, id_usuario: int) -> Token | None:
+    token=Token(codigo_hash=hash, id_usuario=id_usuario)
+    db.session.add(token)
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return None
+    return token
+
+def deletar_token(id_token: int):
+    """Deleta token."""
+    token = db.session.get(Token, id_token)
+    if not token:
+        return False
+    db.session.delete(token)
+    db.session.commit()
+    return True
+
+def buscar_token(hash: str, insercao: datetime) -> Token | None:
+    """ Procura um token ativo.
+        args:
+            hash (str): hash gerado na criação do token.
+        
+        Returns:
+            Retorna Token se o token existir e for válido e None do contrário
+    """
+
+    token = db.session.execute(
+        db.session.select(Token).where(
+            Token.codigo_hash == hash,
+            Token.ativo == True,
+            Token.criado_em + timedelta(minutes=10) <= insercao.date()
+        )
+    ).scalar_one_or_none()
+
+    if token:
+        token.ativo = False
+        token.tentativas += 1
+        if token.tentativas > 5:
+            return None
+        db.commit()
+        return token
+    return None
 
 def criar_cargo(id_permissao:int, nome:str):
     """Cria novo cargo.
@@ -114,8 +171,6 @@ def atualizar_permissao(id_cargo: int, nome: str) -> (NivelPermissao | None):
     db.session.commit()
     registrar_log("ATUALIZACAO", f"Cargo {id_cargo} atualizado.")        
     return cargo
-
-
 
 def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    """Cria novo usuario."""
