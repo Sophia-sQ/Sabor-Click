@@ -8,6 +8,8 @@ from werkzeug.security import check_password_hash,generate_password_hash
 
 from security import gerar_hmac, criptografar
 
+from utils import hoje
+
 # Tabela Nível de permissão do usuário
 class NivelPermissao(db.Model):
     __tablename__ = "nivel_permissao"
@@ -60,15 +62,14 @@ class LogAtividade(db.Model):
 class Token(db.Model):
     __tablename__ = "token"
 
-    id_token = db.Column(db.Integer, primary_key=True, autoincrement=True),
-    codigo_hash = db.Column(db.Text, nullable=False),
-    ativo = db.Column(db.Boolean, nullable=False, default=True),
-    tentativas = db.Column(db.integer, nullable=False, default=0),
-    id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
-    criado_em = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False),
-
+    id_token = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    codigo_hash = db.Column(db.Text, nullable=False)
+    ativo = db.Column(db.Boolean, nullable=False, default=True)
+    tentativas = db.Column(db.Integer, nullable=False, default=0)
+    id_usuario = db.Column(db.Integer,db.ForeignKey("usuario.id_usuario"),nullable=False)
+    criado_em = db.Column(db.DateTime(timezone=True),default=hoje,nullable=False)
+    
 # funções de consulta   
-
 def criar_token(hash: str, id_usuario: int) -> Token | None:
     token=Token(codigo_hash=hash, id_usuario=id_usuario)
     db.session.add(token)
@@ -89,31 +90,36 @@ def deletar_token(id_token: int):
     db.session.commit()
     return True
 
-def buscar_token(hash: str, insercao: datetime) -> Token | None:
-    """ Procura um token ativo.
-        args:
-            hash (str): hash gerado na criação do token.
-        
-        Returns:
-            Retorna Token se o token existir e for válido e None do contrário
-    """
+def buscar_token(id_usuario: int, insercao: datetime) -> Token | None:
+    """Busca o token ativo mais recente e verifica a validade."""
 
     token = db.session.execute(
-        db.session.select(Token).where(
-            Token.codigo_hash == hash,
-            Token.ativo == True,
-            Token.criado_em + timedelta(minutes=10) <= insercao.date()
+        db.select(Token)
+        .where(
+            Token.id_usuario == id_usuario,
+            Token.ativo.is_(True)
         )
-    ).scalar_one_or_none()
+        .order_by(Token.criado_em.desc())
+    ).scalars().first()
 
-    if token:
+    if token is None:
+        return None
+
+    criado_em = token.criado_em
+    fuso = hoje().tzinfo
+
+    if criado_em.tzinfo is None:
+        criado_em = criado_em.replace(tzinfo=fuso)
+
+    if insercao.tzinfo is None:
+        insercao = insercao.replace(tzinfo=fuso)
+
+    if insercao >= criado_em + timedelta(minutes=10):
         token.ativo = False
-        token.tentativas += 1
-        if token.tentativas > 5:
-            return None
-        db.commit()
-        return token
-    return None
+        db.session.commit()
+        return None
+
+    return token
 
 def criar_cargo(id_permissao:int, nome:str):
     """Cria novo cargo.
