@@ -1,5 +1,5 @@
 # Contém as tabelas: NivelPermissao, Usuario e LogAtividade
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from database import db
 from sqlalchemy.exc import IntegrityError
 
@@ -7,6 +7,8 @@ from flask import session
 from werkzeug.security import check_password_hash,generate_password_hash
 
 from security import gerar_hmac, criptografar
+
+from utils import hoje
 
 # Tabela Nível de permissão do usuário
 class NivelPermissao(db.Model):
@@ -56,7 +58,68 @@ class LogAtividade(db.Model):
     descricao = db.Column(db.Text, nullable=True)  
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
     
-# funções de consulta    
+# Tabelas de tokens
+class Token(db.Model):
+    __tablename__ = "token"
+
+    id_token = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    codigo_hash = db.Column(db.Text, nullable=False)
+    ativo = db.Column(db.Boolean, nullable=False, default=True)
+    tentativas = db.Column(db.Integer, nullable=False, default=0)
+    id_usuario = db.Column(db.Integer,db.ForeignKey("usuario.id_usuario"),nullable=False)
+    criado_em = db.Column(db.DateTime(timezone=True),default=hoje,nullable=False)
+    
+# funções de consulta   
+def criar_token(hash: str, id_usuario: int) -> Token | None:
+    token=Token(codigo_hash=hash, id_usuario=id_usuario)
+    db.session.add(token)
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return None
+    return token
+
+def deletar_token(id_token: int):
+    """Deleta token."""
+    token = db.session.get(Token, id_token)
+    if not token:
+        return False
+    db.session.delete(token)
+    db.session.commit()
+    return True
+
+def buscar_token(id_usuario: int, insercao: datetime) -> Token | None:
+    """Busca o token ativo mais recente e verifica a validade."""
+
+    token = db.session.execute(
+        db.select(Token)
+        .where(
+            Token.id_usuario == id_usuario,
+            Token.ativo.is_(True)
+        )
+        .order_by(Token.criado_em.desc())
+    ).scalars().first()
+
+    if token is None:
+        return None
+
+    criado_em = token.criado_em
+    fuso = hoje().tzinfo
+
+    if criado_em.tzinfo is None:
+        criado_em = criado_em.replace(tzinfo=fuso)
+
+    if insercao.tzinfo is None:
+        insercao = insercao.replace(tzinfo=fuso)
+
+    if insercao >= criado_em + timedelta(minutes=10):
+        token.ativo = False
+        db.session.commit()
+        return None
+
+    return token
 
 def criar_cargo(id_permissao:int, nome:str):
     """Cria novo cargo.
@@ -114,8 +177,6 @@ def atualizar_permissao(id_cargo: int, nome: str) -> (NivelPermissao | None):
     db.session.commit()
     registrar_log("ATUALIZACAO", f"Cargo {id_cargo} atualizado.")        
     return cargo
-
-
 
 def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    """Cria novo usuario."""
