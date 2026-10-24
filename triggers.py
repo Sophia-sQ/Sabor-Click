@@ -1,209 +1,194 @@
-
-# Importa text para executar comandos SQL pelo SQLAlchemy
 from sqlalchemy import text
-
-# Importa a conexão com o banco de dados do projeto
 from database import db
 
 
 def criar_trigger_baixa_estoque():
-    # Comando SQL que cria a trigger no SQLite
-    sql = """
-    CREATE TRIGGER baixa_estoque_pedido_confirmado
+    with db.engine.begin() as conexao:
 
-    -- Aciona quando o status do pedido é atualizado
-    AFTER UPDATE OF status ON pedido
-
-    -- Executa para cada pedido atualizado
-    FOR EACH ROW
-
-    -- Só executa ao passar para confirmado
-    WHEN NEW.status = 'confirmado'
-         AND OLD.status <> 'confirmado'
-
-    BEGIN
-
-        -- ==========================================
-        -- 1. VERIFICA SE EXISTE ESTOQUE SUFICIENTE
-        -- ==========================================
-
-        -- Interrompe a confirmação se faltar algum ingrediente
-        SELECT RAISE(
-            ABORT,
-            'Estoque insuficiente para confirmar o pedido'
-        )
-        WHERE EXISTS (
-
-            -- Soma o consumo de cada ingrediente,
-            -- considerando pratos e bebidas
-            SELECT 1
+        # 1. Calcula o consumo total de cada ingrediente por pedido.
+        # Inclui pratos e bebidas e soma ingredientes repetidos.
+        conexao.execute(text("""
+            CREATE VIEW IF NOT EXISTS consumo_ingrediente_pedido AS
+            SELECT
+                consumos.id_pedido,
+                consumos.id_ingrediente,
+                SUM(consumos.qtd_total) AS qtd_total
             FROM (
+                -- Consumo dos pratos
                 SELECT
-                    consumos.id_ingrediente,
-                    SUM(consumos.qtd_total) AS qtd_total
-                FROM (
-
-                    -- CONSUMO DOS PRATOS
-                    SELECT
-                        ft.id_ingrediente,
-                        SUM(
-                            ft.qtd_necessaria * NEW.num_convidados
-                        ) AS qtd_total
-                    FROM cardapio_pedido cp
-
-                    -- Encontra os pratos de cada cardápio
-                    JOIN prato_cardapio pc
-                        ON pc.id_cardapio = cp.id_cardapio
-
-                    -- Encontra os ingredientes dos pratos
-                    JOIN ficha_tecnica ft
-                        ON ft.id_prato = pc.id_prato
-
-                    -- Considera somente o pedido confirmado
-                    WHERE cp.id_pedido = NEW.id_pedido
-
-                    -- Agrupa as quantidades por ingrediente
-                    GROUP BY ft.id_ingrediente
-
-                    UNION ALL
-
-                    -- CONSUMO DAS BEBIDAS
-                    SELECT
-                        ftb.id_ingrediente,
-                        SUM(
-                            ftb.qtd_necessaria * pb.qtd
-                        ) AS qtd_total
-                    FROM pedido_bebida pb
-
-                    -- Encontra os ingredientes de cada bebida
-                    JOIN ficha_tecnica_bebida ftb
-                        ON ftb.id_bebida = pb.id_bebida
-
-                    -- Considera somente as bebidas desse pedido
-                    WHERE pb.id_pedido = NEW.id_pedido
-
-                    -- Agrupa as quantidades por ingrediente
-                    GROUP BY ftb.id_ingrediente
-
-                ) AS consumos
-
-                -- Soma também ingredientes repetidos
-                -- entre diferentes pratos e bebidas
-                GROUP BY consumos.id_ingrediente
-
-            ) AS necessidades
-
-            -- Compara o consumo calculado com o estoque atual
-            JOIN ingrediente i
-                ON i.id_ingrediente = necessidades.id_ingrediente
-
-            -- Se o estoque for menor que o necessário, gera erro
-            WHERE i.qtd < necessidades.qtd_total
-        );
-
-
-        -- ==========================================
-        -- 2. DESCONTA OS INGREDIENTES DO ESTOQUE
-        -- ==========================================
-
-        UPDATE ingrediente
-
-        -- Subtrai o consumo total da quantidade atual
-        SET qtd = qtd - (
-
-            -- Calcula o total usado de cada ingrediente
-            SELECT SUM(consumos.qtd_total)
-            FROM (
-
-                -- INGREDIENTES DOS PRATOS
-                SELECT
+                    cp.id_pedido,
                     ft.id_ingrediente,
                     SUM(
-                        ft.qtd_necessaria * NEW.num_convidados
+                        ft.qtd_necessaria * p.num_convidados
                     ) AS qtd_total
-                FROM cardapio_pedido cp
-
+                FROM pedido p
+                JOIN cardapio_pedido cp
+                    ON cp.id_pedido = p.id_pedido
                 JOIN prato_cardapio pc
                     ON pc.id_cardapio = cp.id_cardapio
-
                 JOIN ficha_tecnica ft
                     ON ft.id_prato = pc.id_prato
-
-                WHERE cp.id_pedido = NEW.id_pedido
-
-                GROUP BY ft.id_ingrediente
+                GROUP BY
+                    cp.id_pedido,
+                    ft.id_ingrediente
 
                 UNION ALL
 
-                -- INGREDIENTES DAS BEBIDAS
+                -- Consumo das bebidas
                 SELECT
+                    pb.id_pedido,
                     ftb.id_ingrediente,
                     SUM(
                         ftb.qtd_necessaria * pb.qtd
                     ) AS qtd_total
                 FROM pedido_bebida pb
-
                 JOIN ficha_tecnica_bebida ftb
                     ON ftb.id_bebida = pb.id_bebida
-
-                WHERE pb.id_pedido = NEW.id_pedido
-
-                GROUP BY ftb.id_ingrediente
-
+                GROUP BY
+                    pb.id_pedido,
+                    ftb.id_ingrediente
             ) AS consumos
+            GROUP BY
+                consumos.id_pedido,
+                consumos.id_ingrediente
+        """))
 
-            -- Seleciona apenas o ingrediente atualizado
-            WHERE consumos.id_ingrediente =
-                  ingrediente.id_ingrediente
-        )
+        # 2. Guarda temporariamente a distribuição da baixa
+        # entre os lotes de cada pedido.
+        conexao.execute(text("""
+            CREATE TABLE IF NOT EXISTS baixa_lote_pedido (
+                id_pedido INTEGER NOT NULL,
+                id_lote INTEGER NOT NULL,
+                qtd_baixada NUMERIC(10, 3) NOT NULL,
+                PRIMARY KEY (id_pedido, id_lote)
+            )
+        """))
 
-        -- Atualiza apenas ingredientes usados no pedido
-        WHERE id_ingrediente IN (
+        # Remove a trigger antiga, se existir.
+        conexao.execute(text("""
+            DROP TRIGGER IF EXISTS baixa_estoque_pedido_confirmado
+        """))
 
-            -- Lista os ingredientes dos pratos
-            SELECT ft.id_ingrediente
-            FROM cardapio_pedido cp
-            JOIN prato_cardapio pc
-                ON pc.id_cardapio = cp.id_cardapio
-            JOIN ficha_tecnica ft
-                ON ft.id_prato = pc.id_prato
-            WHERE cp.id_pedido = NEW.id_pedido
+        # 3. Cria a nova trigger.
+        conexao.execute(text("""
+            CREATE TRIGGER baixa_estoque_pedido_confirmado
+            AFTER UPDATE OF status ON pedido
+            FOR EACH ROW
+            WHEN NEW.status = 'confirmado'
+                 AND OLD.status <> 'confirmado'
+            BEGIN
 
-            UNION
+                -- VERIFICAÇÃO DO ESTOQUE GERAL E DOS LOTES
+                SELECT RAISE(
+                    ABORT,
+                    'Estoque insuficiente para confirmar o pedido'
+                )
+                WHERE EXISTS (
+                    SELECT 1
+                    FROM consumo_ingrediente_pedido c
+                    JOIN ingrediente i
+                        ON i.id_ingrediente = c.id_ingrediente
+                    WHERE c.id_pedido = NEW.id_pedido
+                      AND (
+                          i.qtd < c.qtd_total
+                          OR COALESCE((
+                              SELECT SUM(l.qtd_inicial)
+                              FROM lote l
+                              WHERE l.id_ingrediente =
+                                    c.id_ingrediente
+                                AND l.qtd_inicial > 0
+                                AND (
+                                    l.data_validade IS NULL
+                                    OR l.data_validade >= date('now')
+                                )
+                          ), 0) < c.qtd_total
+                      )
+                );
 
-            -- Lista os ingredientes das bebidas
-            SELECT ftb.id_ingrediente
-            FROM pedido_bebida pb
-            JOIN ficha_tecnica_bebida ftb
-                ON ftb.id_bebida = pb.id_bebida
-            WHERE pb.id_pedido = NEW.id_pedido
-        );
+                -- LIMPA EVENTUAIS REGISTROS ANTERIORES
+                DELETE FROM baixa_lote_pedido
+                WHERE id_pedido = NEW.id_pedido;
 
-    END;
-    """
+                -- DISTRIBUI A QUANTIDADE ENTRE OS LOTES.
+                -- Lotes com validade conhecida vêm primeiro,
+                -- em ordem crescente de vencimento.
+                -- Lotes sem validade ficam por último.
+                INSERT INTO baixa_lote_pedido (
+                    id_pedido,
+                    id_lote,
+                    qtd_baixada
+                )
+                SELECT
+                    id_pedido,
+                    id_lote,
+                    qtd_baixada
+                FROM (
+                    SELECT
+                        NEW.id_pedido AS id_pedido,
+                        l.id_lote AS id_lote,
+                        MIN(
+                            l.qtd_inicial,
+                            MAX(
+                                0,
+                                c.qtd_total - (
+                                    SUM(l.qtd_inicial) OVER (
+                                        PARTITION BY l.id_ingrediente
+                                        ORDER BY
+                                            (l.data_validade IS NULL),
+                                            l.data_validade,
+                                            l.data_recebimento,
+                                            l.id_lote
+                                        ROWS BETWEEN
+                                            UNBOUNDED PRECEDING
+                                            AND CURRENT ROW
+                                    ) - l.qtd_inicial
+                                )
+                            )
+                        ) AS qtd_baixada
+                    FROM lote l
+                    JOIN consumo_ingrediente_pedido c
+                        ON c.id_ingrediente = l.id_ingrediente
+                    WHERE c.id_pedido = NEW.id_pedido
+                      AND l.qtd_inicial > 0
+                      AND (
+                          l.data_validade IS NULL
+                          OR l.data_validade >= date('now')
+                      )
+                )
+                WHERE qtd_baixada > 0;
 
-    # Abre uma transação com o banco
-    with db.engine.begin() as conexao:
+                -- ATUALIZA A QUANTIDADE RESTANTE DE CADA LOTE
+                UPDATE lote
+                SET qtd_inicial = qtd_inicial - COALESCE((
+                    SELECT SUM(b.qtd_baixada)
+                    FROM baixa_lote_pedido b
+                    WHERE b.id_pedido = NEW.id_pedido
+                      AND b.id_lote = lote.id_lote
+                ), 0)
+                WHERE id_lote IN (
+                    SELECT id_lote
+                    FROM baixa_lote_pedido
+                    WHERE id_pedido = NEW.id_pedido
+                );
 
-        # Remove a versão anterior, caso exista,
-        # para que a versão atualizada seja instalada
-        conexao.execute(text(
-            "DROP TRIGGER IF EXISTS baixa_estoque_pedido_confirmado"
-        ))
+                -- ATUALIZA O ESTOQUE GERAL DOS INGREDIENTES
+                UPDATE ingrediente
+                SET qtd = qtd - (
+                    SELECT c.qtd_total
+                    FROM consumo_ingrediente_pedido c
+                    WHERE c.id_pedido = NEW.id_pedido
+                      AND c.id_ingrediente =
+                          ingrediente.id_ingrediente
+                )
+                WHERE id_ingrediente IN (
+                    SELECT id_ingrediente
+                    FROM consumo_ingrediente_pedido
+                    WHERE id_pedido = NEW.id_pedido
+                );
 
-        # Cria a trigger com o código SQL acima
-        conexao.execute(text(sql))
+                -- LIMPA A TABELA AUXILIAR APÓS A BAIXA
+                DELETE FROM baixa_lote_pedido
+                WHERE id_pedido = NEW.id_pedido;
 
-### Trigger de baixa automática de estoque
-
-#A trigger `baixa_estoque_pedido_confirmado` tem como objetivo controlar automaticamente a saída dos ingredientes utilizados nos pedidos do sistema Sabor & Clic. Ela é executada quando o status de um pedido muda para `confirmado`, permitindo que o estoque seja atualizado sem a necessidade de realizar a baixa manualmente.
-
-#Para calcular o consumo dos pratos, a trigger consulta as tabelas `cardapio_pedido`, `prato_cardapio` e `ficha_tecnica`. A ficha técnica informa quais ingredientes são utilizados na preparação de cada prato e a quantidade necessária por pessoa. Essa quantidade é multiplicada pelo número de convidados registrado no pedido.
-
-#Para calcular o consumo das bebidas, a trigger consulta as tabelas `pedido_bebida` e `ficha_tecnica_bebida`. A primeira informa quais bebidas foram solicitadas e suas respectivas quantidades, enquanto a segunda informa os ingredientes necessários para preparar cada bebida. Nesse caso, a quantidade de cada ingrediente é multiplicada pelo número de unidades da bebida solicitadas pelo cliente.
-
-#Após calcular o consumo, a trigger agrupa as quantidades por ingrediente, somando também os ingredientes que aparecem em diferentes pratos ou bebidas. Em seguida, verifica se a quantidade disponível na coluna `qtd` da tabela `ingrediente` é suficiente para atender ao pedido.
-
-#Caso algum ingrediente esteja em falta, a operação de confirmação é interrompida e uma mensagem de erro é gerada. Se houver estoque suficiente, a trigger desconta automaticamente as quantidades utilizadas, atualizando o estoque atual dos ingredientes.
-
-#Dessa forma, a trigger contribui para a consistência dos dados, reduz a necessidade de atualizações manuais e ajuda a evitar que pedidos sejam confirmados quando não há ingredientes suficientes para sua preparação.
+            END;
+        """))
