@@ -177,14 +177,14 @@ def atualizar_servico(id_servico, id_usuario:int, nome=None, descricao=None):
 
     return True
 
-def deletar_servico(id_servico, id_usuario:int):
+def deletar_servico(id_servico):
     """Deleta servico"""
     servico = db.session.get(Servico, id_servico)
     if not servico:
         return False
     db.session.delete(servico)
     db.session.commit()
-    registrar_log(id_usuario,"DELETAR SERVICO", "Usuário deletou servico")
+    registrar_log("DELETAR SERVICO", "Usuário deletou servico")
 
     return True
 
@@ -195,6 +195,7 @@ def deletar_servico(id_servico, id_usuario:int):
 
 def criar_cardapio(nome, descricao, preco_base):
     '''cria cardapio'''
+    
     novo_cardapio = Cardapio(nome=nome, descricao=descricao, preco_base=preco_base)
     db.session.add(novo_cardapio)
     db.session.commit()

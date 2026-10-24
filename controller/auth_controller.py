@@ -114,13 +114,6 @@ def cadastro():
     if not usuario:
         flash("Falha no cadastro. Tente novamente.", "danger")
         return render_template("cadastro.html")
-
-    flash("Cadastro realizado com sucesso. Faça login.", "success")
-    return redirect(url_for("auth.login"))
-
-
-def validar_senha_forte(senha: str = None) -> bool:
-    if not senha:
-        return False
-    regex = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@#$%^&+=!_*-]).{5,}$"
-    return fullmatch(regex, senha) is not None
+    
+    return render_template('login.html')  
+        

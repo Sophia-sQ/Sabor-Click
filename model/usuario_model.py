@@ -3,6 +3,7 @@ from datetime import datetime, timezone, timedelta
 from database import db
 from sqlalchemy.exc import IntegrityError
 
+
 from flask import session
 from werkzeug.security import check_password_hash,generate_password_hash
 
@@ -244,17 +245,28 @@ def buscar_usuario_por_id(id:int):
     
     return None
     
-def buscar_todos_usuarios():
-    """Retorna todos os usuários registrados como uma lista.
+def buscar_funcionarios(busca: str = "") -> list[Usuario]:
+    """Busca funcionários pelo nome.
+
+    Args:
+        busca (str, optional): nome buscado. Defaults to "".
+
+    Returns:
+        list[Usuario]: todos os funcionários que se enquadram nos critérios de busca.
+    """
     
-    retorna dados sensíveis em texto criptografado."""
+    # % significa que pode haver quaisquer caracteres entre a busca
+    termo = f"%{busca.strip()}%"
     
-    usuarios = db.session.execute(db.select(Usuario).where(Usuario.ativo.is_(True))).scalars().all()
+    from model.cargos import Cargo
     
-    if usuarios:
-        return usuarios
-    
-    return None
+    return db.session.execute(
+        db.select(Usuario).where(
+            Usuario.nome.like(termo), 
+            Usuario.id_permissao==Cargo.CHEFE.value
+            ).order_by(Usuario.nome.collate("NOCASE"))
+    ).scalars().all()
+
 
 def atualizar_usuario(id_usuario:int, nome:str = None, email:str= None, nova_senha:str=None):
     """Atualiza o usuário."""
