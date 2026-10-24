@@ -39,8 +39,9 @@ class Bebida(db.Model):
     id_bebida = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(60), nullable=False)
     descricao = db.Column(db.Text, nullable=False)
-    qtd = db.Column(db.Integer, default=0, nullable=False)
-    qtd_min = db.Column(db.Integer, default=0, nullable=False)
+    valor_unitario = db.Column(db.Numeric(10, 2), nullable=False)
+
+    
 
     __table_args__ = (
         db.CheckConstraint("qtd >= 0 AND qtd_min >= 0", name="ck_bebida_qtd"),
@@ -54,7 +55,7 @@ class PedidoBebida(db.Model):
     id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_bebida"), primary_key=True)
     
     qtd = db.Column(db.Integer, nullable=False)
-    valor_unitario = db.Column(db.Numeric(10, 2), nullable=False)
+    valor_total = db.Column(db.Numeric(10, 2), nullable=False)
 
     __table_args__ = (
         db.CheckConstraint("qtd > 0", name="ck_pedido_bebida_qtd"),

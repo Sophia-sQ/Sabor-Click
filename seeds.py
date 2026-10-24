@@ -27,7 +27,7 @@ from model.usuario_model import NivelPermissao, Usuario
 from model.usuario_model import buscar_permissao_por_nome, atualizar_permissao
 from model.pedido_model import buscar_bebida_por_nome
 from model.servico_model import ServicoBancada, ServicoCardapio
-from model.ficha_model import FichaTecnica, FichaTecnica_bebida
+from model.ficha_model import FichaTecnica, FichaTecnica_bebida, PratoCardapio
 
 __all__ = ["iniciar_bancadas", "iniciar_servicos", "iniciar_cardapios", 
            "iniciar_pratos", "iniciar_ingredientes", "iniciar_lotes", 
@@ -201,21 +201,19 @@ lista_pratos = [
     ("Pastel_de_queijo", "Pastel frito recheado com queijo derretido", "prato principal", 6, False),
 ]
 
-# Associa um prato a um cardapio
-lista_prato_cardapio= []
+
 
 #NOME DAS BEBIDAS 
 lista_bebida = [
     #BEBIDAS DE ESCOLHA SEM SER DO BAR 
-    ('Agua_com_gas','Agua_com_gas', 0, 0),
-    ('Suco_de_abacaxi','Suco_de_abacaxi', 0, 0),
-    ('Suco_de_abacaxi','Suco_de_abacaxi', 0, 0),
-    ('Refrigerante_de_guarana','Refrigerante_de_guarana', 0, 0),
-    ('Cha_preto','Cha_preto', 0, 0),
-    ('Agua_de_coco','Agua_de_coco', 0, 0),
-    ('Suco_de_melancia','Suco_de_melancia', 0, 0),
-    ('Gin','Gin', 0, 0),
-    ('Uisque_de_centeio_rye','Uisque_de_centeio_rye', 0, 0)
+    ('Agua_com_gas','Agua_com_gas', 700),
+    ('Suco_de_abacaxi','Suco_de_abacaxi', 1500),
+    ('Refrigerante_de_guarana','Refrigerante_de_guarana', 1000),
+    ('Cha_preto','Cha_preto',700),
+    ('Agua_de_coco','Agua_de_coco', 1200),
+    ('Suco_de_melancia','Suco_de_melancia',1500),
+    ('Gin','Gin', 17),
+    ('Uisque_de_centeio_rye','Uisque_de_centeio_rye',20)
     #SEM ALCOOL - BAR
     ("Pink Lemonade", "Bebida sem álcool feita com suco de limão-siciliano, xarope de groselha ou framboesa, água com gás, gelo e suco de limão-tahiti.", 0, 0),
     ("Mojito Sem Álcool", "Bebida sem álcool preparada com folhas de hortelã, xarope simples de açúcar, água com gás e gelo.", 0, 0),
@@ -1609,3 +1607,31 @@ def iniciar_servico_cardapio() -> list[ServicoCardapio]:
 
     return associacao_servico_cardapio
 
+def iniciar_prato_cardapio() -> list[PratoCardapio]:
+    """Inicializa a associacao prato cardapio. Responsável por associar a cardapio a seus devidos servicos
+    """
+
+    associacao_prato_cardapio = []
+
+    for nome_prato, nome_cardapio in lista_prato_cardapio:
+        prato = buscar_servico_por_nome(nome_prato)
+        cardapio = buscar_cardapio_por_nome(nome_cardapio)
+
+        if not prato or not cardapio:
+            continue
+
+        if db.session.get(
+            PratoCardapio,
+            (prato.id_prato, cardapio.id_cardapio)
+        ):
+            continue
+
+        associacao = PratoCardapio(
+            prato.id_prato,
+            cardapio.id_cardapio
+            
+        )
+
+        associacao_prato_cardapio.append(associacao)
+
+    return associacao_prato_cardapio
