@@ -9,6 +9,7 @@ from werkzeug.security import check_password_hash,generate_password_hash
 
 from security import gerar_hmac, criptografar
 
+from zoneinfo import ZoneInfo
 from utils import hoje
 
 # Tabela Nível de permissão do usuário
@@ -32,7 +33,7 @@ class Usuario(db.Model):
     email_hmac = db.Column(db.String(64), unique=True, nullable=False)
     senha_hash = db.Column(db.String(255), nullable=False)
     ativo = db.Column(db.Boolean, default=True, nullable=False)
-    criado_em = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    criado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False)
     id_permissao = db.Column(db.Integer, db.ForeignKey("nivel_permissao.id_permissao"), nullable=False)
     
 # Tabela de endereços do usuário
@@ -54,7 +55,7 @@ class LogAtividade(db.Model):
     __tablename__ = "log_atividade"
 
     id_atividade = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    realizado_em = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False) # Se vazio cria data e hora padrão
+    realizado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False) # Se vazio cria data e hora padrão
     acao = db.Column(db.String(45), nullable=False)
     descricao = db.Column(db.Text, nullable=True)  
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
@@ -268,23 +269,27 @@ def buscar_funcionarios(busca: str = "") -> list[Usuario]:
     ).scalars().all()
 
 
-def atualizar_usuario(id_usuario:int, nome:str = None, email:str= None, nova_senha:str=None):
+def atualizar_usuario(id_usuario: int, nome: str = None, email: str = None, cpf: str = None, nova_senha: str = None):
     """Atualiza o usuário."""
-    
-    usuario=db.session.get(Usuario, id_usuario)
+
+    usuario = db.session.get(Usuario, id_usuario)
     if not usuario:
         return False
     if nome:
-        usuario.nome= nome
-    if email: 
+        usuario.nome = nome
+    if email:
         usuario.email_criptografado = criptografar(email)
-        usuario.email_hmac = gerar_hmac(email)
+        usuario.email_hmac = gerar_hmac(email=email)   # keyword: usa EMAIL_LOOKUP_HMAC_SECRET
+    if cpf:
+        usuario.cpf_criptografado = criptografar(cpf)
+        usuario.cpf_hmac = gerar_hmac(cpf=cpf)          # keyword: usa CPF_LOOKUP_HMAC_SECRET
     if nova_senha:
         usuario.senha_hash = generate_password_hash(nova_senha)
-        
+
     db.session.commit()
-    registrar_log("ATUALIZACAO", f"Dados cadastrais atualizados pelo usuário {id_usuario}")        
+    registrar_log("ATUALIZACAO", f"Dados cadastrais atualizados pelo usuário {id_usuario}")
     return True
+
 
 def deletar_usuario(id_usuario: int, soft_delete:bool = True):
     """Deleta ou desativa"""
@@ -331,3 +336,88 @@ def adicionar_endereco(nome: str, logradouro: str, numero: str, complemento: str
     
     registrar_log("NOVO ENDERECO", f"Novo endereco no id {endereco.id_endereco} criado.")
     return endereco
+
+def buscar_enderco_por_usuario (id_usuario: int) -> list[Endereco] | None:
+    """Busca todos os endereços de um usuário.
+
+    Args:
+        id_usuario (int): id do usuário.
+
+    Returns:
+        list: Todos os endereços do usuário.
+    """
+    
+    enderecos=db.session.execute(
+        db.select(Endereco).where(Endereco.id_usuario==id_usuario)
+    ).scalars().all()
+    
+    if not enderecos:
+        return None
+    
+    return enderecos
+
+def buscar_enderco_por_id (id_endereco: int) -> Endereco | None:
+    """Busca um endereço a partir do seu id.
+
+    Args:
+        id_endereco (int): id do endereco.
+
+    Returns:
+        Endereco: Instância relativa ao id.
+    """
+    
+    endereco=db.session.get(Endereco, id_endereco)
+    
+    if not endereco:
+        return None
+    
+    return endereco
+
+def buscar_endereco_por_id(id_endereco: int) -> (Endereco | None):
+    """Busca um endereço pelo id."""
+    return db.session.get(Endereco, id_endereco)
+
+def listar_enderecos_do_usuario(id_usuario: int) -> list[Endereco]:
+    """Lista todos os endereços de um usuário. Retorna lista vazia se não houver."""
+    return db.session.execute(
+        db.select(Endereco).where(Endereco.id_usuario == id_usuario)
+    ).scalars().all()
+
+def atualizar_endereco(id_endereco: int, nome: str = None, logradouro: str = None, numero: str = None,
+                       complemento: str = None, bairro: str = None, cidade: str = None, cep: str = None) -> bool:
+    """Atualiza os dados de um endereço. Campos None não são alterados."""
+
+    endereco = db.session.get(Endereco, id_endereco)
+    if not endereco:
+        return False
+
+    if nome:
+        endereco.nome = nome
+    if logradouro:
+        endereco.logradouro = logradouro
+    if numero:
+        endereco.numero = numero
+    if complemento is not None:        # permite limpar o complemento (opcional)
+        endereco.complemento = complemento
+    if bairro:
+        endereco.bairro = bairro
+    if cidade:
+        endereco.cidade = cidade
+    if cep:
+        endereco.cep = cep
+
+    db.session.commit()
+    registrar_log("ATUALIZACAO ENDERECO", f"Endereço {id_endereco} atualizado.")
+    return True
+
+def deletar_endereco(id_endereco: int) -> bool:
+    """Deleta um endereço."""
+
+    endereco = db.session.get(Endereco, id_endereco)
+    if not endereco:
+        return False
+
+    db.session.delete(endereco)
+    db.session.commit()
+    registrar_log("REMOCAO ENDERECO", f"Endereço {id_endereco} removido.")
+    return True

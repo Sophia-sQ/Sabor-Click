@@ -1,7 +1,8 @@
 # Contém a tabela: Pedido
 from model.usuario_model import registrar_log
 
-from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
 from database import db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import extract
@@ -15,7 +16,7 @@ class Pedido(db.Model):
     status = db.Column(
         db.Enum("aguardando", "confirmado", "em preparo", "concluido", "cancelado", name="status_pedido"),default="aguardando",nullable=False)
     confirmado_em = db.Column(db.DateTime, nullable=True)
-    criado_em = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
+    criado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False)
     num_convidados = db.Column(db.Integer, nullable=False, default=1)
     valor_total = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
     data_evento = db.Column(db.Date, nullable=False)
@@ -309,7 +310,6 @@ def atualizar_pedido(
     except IntegrityError:
         return None
 
-
 def deletar_pedido(id_pedido: int):
     '''Deleta pedido'''
     pedido = db.session.get(Pedido, id_pedido)
@@ -320,8 +320,6 @@ def deletar_pedido(id_pedido: int):
     db.session.commit()
     registrar_log("REMOCAO PEDIDO", f"Pedido {id_pedido} removido do sistema.")
     return True
-
-
 
 #PEDIDO_BEBIDA
 def adicionar_bebida_ao_pedido(id_pedido: int, id_bebida: int, qtd: int, valor_unitario: float) -> bool:
@@ -345,6 +343,17 @@ def adicionar_bebida_ao_pedido(id_pedido: int, id_bebida: int, qtd: int, valor_u
 
     db.session.commit()
     return True
+
+def buscar_bebidas_pedido(id_pedido: int) -> list[PedidoBebida]:
+    
+    bebidas = db.session.execute(
+        db.select(PedidoBebida).where(PedidoBebida.id_pedido==id_pedido)
+    ).scalars().all()
+    
+    if not bebidas:
+        return None
+
+    return bebidas
 
 def remover_bebida_do_pedido(id_pedido: int, id_bebida: int) -> bool:
     item = db.session.get(PedidoBebida, (id_pedido, id_bebida))
