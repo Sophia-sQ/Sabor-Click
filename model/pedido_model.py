@@ -17,7 +17,7 @@ class Pedido(db.Model):
         db.Enum("aguardando", "confirmado", "em preparo", "concluido", "cancelado", name="status_pedido"),default="aguardando",nullable=False)
     confirmado_em = db.Column(db.DateTime, nullable=True)
     criado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False)
-    num_convidados = db.Column(db.Integer, nullable=False, default=1)
+    
     valor_total = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
     data_evento = db.Column(db.Date, nullable=False)
     hora_inicio = db.Column(db.Time, nullable=False)
@@ -30,7 +30,6 @@ class Pedido(db.Model):
     #id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), nullable=False)
 
     __table_args__ = (
-        db.CheckConstraint("num_convidados > 0", name="ck_pedido_convidados"),
         db.CheckConstraint("valor_total >= 0", name="ck_pedido_valor"),
     )
 
@@ -75,6 +74,11 @@ class CardapioPedido(db.Model):
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
     id_pedido = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), primary_key=True)
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
+    num_convidados = db.Column(db.Integer, nullable=False, default=1)
+    
+    __table_args__ = (
+        db.CheckConstraint("num_convidados > 0", name="ck_pedido_convidados"),
+    )
 
 # ======================================================
 
@@ -142,14 +146,11 @@ def associar_bebida_cardapio(id_bebida: int, id_cardapio: int):
     return (id_bebida, id_cardapio)
 
 # CRUD - PEDIDO
-def criar_pedido(id_cliente: int, id_endereco: int , num_convidados: int, valor_total: float, data_evento: str, hora_inicio: str, hora_fim: str, cardapios: list[dict], observacao: str = None, bebidas: list[dict] = None) -> (Pedido | None):
+def criar_pedido(id_cliente: int, id_endereco: int , data_evento: str, hora_inicio: str, hora_fim: str, cardapios: list[dict], valor_total: float, observacao: str = None, bebidas: list[dict] = None) -> (Pedido | None):
     """Cria um pedido associando cardápios e bebidas a ele (caso tenha)."""
     novo_pedido = Pedido(
         id_cliente=id_cliente,
         id_endereco=id_endereco,
-        #id_servico=id_servico,
-        #id_cardapio=id_cardapio,
-        num_convidados=num_convidados,
         valor_total=valor_total,
         data_evento=data_evento,
         hora_inicio=hora_inicio,
@@ -166,6 +167,8 @@ def criar_pedido(id_cliente: int, id_endereco: int , num_convidados: int, valor_
             p_c = CardapioPedido(
                 id_cardapio=cardapio["id_cardapio"],
                 id_pedido=novo_pedido.id_pedido,
+                id_servico=cardapio["id_servico"],
+                num_convidados=cardapio["qtd"],
             )
             db.session.add(p_c)
 

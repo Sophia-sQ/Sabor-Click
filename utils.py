@@ -152,3 +152,9 @@ def para_data(dia: int, mes: int, ano: int) -> datetime:
     """
     
     return datetime(ano, mes, dia).date()
+
+def string_para_data(data:str):
+    return datetime.strptime(data, "%Y-%m-%d").date()
+
+def string_para_hora(hora:str):
+    return  datetime.strptime(hora, "%H:%M").time()
