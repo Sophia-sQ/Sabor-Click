@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funcionários | Sabor &amp; Click</title>
+    <link rel="stylesheet" href="/static/css/previas.css">
+</head>
+<body class="area-admin">
+    <header class="cabecalho"><a class="marca" href="/"><img src="/static/images/home-logo.svg" width="38" height="38" alt="">Sabor &amp; Click</a></header>
+    {% set pagina_admin = "funcionarios" %}<div class="estrutura estrutura-admin">{% include "componentes/menu_admin.html" %}<main>
+        <header class="intro"><h1>Funcionários</h1><p>Cadastre e consulte os funcionários da equipe.</p></header>
+        <section class="card">
+            <div class="cabecalho-estoque"><h2>Equipe</h2><button type="button" id="abrir-funcionario" class="cadastrar-item" aria-haspopup="dialog" aria-controls="cadastro-funcionario">Cadastrar funcionário</button></div>
+            <div class="tabela"><table><thead><tr><th scope="col">Nome</th><th scope="col">E-mail</th><th scope="col">Cargo</th></tr></thead><tbody><tr><td>Chef Ana</td><td>ana@example.com</td><td>Chefe</td></tr></tbody></table></div>
+        </section>
+        <footer>Sabor &amp; Click · 2026</footer>
+    </main></div>
+    <dialog id="cadastro-funcionario" class="dialogo-estoque dialogo-cadastro" aria-labelledby="titulo-funcionario">
+        <div class="cabecalho-estoque"><h2 id="titulo-funcionario">Cadastrar funcionário</h2><button type="button" id="fechar-funcionario">Fechar</button></div>
+        <form class="formulario" id="form-funcionario">
+            <small>* Campos obrigatórios</small>
+            <label for="funcionario-nome">Nome completo *</label><input id="funcionario-nome" autocomplete="name" required maxlength="100">
+            <label for="funcionario-cpf">CPF *</label><input id="funcionario-cpf" inputmode="numeric" maxlength="14" required>
+            <label for="funcionario-email">E-mail *</label><input id="funcionario-email" type="email" autocomplete="email" required>
+            <label for="funcionario-cargo">Cargo *</label><select id="funcionario-cargo" required><option value="">Selecione</option><option>Chefe</option><option>Auxiliar</option></select>
+            <button type="submit">Cadastrar funcionário</button>
+            <p id="retorno-funcionario" role="status" hidden></p>
+        </form>
+    </dialog>
+    <script>
+        const cadastroFuncionario = document.getElementById('cadastro-funcionario');
+        document.getElementById('abrir-funcionario').addEventListener('click', () => cadastroFuncionario.showModal());
+        document.getElementById('fechar-funcionario').addEventListener('click', () => cadastroFuncionario.close());
+        document.getElementById('form-funcionario').addEventListener('submit', (evento) => {
+            evento.preventDefault();
+            const retorno = document.getElementById('retorno-funcionario');
+            retorno.textContent = 'Prévia do formulário. Nenhum funcionário foi cadastrado.';
+            retorno.hidden = false;
+        });
+    </script>
+</body>
+</html>
