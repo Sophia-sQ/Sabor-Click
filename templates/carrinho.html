@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seu carrinho | Sabor &amp; Click</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/carrinho.css') }}">
+    <script src="{{ url_for('static', filename='js/carrinho.js') }}" defer></script>
+</head>
+<body class="pagina-carrinho">
+    <header class="navbar">
+        <a class="marca" href="/"><img src="{{ url_for('static', filename='images/home-logo.svg') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
+        <nav aria-label="Navegação principal">
+            <a href="/">Início</a><a href="/#sobre">Sobre</a><a href="/#servicos">Serviços</a>
+            <div class="acoes-usuario"><a class="icone-acao carrinho-ativo" href="/carrinho" aria-label="Carrinho" aria-current="page"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a><a class="icone-acao perfil" href="{{ perfil_url|default(url_for('auth.login')) }}" aria-label="Meu perfil"><img src="{{ url_for('static', filename='images/icone-perfil.svg') }}" width="20" height="20" alt=""></a></div>
+        </nav>
+    </header>
+    {% set itens = itens_carrinho|default([]) %}
+    {% set total = itens|sum(attribute='subtotal') %}
+    {% macro moeda(valor) %}R$ {{ '{:,.2f}'.format(valor).replace(',', '_').replace('.', ',').replace('_', '.') }}{% endmacro %}
+    <main class="carrinho-conteudo">
+        <header class="carrinho-cabecalho"><h1>Seu carrinho</h1><p>Revise os serviços escolhidos antes de finalizar.</p></header>
+        <div class="carrinho-colunas">
+            <section class="itens-carrinho" aria-label="Serviços escolhidos">
+                {% for item in itens %}
+                <article class="item-carrinho">
+                    <img class="item-imagem" src="{{ url_for('static', filename='images/' ~ item.imagem) }}" alt="{{ item.nome }}" width="180" height="140">
+                    <div class="item-informacoes"><p class="item-numero">SERVIÇO {{ item.numero }}</p><h2>{{ item.nome }}</h2><p>{{ item.descricao }}</p></div>
+                    <div class="item-subtotal"><p>Subtotal</p><strong>{{ moeda(item.subtotal) }}</strong></div>
+                </article>
+                {% else %}
+                <div class="carrinho-vazio"><h2>Seu carrinho está vazio</h2><p>Conheça nossos serviços para planejar seu evento.</p><a class="botao" href="/#servicos">Conhecer serviços</a></div>
+                {% endfor %}
+                {% if itens %}
+                <section class="endereco-evento" aria-label="Endereço do evento">
+                    <div class="endereco-informacoes"><span class="localizacao"><img src="{{ url_for('static', filename='images/icone-localizacao.svg') }}" width="20" height="20" alt=""></span><div><h2>ENDEREÇO DO EVENTO</h2><p class="endereco-linha" id="endereco-linha">{{ endereco_linha|default('Escolha o endereço do evento') }}</p><p class="endereco-cidade" id="endereco-cidade">{{ endereco_cidade|default('') }}</p></div></div>
+                    <button class="escolher-endereco" type="button" id="escolher-endereco">Escolher endereço</button>
+                </section>
+                {% endif %}
+            </section>
+            <aside class="resumo-compra" aria-labelledby="titulo-resumo">
+                <h2 id="titulo-resumo">Resumo da compra</h2>
+                <dl><div class="resumo-subtotal"><dt>Subtotal</dt><dd>{{ moeda(total) }}</dd></div><div class="resumo-total"><dt>Total</dt><dd>{{ moeda(total) }}</dd></div></dl>
+                {% if checkout_url and itens %}<a class="finalizar-compra" href="{{ checkout_url }}">Finalizar compra</a>{% else %}<button class="finalizar-compra" id="finalizar-compra" type="button" {% if not itens %}disabled{% endif %}>Finalizar compra</button>{% endif %}
+                <p class="aviso-carrinho" id="aviso-carrinho" role="status" hidden></p>
+            </aside>
+        </div>
+    </main>
+    <dialog class="dialogo-endereco" id="dialogo-endereco" aria-labelledby="titulo-endereco">
+        <form id="formulario-endereco">
+            <h2 id="titulo-endereco">Endereço do evento</h2>
+            <p class="ajuda-endereco">* Campos obrigatórios</p>
+            <label for="endereco-cep">CEP *</label>
+            <input id="endereco-cep" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9" pattern="[0-9]{5}-?[0-9]{3}" aria-describedby="status-cep" required>
+            <p class="ajuda-endereco" id="status-cep" role="status">Digite o CEP para preencher o endereço.</p>
+            <label for="novo-endereco">Rua *</label><input id="novo-endereco" name="rua" autocomplete="address-line1" required maxlength="160">
+            <div class="endereco-campos">
+                <div><label for="endereco-numero">Número *</label><input id="endereco-numero" name="numero" placeholder="123 ou s/n" required maxlength="20"></div>
+                <div><label for="endereco-complemento">Complemento (opcional)</label><input id="endereco-complemento" name="complemento" autocomplete="address-line2" maxlength="80"></div>
+            </div>
+            <label for="endereco-bairro">Bairro *</label><input id="endereco-bairro" name="bairro" required maxlength="100">
+            <div class="endereco-campos">
+                <div><label for="nova-cidade">Cidade *</label><input id="nova-cidade" name="cidade" autocomplete="address-level2" required maxlength="100"></div>
+                <div><label for="endereco-uf">Estado (UF) *</label><input id="endereco-uf" name="uf" autocomplete="address-level1" required minlength="2" maxlength="2" pattern="[A-Za-z]{2}" placeholder="SP"></div>
+            </div>
+            <p class="ajuda-endereco">Confira os dados e informe o número. O endereço será atualizado apenas nesta prévia.</p>
+            <div class="dialogo-acoes"><button type="button" id="cancelar-endereco">Cancelar</button><button type="submit" class="escolher-endereco">Usar endereço</button></div>
+        </form>
+    </dialog>
+</body>
+</html>
