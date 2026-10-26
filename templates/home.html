@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sabor &amp; Click</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+</head>
+<body>
+    <header class="navbar" id="inicio">
+        <a class="marca" href="#inicio"><img src="{{ url_for('static', filename='images/home-logo.svg') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
+        <nav aria-label="Navegação principal"><a href="#inicio" aria-current="page">Início</a><a href="#sobre">Sobre</a><a href="#servicos">Serviços</a><a class="botao" href="{{ url_for('auth.login') }}">Login</a></nav>
+    </header>
+    <main>
+        <section class="hero" aria-labelledby="titulo-home">
+            <div class="hero-conteudo">
+                <p class="selo">GASTRONOMIA PARA MOMENTOS ESPECIAIS</p>
+                <h1 id="titulo-home">Seu evento merece sabor sem complicação.</h1>
+                <p class="hero-descricao">Do menu à montagem, cuidamos de cada detalhe para você receber bem e aproveitar cada momento.</p>
+                <div class="acoes"><a class="botao" href="#servicos">Conhecer serviços</a><a class="botao botao-neutro" href="#sobre">Saiba mais</a></div>
+                <p class="hero-resumo">★ 4,9/5 &nbsp;•&nbsp; +300 eventos servidos &nbsp;•&nbsp; atendimento personalizado</p>
+            </div>
+            <div class="hero-visual">
+                <img src="{{ url_for('static', filename='images/home-principal.png') }}" alt="Mesa com pratos e ingredientes para uma experiência gastronômica">
+                <p class="flutuante menu">Menu feito para o seu evento</p>
+                <p class="flutuante equipe">✓ Equipe completa e pontual</p>
+                <p class="flutuante opcoes">Diversas opções de menus</p>
+            </div>
+        </section>
+        <section class="sobre" id="sobre" aria-labelledby="titulo-sobre">
+            <img class="sobre-imagem" src="{{ url_for('static', filename='images/home-sobre.png') }}" alt="Chef apresentando um prato na cozinha" loading="lazy">
+            <div class="sobre-conteudo">
+                <p class="rotulo">SOBRE A SABOR &amp; CLICK</p>
+                <h2 id="titulo-sobre">Cuidamos do sabor. Você aproveita o momento.</h2>
+                <p>Somos uma equipe apaixonada por encontros memoráveis. Criamos experiências gastronômicas completas para aniversários, casamentos, confraternizações e celebrações em casa — sempre com ingredientes frescos, apresentação impecável e atendimento próximo.</p>
+                <div class="numeros"><p>8 anos<br>de experiência</p><p>+300<br>eventos servidos</p><p>98%<br>recomendam</p></div>
+            </div>
+        </section>
+        <section class="servicos" id="servicos" aria-labelledby="titulo-servicos">
+            <div class="servicos-intro"><p class="rotulo">NOSSOS SERVIÇOS</p><h2 id="titulo-servicos">Escolha como quer celebrar.</h2><p>Soluções flexíveis para receber seus convidados com praticidade, beleza e muito sabor.</p></div>
+            <div class="servicos-grade">
+                {% for numero, nome, imagem, descricao in [
+                    ('01', 'Buffet para eventos', 'home-buffet.jpg', 'Cardápio, equipe, montagem e finalização para festas sociais ou encontros corporativos.'),
+                    ('02', 'Chef em casa', 'home-chef.jpg', 'Uma experiência intimista: o chef prepara, serve e organiza tudo na sua própria cozinha.'),
+                    ('03', 'Salgados para eventos', 'home-salgados.jpg', 'Coxinhas, quibes e outros salgados para todos os tipos de evento.'),
+                    ('04', 'Bebidas', 'home-bebidas.jpg', 'Seleção de bebidas, sucos e coquetéis para brindar cada momento do seu evento.')
+                ] %}
+                <article class="servico"><img src="{{ url_for('static', filename='images/' ~ imagem) }}" alt="" loading="lazy"><div><h3>{{ numero }} &nbsp;{{ nome }}</h3><p>{{ descricao }}</p></div></article>
+                {% endfor %}
+            </div>
+            <div class="menu-acao"><button class="botao botao-menu" type="button" disabled title="Menu disponível em breve">Conhecer o menu</button></div>
+        </section>
+        <section class="processo" aria-labelledby="titulo-processo">
+            <div class="processo-intro"><p class="rotulo">SIMPLES DO INÍCIO AO BRINDE</p><h2 id="titulo-processo">Seu evento pronto em 3 passos.</h2></div>
+            <ol class="etapas"><li><h3>01 &nbsp;Conte sobre o evento</h3><p>Data, local, convidados e preferências.</p></li><li><h3>02 &nbsp;Escolha o menu</h3><p>Receba opções e personalize cada detalhe.</p></li><li><h3>03 &nbsp;Aproveite o momento</h3><p>Nossa equipe cuida da execução completa.</p></li></ol>
+        </section>
+    </main>
+    <footer class="rodape">
+        <div class="rodape-cta"><div><h2>Vamos criar um evento inesquecível?</h2><p>Conte sua ideia e receba uma proposta pensada para o seu momento.</p></div><a class="botao" href="{{ url_for('auth.login') }}">Planejar meu evento</a></div>
+        <div class="rodape-base"><a class="marca" href="#inicio">Sabor &amp; Click</a><nav aria-label="Navegação do rodapé"><a href="#inicio">Início</a><span>•</span><a href="#sobre">Sobre</a><span>•</span><a href="#servicos">Serviços</a><span>•</span><span>© 2026 Sabor &amp; Click</span></nav></div>
+    </footer>
+</body>
+</html>
