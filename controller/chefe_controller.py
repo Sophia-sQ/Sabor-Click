@@ -11,14 +11,13 @@ chefe_bp = Blueprint("chefe", __name__, url_prefix='/pedido')
 
 @chefe_bp.route('/aceitar', methods=['POST'])
 def aceitar_pedido():
-    dados=request.get_json()
+    dados=request.get_json(silent=True)
     pedido=buscar_pedido_por_id(dados['id'])
-    data_confirma=datetime.now(timezone.utc)
+    data_confirma=datetime.now(ZoneInfo("America/Sao_Paulo"))
     atualizar_pedido(pedido.id_pedido, "confirmado", data_confirma, session.get("id"))
     chefe=buscar_usuario_por_id(session.get('id'))
     registrar_log('ACEITOU PEDIDO.', f"Em {data_confirma}, o chefe {chefe.nome} aceitou o pedido {pedido.id_pedido}.")
     data_confirma=data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
-    
     criar_trigger_baixa_estoque()
 
     
@@ -34,9 +33,9 @@ def atualizar_status():
     if request.method == 'GET':
         return render_template('pagina de pedidos.html')
     
-    dados=request.get_json()
+    dados=request.get_json(silent=True)
     pedido=buscar_pedido_por_id(dados['id'])
-    data_confirma=datetime.now(timezone.utc)
+    data_confirma=datetime.now(ZoneInfo("America/Sao_Paulo"))
     atualizar_pedido(pedido.id_pedido, dados['status'], data_confirma, session.get("id"))
     chefe=buscar_usuario_por_id(session.get('id'))
     registrar_log('ACEITOU PEDIDO.', f"Em {data_confirma}, o chefe {chefe.nome} atualizou o pedido {pedido.id_pedido} para '{dados['status']}'.")    

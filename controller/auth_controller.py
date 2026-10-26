@@ -2,7 +2,7 @@ from model.usuario_model import buscar_usuario_para_login, buscar_usuario_por_id
 from model.cargos import Cargo
 from flask import Blueprint, render_template, request, session, flash, redirect, url_for
 from re import fullmatch
-from security.token_auth import enviar_token, validar_token
+from security import enviar_token, validar_token, validar_senha_forte
 
 auth_bp = Blueprint("auth", __name__)
 

@@ -1,5 +1,3 @@
-from os import environ as env
-
 from zoneinfo import ZoneInfo
 from calendar import monthrange
 from datetime import datetime, timedelta, date
@@ -7,7 +5,41 @@ from dateutil.relativedelta import relativedelta
 
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
-#interação com cliente
+#nomes
+def formatar_nome(nome_completo: str) -> str:
+    """Ajusta a capitalização de um nome próprio mantendo conectivos em minúscula.
+
+    Converte a primeira letra de cada palavra para maiúscula (Title Case), 
+    mas ignora artigos, preposições e conjunções comuns no idioma português 
+    (ex: 'de', 'da', 'e'), mantendo-os em letras minúsculas, exceto se 
+    forem a primeira palavra do nome.
+
+    Args:
+        nome_completo (str): O nome ou expressão que será formatado.
+
+    Returns:
+        str: O nome formatado com as devidas maiúsculas e minúsculas.
+    """
+    
+    # Lista de palavras que devem permanecer em minúscula no meio do nome
+    conectivos = ["de", "da", "do", "das", "dos", "e", "em", "por", "com", "o", "a", "os", "as"]
+    
+    # Divide o nome em palavras individuais
+    palavras = nome_completo.strip().replace("_", " ").split()
+    nome_formatado = []
+    
+    for i, palavra in enumerate(palavras):
+        palavra_lower = palavra.lower()
+        
+        # A primeira palavra do nome SEMPRE começa com maiúscula.
+        # As demais só começam com maiúscula se não forem conectivos.
+        if i == 0 or palavra_lower not in conectivos:
+            nome_formatado.append(palavra.capitalize())
+        else:
+            nome_formatado.append(palavra_lower)
+            
+    # Junta as palavras novamente em uma única string
+    return " ".join(nome_formatado)
 
 
 #formatação monetária
@@ -120,3 +152,9 @@ def para_data(dia: int, mes: int, ano: int) -> datetime:
     """
     
     return datetime(ano, mes, dia).date()
+
+def string_para_data(data:str):
+    return datetime.strptime(data, "%Y-%m-%d").date()
+
+def string_para_hora(hora:str):
+    return  datetime.strptime(hora, "%H:%M").time()
