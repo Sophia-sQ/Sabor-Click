@@ -41,8 +41,10 @@ class Bebida(db.Model):
     descricao = db.Column(db.Text, nullable=False)
     valor_unitario = db.Column(db.Numeric(10, 2), nullable=False)
 
+    
+
     __table_args__ = (
-        db.CheckConstraint("valor_unitario >= 0", name="ck_bebida_valor"),
+        db.CheckConstraint("qtd >= 0 AND qtd_min >= 0", name="ck_bebida_qtd"),
     )
 
 class PedidoBebida(db.Model):
@@ -76,12 +78,11 @@ class CardapioPedido(db.Model):
 # ======================================================
 
 # CRUD BEBIDA
-def criar_bebida(nome: str, descricao: str, valor_unitario: float):
+def criar_bebida(nome: str, descricao: str, qtd: int = 0, qtd_min: int = 0):
     '''Cria a bebida'''
-    bebida = Bebida(nome=nome, descricao=descricao, valor_unitario=valor_unitario)
+    bebida = Bebida(nome=nome, descricao=descricao, qtd=qtd, qtd_min=qtd_min)
     db.session.add(bebida)
     db.session.commit()
-    registrar_log("CRIACAO BEBIDA", f"Usuário criou a bebida {bebida.nome}")
     return bebida
 
 def buscar_bebida_por_id(id_bebida: int) :
@@ -103,22 +104,20 @@ def listar_bebidas():
     '''Lista as bebidas disponíveis'''
     return db.session.query(Bebida).all()
 
-def atualizar_bebida(id_bebida: int, nome: str = None, descricao: str = None, valor_unitario: float = None):
+def atualizar_bebida(id_bebida: int, novo_nome: str = None, novo_preco: float = None):
     '''Atualiza os dados da bebida'''
     bebida = db.session.get(Bebida, id_bebida)
     
     if not bebida:
         return False
     
-    if nome is not None:
-        bebida.nome = nome
-    if descricao is not None:
-        bebida.descricao = descricao
-    if valor_unitario is not None:
-        bebida.valor_unitario = valor_unitario
+    if novo_nome is not None:
+        bebida.nome = novo_nome
+        
+    if novo_preco is not None:
+        bebida.preco = novo_preco
         
     db.session.commit()
-    registrar_log("ATUALIZACAO BEBIDA", f"Usuário atualizou a bebida {id_bebida}")
     return True
 
 def deletar_bebida(id_bebida: int):

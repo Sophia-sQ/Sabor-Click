@@ -52,7 +52,7 @@ class FichaTecnica(db.Model):
     )
 
 class FichaTecnica_bebida(db.Model):
-    __tablename__ = "ficha_tecnica_bebida"
+    __tablename__ = "ficha_tecnica"
 
     id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_bebida"), primary_key=True)
     id_ingrediente = db.Column(db.Integer, db.ForeignKey("ingrediente.id_ingrediente"), primary_key=True)
@@ -60,7 +60,7 @@ class FichaTecnica_bebida(db.Model):
     qtd_necessaria = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
-        db.CheckConstraint("qtd_necessaria > 0", name="ck_ficha_bebida_qtd"),
+        db.CheckConstraint("qtd_necessaria > 0", name="ck_ficha_qtd"),
     )
 
 
@@ -433,63 +433,3 @@ def deletar_lote(id_lote: int):
     db.session.commit()
     registrar_log("DELETAR LOTE", f"Usuário deletou o lote {id_lote}")
     return True    
-
-
-"""==================CRUD FICHA TECNICA BEBIDA============="""
-
-def criar_ficha_tecnica_bebida(id_bebida: int, id_ingrediente: int, qtd_necessaria: int):
-    """Vincula um ingrediente à ficha técnica de uma bebida (uma linha por par)."""
-    nova_ficha = FichaTecnica_bebida(
-        id_bebida=id_bebida,
-        id_ingrediente=id_ingrediente,
-        qtd_necessaria=qtd_necessaria,
-    )
-    db.session.add(nova_ficha)
-    db.session.commit()
-    registrar_log(
-        "CRIACAO FICHA_TECNICA_BEBIDA",
-        f"Usuário adicionou o ingrediente {id_ingrediente} à ficha técnica da bebida {id_bebida}",
-    )
-    return (id_bebida, id_ingrediente)
-
-
-def buscar_ficha_tecnica_bebida(id_bebida: int, id_ingrediente: int):
-    """Busca um item específico da ficha técnica de uma bebida."""
-    return db.session.get(FichaTecnica_bebida, (id_bebida, id_ingrediente))
-
-
-def listar_ficha_tecnica_por_bebida(id_bebida: int):
-    """Lista todos os ingredientes da ficha técnica de uma bebida.
-
-    Retorna lista vazia quando não há itens.
-    """
-    stmt = db.select(FichaTecnica_bebida).where(FichaTecnica_bebida.id_bebida == id_bebida)
-    return db.session.execute(stmt).scalars().all()
-
-
-def atualizar_ficha_tecnica_bebida(id_bebida: int, id_ingrediente: int, qtd_necessaria: int):
-    """Atualiza a quantidade necessária de um ingrediente na ficha da bebida."""
-    ficha = db.session.get(FichaTecnica_bebida, (id_bebida, id_ingrediente))
-    if not ficha:
-        return False
-    ficha.qtd_necessaria = qtd_necessaria
-    db.session.commit()
-    registrar_log(
-        "ATUALIZACAO FICHA_TECNICA_BEBIDA",
-        f"Usuário atualizou a ficha técnica da bebida {id_bebida}",
-    )
-    return True
-
-
-def deletar_ficha_tecnica_bebida(id_bebida: int, id_ingrediente: int):
-    """Remove um ingrediente da ficha técnica de uma bebida."""
-    ficha = db.session.get(FichaTecnica_bebida, (id_bebida, id_ingrediente))
-    if not ficha:
-        return False
-    db.session.delete(ficha)
-    db.session.commit()
-    registrar_log(
-        "DELETAR FICHA_TECNICA_BEBIDA",
-        f"Usuário removeu o ingrediente {id_ingrediente} da ficha técnica da bebida {id_bebida}",
-    )
-    return True
