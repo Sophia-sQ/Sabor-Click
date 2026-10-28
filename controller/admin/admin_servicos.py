@@ -2,13 +2,37 @@ from admin import admin_bp, _retorno
 
 from flask import render_template, flash, request
 
-from model.servico_model import atualizar_servico, deletar_servico, listar_servicos
+from model.servico_model import atualizar_servico, deletar_servico, buscar_servicos
+from model.pedido_model import buscar_bebidas
+from model.ficha_model import buscar_pratos, buscar_ingredientes, buscar_lotes
 # ============================== Servicos =============================
 
 @admin_bp.get("/servicos")
 def pagina_servicos():
-    servicos=listar_servicos()
-    return render_template("servico.html", servicos=servicos) #TODO: nome da pagina
+    """Página de serviços com busca unificada.
+
+    O parâmetro de query `busca` filtra, por correspondência parcial, todas as
+    entidades exibidas nesta página: serviços, bebidas, pratos, ingredientes e
+    lotes. Sem `busca`, lista tudo.
+    """
+    busca = request.args.get("busca", "").strip()
+
+    servicos = buscar_servicos(busca)
+    bebidas = buscar_bebidas(busca)
+    pratos = buscar_pratos(busca)
+    ingredientes = buscar_ingredientes(busca)
+    lotes = buscar_lotes(busca)
+
+    return render_template(
+        "servico.html",  # TODO: nome da pagina
+        busca=busca,
+        servicos=servicos,
+        bebidas=bebidas,
+        pratos=pratos,
+        ingredientes=ingredientes,
+        lotes=lotes,
+    )
+
 
 # ========================= ATUALIZAR SERVIÇO =========================
 @admin_bp.post("/servicos/atualizar_servico/<int:id_servico>")
