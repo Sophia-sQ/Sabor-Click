@@ -121,6 +121,18 @@ def listar_pratos():
         return pratos
     return None
 
+def buscar_pratos(busca: str = "") -> list:
+    """Busca pratos por nome (correspondência parcial).
+
+    Retorna lista vazia quando não há resultados.
+    """
+    stmt = db.select(Prato)
+    termo = busca.strip()
+    if termo:
+        stmt = stmt.where(Prato.nome.like(f"%{termo}%"))
+    stmt = stmt.order_by(Prato.nome)
+    return db.session.execute(stmt).scalars().all()
+
 
 def atualizar_prato(id_prato: int, nome=None, descricao=None, tipo_prato=None, requer_pre_preparo=None, tempo_preparo=None):
     """Atualiza os dados do prato"""
@@ -246,6 +258,18 @@ def listar_ingredientes():
     if ingredientes:
         return ingredientes
     return None
+
+def buscar_ingredientes(busca: str = "") -> list:
+    """Busca ingredientes por nome (correspondência parcial).
+
+    Retorna lista vazia quando não há resultados.
+    """
+    stmt = db.select(Ingrediente)
+    termo = busca.strip()
+    if termo:
+        stmt = stmt.where(Ingrediente.nome.like(f"%{termo}%"))
+    stmt = stmt.order_by(Ingrediente.nome)
+    return db.session.execute(stmt).scalars().all()
 
 
 def atualizar_ingrediente(id_ingrediente: int, nome=None, unidade=None, qtd=None, qtd_min=None):
@@ -397,6 +421,19 @@ def listar_lotes():
     if lotes:
         return lotes
     return None
+
+def buscar_lotes(busca: str = "") -> list:
+    """Busca lotes por número do lote ou marca (correspondência parcial).
+
+    Retorna lista vazia quando não há resultados.
+    """
+    stmt = db.select(Lote)
+    termo = busca.strip()
+    if termo:
+        padrao = f"%{termo}%"
+        stmt = stmt.where(db.or_(Lote.num_lote.like(padrao), Lote.marca.like(padrao)))
+    stmt = stmt.order_by(Lote.num_lote)
+    return db.session.execute(stmt).scalars().all()
 
 
 def atualizar_lote(id_lote: int, num_lote=None, marca=None, data_recebimento=None, data_validade=None, qtd_inicial=None, id_ingrediente=None, id_bebida=None):

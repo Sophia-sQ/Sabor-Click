@@ -421,3 +421,35 @@ def deletar_endereco(id_endereco: int) -> bool:
     db.session.commit()
     registrar_log("REMOCAO ENDERECO", f"Endereço {id_endereco} removido.")
     return True
+
+def buscar_log_por_id(id_atividade: int):
+    """Busca um registro de atividade pelo id."""
+    return db.session.get(LogAtividade, id_atividade)
+
+def listar_logs(busca: str = "") -> list[LogAtividade]:
+    """Lista os registros de atividade, do mais recente para o mais antigo.
+
+    Args:
+        busca (str, optional): filtra pela ação (correspondência parcial). Defaults to "".
+
+    Returns:
+        list[LogAtividade]: registros de atividade. Lista vazia se não houver.
+    """
+    stmt = db.select(LogAtividade)
+
+    termo = busca.strip()
+    if termo:
+        stmt = stmt.where(LogAtividade.acao.like(f"%{termo}%"))
+
+    stmt = stmt.order_by(LogAtividade.realizado_em.desc())
+
+    return db.session.execute(stmt).scalars().all()
+
+def deletar_log(id_atividade: int):
+    """Deleta um registro de atividade."""
+    log = db.session.get(LogAtividade, id_atividade)
+    if not log:
+        return False
+    db.session.delete(log)
+    db.session.commit()
+    return True

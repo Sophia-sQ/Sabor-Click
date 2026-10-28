@@ -163,6 +163,19 @@ def listar_servicos():
         return servicos
     return None
 
+def buscar_servicos(busca: str = "") -> list:
+    """Busca serviços por nome (correspondência parcial).
+
+    Retorna lista vazia quando não há resultados.
+    """
+    stmt = db.select(Servico)
+    termo = busca.strip()
+    if termo:
+        stmt = stmt.where(Servico.nome.like(f"%{termo}%"))
+    stmt = stmt.order_by(Servico.nome)
+    return db.session.execute(stmt).scalars().all()
+
+
 def atualizar_servico(id_servico, id_usuario:int, nome=None, descricao=None):
     """Atualiza servico"""
     servico = db.session.get(Servico, id_servico)

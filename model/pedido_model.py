@@ -103,6 +103,19 @@ def listar_bebidas():
     '''Lista as bebidas disponíveis'''
     return db.session.query(Bebida).all()
 
+def buscar_bebidas(busca: str = "") -> list:
+    """Busca bebidas por nome (correspondência parcial).
+
+    Retorna lista vazia quando não há resultados.
+    """
+    stmt = db.select(Bebida)
+    termo = busca.strip()
+    if termo:
+        stmt = stmt.where(Bebida.nome.like(f"%{termo}%"))
+    stmt = stmt.order_by(Bebida.nome)
+    return db.session.execute(stmt).scalars().all()
+
+
 def atualizar_bebida(id_bebida: int, nome: str = None, descricao: str = None, valor_unitario: float = None):
     '''Atualiza os dados da bebida'''
     bebida = db.session.get(Bebida, id_bebida)
