@@ -1,13 +1,13 @@
-import secrets
 import hashlib
 import hmac
-
+import secrets
 from os import environ as env
+
 from flask import render_template
 
-from services.enviar_email import enviar_email_nao_responda
-from model.usuario_model import criar_token, buscar_token
 from database import db
+#
+from services.enviar_email import enviar_email_nao_responda
 from utils import hoje
 
 
@@ -18,9 +18,8 @@ def gerar_token():
 
 def enviar_token(email_criptografado: str, id_usuario: int):
     """Gera, armazena e envia o código de verificação."""
-
     chave = env.get("TOKEN_SHA")
-
+    from model.usuario_model import criar_token
     if not chave:
         raise RuntimeError("A variável TOKEN_SHA não está configurada.")
 
@@ -29,7 +28,7 @@ def enviar_token(email_criptografado: str, id_usuario: int):
     codigo_hash = hmac.new(
         chave.encode("utf-8"),
         codigo.encode("utf-8"),
-        hashlib.sha256
+        hashlib.sha256,
     ).hexdigest()
 
     registro = criar_token(codigo_hash, id_usuario)
@@ -55,9 +54,8 @@ def enviar_token(email_criptografado: str, id_usuario: int):
 
 def validar_token(id_usuario: int, token_informado: str) -> bool:
     """Valida o código, o prazo de validade e as tentativas."""
-
     chave = env.get("TOKEN_SHA")
-
+    from model.usuario_model import buscar_token
     if not chave:
         raise RuntimeError("A variável TOKEN_SHA não está configurada.")
 
@@ -69,7 +67,7 @@ def validar_token(id_usuario: int, token_informado: str) -> bool:
     hash_informado = hmac.new(
         chave.encode("utf-8"),
         token_informado.encode("utf-8"),
-        hashlib.sha256
+        hashlib.sha256,
     ).hexdigest()
 
     if not hmac.compare_digest(registro.codigo_hash, hash_informado):
