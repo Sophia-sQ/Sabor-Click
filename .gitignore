@@ -7,6 +7,9 @@ __pycache__/
 *.py[cod] 
 *$py.class 
 
+# instancias
+instaces/
+
 # Arquivos de build 
 build/ 
 dist/ 
@@ -18,6 +21,9 @@ dist/
 
 # Logs 
 *.log 
+
+# Cache do linter Ruff
+.ruff_cache/
 
 # Arquivos do sistema 
 .DS_Store 
