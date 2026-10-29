@@ -1,33 +1,45 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase
-
-from seeds import *
 
 #classe base: Não contém nada, pois utiliza o padrão do Python
 class Base(DeclarativeBase):
     pass
 
-
 db = SQLAlchemy(model_class=Base)
 
 # ADMIN INICIAL CADASTRO
 def criar_admin():
+    from seeds import iniciar_admin
     admin = iniciar_admin()
     db.session.add(admin)
 
 # CRIAÇÃO DE CARGOS
 def criar_cargos():
+    from seeds import iniciar_cargos
     cargos = iniciar_cargos()
     db.session.add_all(cargos)
 
 # CRIAÇÃO DE ESTOQUE
 def criar_estoque():
-
+    from seeds import (
+        iniciar_servicos,
+        iniciar_bancadas,
+        iniciar_cardapios,
+        iniciar_pratos,
+        iniciar_ingredientes,
+        iniciar_lotes,
+        iniciar_ficha_tecnica,
+        iniciar_ficha_tecnica_bebida,
+        iniciar_servico_bancada,
+        iniciar_servico_cardapio,
+        iniciar_prato_cardapio
+    )
     # CRIAÇÃO DE SERVICOS
     servicos = iniciar_servicos()
     db.session.add_all(servicos)
 
-    # CRIAÇÃO DE BANCADAS 
+    # CRIAÇÃO DE BANCADAS
     bancadas = iniciar_bancadas()
     db.session.add_all(bancadas)
 
@@ -66,14 +78,13 @@ def criar_estoque():
     # Inicializa a associacao de pratocardapio
     prato_cardapio= iniciar_prato_cardapio()
     db.session.add_all(prato_cardapio)
-    
-    
+
+
 
     # Inicializa o banco
 
 def init_app(app):
     db.init_app(app)
-    
     # Cria automaticamente todas as tabelas no arquivo do banco se elas não existirem
     with app.app_context():
         db.create_all()
@@ -82,6 +93,6 @@ def init_app(app):
         criar_estoque()
         try:
             db.session.commit()
-        except:
+        except SQLAlchemyError:
             db.session.rollback()
 

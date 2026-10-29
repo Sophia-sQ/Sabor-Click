@@ -1,39 +1,57 @@
 """Armazena todos os valores padrão do banco de dados"""
 
 from datetime import datetime
+
 from database import db
 
-
-# ================================= Import ESTOQUE =================================
-
-from model.servico_model import Servico, Bancada, Cardapio
-from model.servico_model import (
-    buscar_servico_por_nome,
-    buscar_bancada_por_nome,
-    buscar_cardapio_por_nome,
-)
-
-from model.ficha_model import Prato, Ingrediente, Lote
+# ================================== Import CARGOS ==================================
+from model.cargos import Cargo
 from model.ficha_model import (
-    buscar_prato_por_nome,
+    FichaTecnica,
+    FichaTecnica_bebida,
+    Ingrediente,
+    Lote,
+    Prato,
+    PratoCardapio,
     buscar_ingrediente_por_nome,
     buscar_lote_por_numero,
+    buscar_prato_por_nome,
+)
+from model.pedido_model import buscar_bebida_por_nome
+
+# ================================= Import ESTOQUE =================================
+from model.servico_model import (
+    Bancada,
+    Cardapio,
+    Servico,
+    ServicoBancada,
+    ServicoCardapio,
+    buscar_bancada_por_nome,
+    buscar_cardapio_por_nome,
+    buscar_servico_por_nome,
+)
+from model.usuario_model import (
+    NivelPermissao,
+    Usuario,
+    atualizar_permissao,
+    buscar_permissao_por_nome,
 )
 
-# ================================== Import CARGOS ==================================
-
-from model.cargos import Cargo
-from model.usuario_model import NivelPermissao, Usuario
-from model.usuario_model import buscar_permissao_por_nome, atualizar_permissao
-from model.pedido_model import buscar_bebida_por_nome
-from model.servico_model import ServicoBancada, ServicoCardapio
-from model.ficha_model import FichaTecnica, FichaTecnica_bebida, PratoCardapio
-
-__all__ = ["iniciar_bancadas", "iniciar_servicos", "iniciar_cardapios", 
-           "iniciar_pratos", "iniciar_ingredientes", "iniciar_lotes", 
-           "iniciar_cargos", "iniciar_ficha_tecnica", "iniciar_admin",
-           "iniciar_cargos", "iniciar_ficha_tecnica", "iniciar_ficha_tecnica_bebida", 
-           "iniciar_servico_bancada", "iniciar_servico_cardapio", "iniciar_prato_cardapio"]
+__all__ = [
+    "iniciar_admin",
+    "iniciar_bancadas",
+    "iniciar_cardapios",
+    "iniciar_cargos",
+    "iniciar_ficha_tecnica",
+    "iniciar_ficha_tecnica_bebida",
+    "iniciar_ingredientes",
+    "iniciar_lotes",
+    "iniciar_prato_cardapio",
+    "iniciar_pratos",
+    "iniciar_servico_bancada",
+    "iniciar_servico_cardapio",
+    "iniciar_servicos",
+]
 
 # ================================= "Tabelas" ESTOQUE =================================
 
@@ -51,7 +69,7 @@ lista_bancadas = [
     ("Bancada_bar_portatil", "Equipamento que organiza e prepara as bebidas"),
     ("Maquina_de_gelo", "Equipamento responsavel por fazer gelo"),
     ("Limpeza", "Equipamentos responsaveis pela limpeza final no evento"),
-    ("Fritadeira", "Equipamento para fritar salgados")
+    ("Fritadeira", "Equipamento para fritar salgados"),
 ]
 
 # Associa um servico a uma bancada
@@ -70,8 +88,8 @@ lista_servicos_bancadas = [
     ("Mesa_de_salgados","Kit_loucas"),
     ("Mesa_de_salgados","Fritadeira"),
     ("Mesa_de_salgados","Chapa_hamburguer_portatil"),
-    ("Mesa_de_salgados","Limpeza")
-    
+    ("Mesa_de_salgados","Limpeza"),
+
 
 
 ]
@@ -106,7 +124,7 @@ lista_cardapios = [
     # nome, descrição, preço base
     cardapios_quentes,
     cardapios_salgados,
-    cardapios_bebidas
+    cardapios_bebidas,
 ]
 # Associa um servico aos cardapios
 lista_servicos_cardapios = [
@@ -147,20 +165,20 @@ lista_servicos_cardapios = [
 
 
 lista_pratos = [
-    ("Mandioca_frita", "Pedacos de mandioca frita em oleo", "entrada", 40, True) #requer-preparo, pois tem que levar ela cozida e fritar no local,
+    ("Mandioca_frita", "Pedacos de mandioca frita em oleo", "entrada", 40, True), #requer-preparo, pois tem que levar ela cozida e fritar no local,
     ("Tabua_de_frios", "Tabua contendo aperitivos: Salame, queijo, azeitona", "entrada", 15, False),
     ("Feijoada_completa", "Feijoada", "prato principal", 120, True),
     ("Arroz_branco", "Arroz cozido", "acompanhamento", 20, False),
-    ("Couve_refogada", "Couve picada refogada", "acompanhamento", 10, False) # A colve comprada é picada ja,
+    ("Couve_refogada", "Couve picada refogada", "acompanhamento", 10, False), # A colve comprada é picada ja,
     ("Farofa", "Farofa comprada", "acompanhamento", 0, False),
-    ("Vinagrete", "Vinagrete completo: Ceblo, tomate, pimentao,cebolinha,vinagre", "acompanhamento", 15, True) #Levar cortado as coisas, e temperar no local,
+    ("Vinagrete", "Vinagrete completo: Cebola, tomate, pimentao, cebolinha, vinagre", "acompanhamento", 15, True), #Levar cortado as coisas, e temperar no local,
     ("Molho_de_pimenta", "Molho de pimenta pronto", "acompanhamento", 0, False),
     ("Sorvete", "Sorvete comprado de maracuja e limao", "sobremesa", 0, False),
-    ("Salada_fresca", "Salada de folhas hidroponicas e tomate cereja", "entrada", 5, True) #Lavar antes,
+    ("Salada_fresca", "Salada de folhas hidroponicas e tomate cereja", "entrada", 5, True), #Lavar antes,
     ("Bobo_de_camarao", "Bobo de camarao completo", "prato principal", 120, True),
     ("Salada_de_fruta_fresca_com_creme", "Salada de frutas com creme de leite e leite condensado", "sobremesa", 0, False),
     ("Bruschetta", "Bruscretta de pao italiano, tomate e manjericao", "entrada", 5, False),
-    ("File_de_tilapia", "File de tilapia grelhado", "prato principal", 30, True) #Limpar o file de tilapia,
+    ("File_de_tilapia", "File de tilapia grelhado", "prato principal", 30, True), #Limpar o file de tilapia,
     ("Molho_de_mateiga_com_alcaparras", "Molho de acompanhamento de manteiga e alcaparras", "Acomapanhamento", 10, False),
     ("Iorgute_Natural_com_morangos_e_mel", "Iorgute com pedacos de fruta e adocado com mel", "sobremesa", 5, False),
     ("Salada_ceaser", "Salada de alface, croutons e molho caesar", "entrada", 20, False),
@@ -203,17 +221,17 @@ lista_pratos = [
 
 
 
-#NOME DAS BEBIDAS 
+#NOME DAS BEBIDAS
 lista_bebida = [
-    #BEBIDAS DE ESCOLHA SEM SER DO BAR 
-    ('Agua_com_gas','Agua_com_gas', 700),
-    ('Suco_de_abacaxi','Suco_de_abacaxi', 1500),
-    ('Refrigerante_de_guarana','Refrigerante_de_guarana', 1000),
-    ('Cha_preto','Cha_preto',700),
-    ('Agua_de_coco','Agua_de_coco', 1200),
-    ('Suco_de_melancia','Suco_de_melancia',1500),
-    ('Gin','Gin', 17),
-    ('Uisque_de_centeio_rye','Uisque_de_centeio_rye',20)
+    #BEBIDAS DE ESCOLHA SEM SER DO BAR
+    ("Agua_com_gas","Agua_com_gas", 700),
+    ("Suco_de_abacaxi","Suco_de_abacaxi", 1500),
+    ("Refrigerante_de_guarana","Refrigerante_de_guarana", 1000),
+    ("Cha_preto","Cha_preto",700),
+    ("Agua_de_coco","Agua_de_coco", 1200),
+    ("Suco_de_melancia","Suco_de_melancia",1500),
+    ("Gin","Gin", 17),
+    ("Uisque_de_centeio_rye","Uisque_de_centeio_rye",20),
     #SEM ALCOOL - BAR
     ("Pink Lemonade", "Bebida sem álcool feita com suco de limão-siciliano, xarope de groselha ou framboesa, água com gás, gelo e suco de limão-tahiti.", 0, 0),
     ("Mojito Sem Álcool", "Bebida sem álcool preparada com folhas de hortelã, xarope simples de açúcar, água com gás e gelo.", 0, 0),
@@ -234,175 +252,175 @@ lista_bebida = [
     ("Mai Tai", "Drink alcoólico feito com rum branco, rum escuro, Cointreau, xarope de amêndoa e suco de limão.", 0, 0),
     ("Old Fashioned", "Drink alcoólico preparado com uísque bourbon, açúcar, Angostura bitters, gelo e casca de laranja.", 0, 0),
     ("Manhattan", "Drink alcoólico feito com uísque de centeio, vermute tinto, Angostura bitters, gelo e cereja marasquino.", 0, 0),
-    ("Piña Colada", "Drink alcoólico preparado com rum branco, suco de abacaxi, leite de coco e gelo.", 0, 0)
+    ("Piña Colada", "Drink alcoólico preparado com rum branco, suco de abacaxi, leite de coco e gelo.", 0, 0),
 ]
 
 ingredientes_carnes = [
-        ('Pe_de_porco', 'g', 30, 9)
-        ('Rabo_de_porco', 'g', 15, 4)
-        ('Costelinha_suina_defumada', 'g', 24, 6)
-        ('Bacon', 'g', 15, 3)
-        ('Linguica_calabresa', 'g', 24, 6)
-        ('Linguica_acebolada', 'g', 15, 3)
-        ('Lombo_de_porco', 'g', 24, 6)
-        ('Carne_seca', 'g', 24, 6)
-        ('Camarao_medio_limpo', 'g', 15, 3)
-        ('File_de_tilapia', 'g', 24, 6)
-        ('File_mignon_bovino', 'g', 24, 6)
-        ('Carne_moida_de_primeira', 'g', 30, 9)
-        ('Carne_moida_blend_patinho_acem', 'g', 24, 6)
-        ('Frango_grelhado', 'g', 24, 6)
-        ('Frango_desfiado', 'g', 15, 3)
-        ('Presunto', 'g', 9, 1)
-        ('Bolinho_de_bacalhau', 'g', 15, 3)
-        ('Salame', 'Kg', 10.0, 3.0)
+        ("Pe_de_porco", "g", 30, 9),
+        ("Rabo_de_porco", "g", 15, 4),
+        ("Costelinha_suina_defumada", "g", 24, 6),
+        ("Bacon", "g", 15, 3),
+        ("Linguica_calabresa", "g", 24, 6),
+        ("Linguica_acebolada", "g", 15, 3),
+        ("Lombo_de_porco", "g", 24, 6),
+        ("Carne_seca", "g", 24, 6),
+        ("Camarao_medio_limpo", "g", 15, 3),
+        ("File_de_tilapia", "g", 24, 6),
+        ("File_mignon_bovino", "g", 24, 6),
+        ("Carne_moida_de_primeira", "g", 30, 9),
+        ("Carne_moida_blend_patinho_acem", "g", 24, 6),
+        ("Frango_grelhado", "g", 24, 6),
+        ("Frango_desfiado", "g", 15, 3),
+        ("Presunto", "g", 9, 1),
+        ("Bolinho_de_bacalhau", "g", 15, 3),
+        ("Salame", "Kg", 10.0, 3.0),
 ]
 
 ingredientes_carboidratos = [
-        ('Feijao_preto', 'g', 45, 12)
-        ('Arroz_branco', 'g', 60, 15)
-        ('Arroz_arborio', 'g', 24, 6)
-        ('Mandioca_in_natura', 'g', 30, 9)
-        ('Farinha_de_mandioca', 'g', 24, 6)
-        ('Batata', 'g', 60, 15)
-        ('Batata_palha', 'g', 15, 3)
-        ('Nhoque_de_batata_pronto', 'g', 15, 3)
-        ('Ravioli_fresco_de_queijo', 'g', 15, 3)
-        ('Pao_italiano', 'Kg', 20.0, 5.0)
-        ('Pao_brioche', 'unidade', 30, 8)
-        ('Pao_de_forma', 'pacote', 10.0, 2.0)
-        ('Mini_paes', 'unidade', 100, 25)
-        ('Tortilla_de_milho', 'unidade', 50, 10)
-        ('Tortilla_de_trigo', 'unidade', 50, 10)
-        ('Tapioca_granulada', 'g', 15, 3)
-        ('Nachos', 'g', 15, 3)
-        ('Biscoito_base', 'Kg', 15.0, 3.0)
-        ('Coxinha', 'unidade', 100, 25)
-        ('Risole', 'unidade', 100, 25)
-        ('Quibe', 'unidade', 100, 25)
-        ('Croquete', 'unidade', 100, 25)
-        ('Empada', 'unidade', 100, 25)
-        ('Bolinha_de_queijo', 'unidade', 100, 25)
-        ('Pastel_de_carne', 'unidade', 100, 25)
-        ('Pastel_de_queijo', 'unidade', 100, 25)
+        ("Feijao_preto", "g", 45, 12),
+        ("Arroz_branco", "g", 60, 15),
+        ("Arroz_arborio", "g", 24, 6),
+        ("Mandioca_in_natura", "g", 30, 9),
+        ("Farinha_de_mandioca", "g", 24, 6),
+        ("Batata", "g", 60, 15),
+        ("Batata_palha", "g", 15, 3),
+        ("Nhoque_de_batata_pronto", "g", 15, 3),
+        ("Ravioli_fresco_de_queijo", "g", 15, 3),
+        ("Pao_italiano", "Kg", 20.0, 5.0),
+        ("Pao_brioche", "unidade", 30, 8),
+        ("Pao_de_forma", "pacote", 10.0, 2.0),
+        ("Mini_paes", "unidade", 100, 25),
+        ("Tortilla_de_milho", "unidade", 50, 10),
+        ("Tortilla_de_trigo", "unidade", 50, 10),
+        ("Tapioca_granulada", "g", 15, 3),
+        ("Nachos", "g", 15, 3),
+        ("Biscoito_base", "Kg", 15.0, 3.0),
+        ("Coxinha", "unidade", 100, 25),
+        ("Risole", "unidade", 100, 25),
+        ("Quibe", "unidade", 100, 25),
+        ("Croquete", "unidade", 100, 25),
+        ("Empada", "unidade", 100, 25),
+        ("Bolinha_de_queijo", "unidade", 100, 25),
+        ("Pastel_de_carne", "unidade", 100, 25),
+        ("Pastel_de_queijo", "unidade", 100, 25),
 ]
 
 ingredientes_laticinios = [
-        ('Manteiga', 'g', 15, 3)
-        ('Queijo_mucarela', 'g', 24, 6)
-        ('Queijo_prato', 'g', 15, 3)
-        ('Queijo_cheddar', 'g', 12, 3)
-        ('Queijo_coalho', 'g', 15, 3)
-        ('Queijo_ralado', 'g', 6, 1)
-        ('Parmesao_ralado', 'g', 9, 1)
-        ('Creme_de_leite', 'mL', 24, 6)
-        ('Leite_condensado', 'mL', 24, 6)
-        ('Leite_integral', 'mL', 45, 12)
-        ('Leite_de_coco', 'mL', 15, 3)
-        ('Iogurte_natural', 'mL', 15, 3)
-        ('Cream_cheese', 'g', 12, 3)
-        ('Ovos', 'unidade', 180, 36)
+        ("Manteiga", "g", 15, 3),
+        ("Queijo_mucarela", "g", 24, 6),
+        ("Queijo_prato", "g", 15, 3),
+        ("Queijo_cheddar", "g", 12, 3),
+        ("Queijo_coalho", "g", 15, 3),
+        ("Queijo_ralado", "g", 6, 1),
+        ("Parmesao_ralado", "g", 9, 1),
+        ("Creme_de_leite", "mL", 24, 6),
+        ("Leite_condensado", "mL", 24, 6),
+        ("Leite_integral", "mL", 45, 12),
+        ("Leite_de_coco", "mL", 15, 3),
+        ("Iogurte_natural", "mL", 15, 3),
+        ("Cream_cheese", "g", 12, 3),
+        ("Ovos", "unidade", 180, 36),
 ]
 
 ingredientes_vegetais = [
-        ('Folhas_hidroponicas', 'g', 9, 2)
-        ('Folhas_variadas', 'g', 9, 2)
-        ('Alface_romana', 'unidade', 20, 5)
-        ('Alface_americana', 'unidade', 20, 5)
-        ('Couve_manteiga', 'g', 9, 2)
-        ('Tomate', 'g', 30, 6)
-        ('Tomate_cereja', 'g', 12, 3)
-        ('Cebola', 'g', 30, 6)
-        ('Cebola_caramelizada', 'g', 9, 1)
-        ('Pimentao', 'g', 12, 3)
-        ('Cebolinha', 'g', 3, 0)
-        ('Alho', 'g', 9, 1)
-        ('Manjericao', 'g', 1, 0)
-        ('Salsinha', 'g', 3, 0)
-        ('Limao', 'g', 24, 6)
-        ('Laranja', 'g', 24, 6)
-        ('Cogumelos_frescos', 'g', 9, 1)
-        ('Champignon', 'g', 9, 1)
-        ('Morango_fresco', 'g', 15, 3)
-        ('Frutas_frescas_in_natura', 'g', 30, 6)
-        ('Frutas_vermelhas_congeladas', 'g', 12, 3)
-        ('Nozes', 'g', 6, 1)
-        
+        ("Folhas_hidroponicas", "g", 9, 2),
+        ("Folhas_variadas", "g", 9, 2),
+        ("Alface_romana", "unidade", 20, 5),
+        ("Alface_americana", "unidade", 20, 5),
+        ("Couve_manteiga", "g", 9, 2),
+        ("Tomate", "g", 30, 6),
+        ("Tomate_cereja", "g", 12, 3),
+        ("Cebola", "g", 30, 6),
+        ("Cebola_caramelizada", "g", 9, 1),
+        ("Pimentao", "g", 12, 3),
+        ("Cebolinha", "g", 3, 0),
+        ("Alho", "g", 9, 1),
+        ("Manjericao", "g", 1, 0),
+        ("Salsinha", "g", 3, 0),
+        ("Limao", "g", 24, 6),
+        ("Laranja", "g", 24, 6),
+        ("Cogumelos_frescos", "g", 9, 1),
+        ("Champignon", "g", 9, 1),
+        ("Morango_fresco", "g", 15, 3),
+        ("Frutas_frescas_in_natura", "g", 30, 6),
+        ("Frutas_vermelhas_congeladas", "g", 12, 3),
+        ("Nozes", "g", 6, 1),
+
 ]
 
 ingredientes_temperos = [
-        ('Oleo_de_soja', 'mL', 30, 6)
-        ('Oleo_para_fritura', 'mL', 60, 15)
-        ('Sal', 'g', 24, 6)
-        ('Acucar', 'g', 24, 6)
-        ('Temperos', 'g', 9, 1)
-        ('Vinagre', 'mL', 15, 3)
-        ('Azeite', 'mL', 15, 3)
-        ('Azeite_de_dende', 'mL', 9, 1)
-        ('Molho_de_pimenta', 'mL', 6, 1)
-        ('Geleia_de_pimenta', 'g', 9, 1)
-        ('Alcaparras', 'g', 3, 0)
-        ('Molho_de_tomate', 'mL', 24, 6)
-        ('Catchup', 'mL', 15, 3)
-        ('Mostarda', 'mL', 9, 1)
-        ('Molho_mostarda_e_mel', 'mL', 9, 1)
-        ('Molho_Caesar', 'mL', 9, 1)
-        ('Croutons', 'g', 6, 1)
-        ('Maionese_temperada', 'mL', 15, 3)
-        ('Molho_barbecue', 'mL', 9, 1)
-        ('Vinho_branco', 'mL', 15, 3)
-        ('Guacamole', 'g', 9, 1)
-        ('Gelatina', 'g', 9, 1)
-        ('Chocolate_meio_amargo', 'g', 15, 3)
-        ('Mel', 'g', 9, 1)
-        ('Azeitona', 'g', 9, 1)
-        ('Folha_de_hortela', 'unidade', 300,50)
+        ("Oleo_de_soja", "mL", 30, 6),
+        ("Oleo_para_fritura", "mL", 60, 15),
+        ("Sal", "g", 24, 6),
+        ("Acucar", "g", 24, 6),
+        ("Temperos", "g", 9, 1),
+        ("Vinagre", "mL", 15, 3),
+        ("Azeite", "mL", 15, 3),
+        ("Azeite_de_dende", "mL", 9, 1),
+        ("Molho_de_pimenta", "mL", 6, 1),
+        ("Geleia_de_pimenta", "g", 9, 1),
+        ("Alcaparras", "g", 3, 0),
+        ("Molho_de_tomate", "mL", 24, 6),
+        ("Catchup", "mL", 15, 3),
+        ("Mostarda", "mL", 9, 1),
+        ("Molho_mostarda_e_mel", "mL", 9, 1),
+        ("Molho_Caesar", "mL", 9, 1),
+        ("Croutons", "g", 6, 1),
+        ("Maionese_temperada", "mL", 15, 3),
+        ("Molho_barbecue", "mL", 9, 1),
+        ("Vinho_branco", "mL", 15, 3),
+        ("Guacamole", "g", 9, 1),
+        ("Gelatina", "g", 9, 1),
+        ("Chocolate_meio_amargo", "g", 15, 3),
+        ("Mel", "g", 9, 1),
+        ("Azeitona", "g", 9, 1),
+        ("Folha_de_hortela", "unidade", 300,50),
 ]
 
 ingredientes_bebidas_sem_alcool = [
-        ('Suco_de_limao', 'mL', 15, 3)
-        ('Xarope_de_groselha_framboesa', 'mL', 9, 1)
-        ('Agua_com_gas', 'mL', 60, 15)
-        ('Xarope_simples_de_acucar', 'mL', 9, 1)
-        ('Suco_de_abacaxi', 'mL', 24, 6)
-        ('Xarope_de_maca_verde', 'mL', 6, 1)
-        ('Polpa_de_frutas_vermelhas', 'g', 15, 3)
-        ('Suco_de_laranja', 'mL', 30, 6)
-        ('Refrigerante_de_guarana', 'mL', 60, 15)
-        ('Cha_preto', 'ml', 3, 0)
-        ('Xarope_de_pessego', 'mL', 6, 1)
-        ('Xarope_de_grenadine', 'mL', 6, 1)
-        ('Agua_de_coco', 'mL', 24, 6)
-        ('Suco_de_maracuja', 'mL', 24, 6)
-        ('Xarope_de baunilha', 'mL', 6, 1)
-        ('Suco_de_melancia', 'mL', 15, 3)
-        ('Suco_de_gengibre', 'mL', 6, 1)
+        ("Suco_de_limao", "mL", 15, 3),
+        ("Xarope_de_groselha_framboesa", "mL", 9, 1),
+        ("Agua_com_gas", "mL", 60, 15),
+        ("Xarope_simples_de_acucar", "mL", 9, 1),
+        ("Suco_de_abacaxi", "mL", 24, 6),
+        ("Xarope_de_maca_verde", "mL", 6, 1),
+        ("Polpa_de_frutas_vermelhas", "g", 15, 3),
+        ("Suco_de_laranja", "mL", 30, 6),
+        ("Refrigerante_de_guarana", "mL", 60, 15),
+        ("Cha_preto", "ml", 3, 0),
+        ("Xarope_de_pessego", "mL", 6, 1),
+        ("Xarope_de_grenadine", "mL", 6, 1),
+        ("Agua_de_coco", "mL", 24, 6),
+        ("Suco_de_maracuja", "mL", 24, 6),
+        ("Xarope_de baunilha", "mL", 6, 1),
+        ("Suco_de_melancia", "mL", 15, 3),
+        ("Suco_de_gengibre", "mL", 6, 1),
 ]
 
 ingredientes_bebidas_alcoolicas = [
-        ('Cachaca', 'mL', 15, 3)
-        ('Tequila', 'mL', 9, 1)
-        ('Cointreau_triple_sec', 'mL', 6, 1)
-        ('Gin', 'mL', 15, 3)
-        ('Campari', 'mL', 9, 1)
-        ('Vermute_tinto', 'mL', 9, 1)
-        ('Vodka', 'mL', 15, 3)
-        ('Ginger_beer', 'mL', 24, 6)
-        ('Suco_de_cranberry', 'mL', 15, 3)
-        ('Rum_branco', 'mL', 9, 1)
-        ('Rum_escuro', 'mL', 9, 1)
-        ('Xarope_de_amendoa_orgeat', 'mL', 6, 1)
-        ('Uisque_bourbon', 'mL', 9, 1)
-        ('Angostura_bitters', 'ml', 500.0, 100.0)
-        ('Uisque_de_centeio_rye', 'mL', 9, 1)
-        ('Cereja_marasquino', 'g', 6, 1)
+        ("Cachaca", "mL", 15, 3),
+        ("Tequila", "mL", 9, 1),
+        ("Cointreau_triple_sec", "mL", 6, 1),
+        ("Gin", "mL", 15, 3),
+        ("Campari", "mL", 9, 1),
+        ("Vermute_tinto", "mL", 9, 1),
+        ("Vodka", "mL", 15, 3),
+        ("Ginger_beer", "mL", 24, 6),
+        ("Suco_de_cranberry", "mL", 15, 3),
+        ("Rum_branco", "mL", 9, 1),
+        ("Rum_escuro", "mL", 9, 1),
+        ("Xarope_de_amendoa_orgeat", "mL", 6, 1),
+        ("Uisque_bourbon", "mL", 9, 1),
+        ("Angostura_bitters", "ml", 500.0, 100.0),
+        ("Uisque_de_centeio_rye", "mL", 9, 1),
+        ("Cereja_marasquino", "g", 6, 1),
 ]
 
 ingredientes_diversos = [
-        ('Onion_rings', 'g', 15, 3)
-        ('Brigadeiro', 'unidade', 100, 25)
-        ('Beijinho', 'unidade', 100, 25)
-        ('Bolo_comum_simples', 'g', 15, 3)
+        ("Onion_rings", "g", 15, 3),
+        ("Brigadeiro", "unidade", 100, 25),
+        ("Beijinho", "unidade", 100, 25),
+        ("Bolo_comum_simples", "g", 15, 3),
 ]
 
 
@@ -782,12 +800,12 @@ lista_lotes = [
     ("LOTE-ING-138", "Nestlé", datetime(2026, 10, 12), 2.0, "Beijinho", datetime(2028, 5, 17)),
 
     ("LOTE-ING-139", "Pullman", datetime(2026, 10, 12), 2.0, "Bolo_comum_simples", datetime(2028, 5, 18)),
-    
+
     ("LOTE-ING-140", "Sadia", datetime(2026, 10, 12), 3.0, "Pastel_de_queijo", datetime(2028, 6, 20)),
 
     ("LOTE-ING-141", "Sadia", datetime(2026, 10, 12), 2.0, "Salame", datetime(2028, 7, 15)),
 
-    ("LOTE-ING-142", "Nature", datetime(2026, 10, 11), 2.0, "Folha_de_hortela", datetime(2028,4,1))
+    ("LOTE-ING-142", "Nature", datetime(2026, 10, 11), 2.0, "Folha_de_hortela", datetime(2028,4,1)),
 ]
 
 lista_cargos = [
@@ -845,7 +863,7 @@ lista_ficha_tecnica = [
     # Molho de pimenta
     ("Molho_de_pimenta", "Molho_de_pimenta", 0.022),
 
-    
+
     ("Salada_fresca", "Folhas_hidroponicas", 0.090),
     ("Salada_fresca", "Tomate_cereja", 0.035),
     ("Salada_fresca", "Azeite", 0.007),
@@ -1155,7 +1173,7 @@ lista_bebida_cardapio = [
     ("Piña Colada", "Bebida_com_alcool"),
 
     # BEBIDAS MISTAS
-    
+
     ("Suco_de_abacaxi", "Bebida_mista"),
     ("Refrigerante_de_guarana", "Bebida_mista"),
     ("Agua_de_coco", "Bebida_mista"),
@@ -1174,13 +1192,13 @@ lista_bebida_cardapio = [
     ("Mai Tai", "Bebida_mista"),
     ("Old Fashioned", "Bebida_mista"),
     ("Manhattan", "Bebida_mista"),
-   
+
 ]
 
 
 ficha_bebidas = [
     #BEBIDAS QUE O CLIENTE ESCOLHE SEM SER DO BAR
-   
+
     ("Agua_com_gas", "Agua_com_gas", 200),
     ("Suco_de_abacaxi", "Suco_de_abacaxi", 200),
     ("Refrigerante_de_guarana", "Refrigerante_de_guarana", 200),
@@ -1201,7 +1219,7 @@ ficha_bebidas = [
     ("Mojito Sem Álcool", "Suco_de_limao", 30),
     ("Mojito Sem Álcool", "Xarope_simples_de_acucar", 20),
     ("Mojito Sem Álcool", "Agua_com_gas", 150),
-     ("Mojito Sem Álcool", "Folha_de_hortela", 10)
+     ("Mojito Sem Álcool", "Folha_de_hortela", 10),
 
 
     # Piña Colada Zero
@@ -1298,26 +1316,27 @@ ficha_bebidas = [
     ("Piña Colada", "Leite_de_coco", 30),
 ]
 
-# ================================= Inicialização ESTOQUE ================================= 
+# ================================= Inicialização ESTOQUE =================================
 
 def iniciar_servicos() -> list[Servico]:
     """Inicializa todos os serviços padrão que não constam no banco no momento da inicialização.
 
     Returns:
         list[Servico]: todos os objetos Servico a ser inicializados.
+
     """
     servicos=[]
-    
+
     for nome, descricao in lista_servicos:
         if buscar_servico_por_nome(nome):
             continue
-        
+
         servico = Servico(
             nome=nome,
-            descricao=descricao
+            descricao=descricao,
         )
         servicos.append(servico)
-    
+
     return servicos
 
 def iniciar_bancadas() -> list[Bancada]:
@@ -1325,20 +1344,20 @@ def iniciar_bancadas() -> list[Bancada]:
     
     Returns:
         list[Bancada]: todos os objetos Bancada a ser inicializados.
+
     """
-        
     bancadas=[]
-    
+
     for nome, descricao in lista_bancadas:
         if buscar_bancada_por_nome(nome):
             continue
-        
+
         bancada = Bancada(
             nome=nome,
-            descricao=descricao
+            descricao=descricao,
         )
         bancadas.append(bancada)
-    
+
     return bancadas
 
 def iniciar_cardapios() -> list[Cardapio]:
@@ -1346,22 +1365,22 @@ def iniciar_cardapios() -> list[Cardapio]:
     
     Returns:
         list[Cardapio]: todos os objetos Cardapio a ser inicializados.
+
     """
-        
     cardapios=[]
-    
+
     for tipo_cardapio in lista_cardapios:
         for nome, descricao, preco_base in tipo_cardapio:
             if buscar_cardapio_por_nome(nome):
                 continue
-            
+
             cardapio = Cardapio(
                 nome=nome,
                 descricao=descricao,
-                preco_base=preco_base
+                preco_base=preco_base,
             )
             cardapios.append(cardapio)
-    
+
     return cardapios
 
 def iniciar_pratos() -> list[Prato]:
@@ -1369,19 +1388,19 @@ def iniciar_pratos() -> list[Prato]:
 
     Returns:
         list[Prato]: todos os objetos Prato a ser inicializados.
-    """
 
+    """
     pratos=[]
 
     for nome, descricao, tipo_prato, tempo_preparo, requer_pre_preparo in lista_pratos:
         if buscar_prato_por_nome(nome):
             continue
-        
+
         prato = Prato(
             nome=nome,
             descricao=descricao,
-            tipo_prato=tipo_prato, 
-            tempo_preparo=tempo_preparo, 
+            tipo_prato=tipo_prato,
+            tempo_preparo=tempo_preparo,
             requer_pre_preparo=requer_pre_preparo,
         )
         pratos.append(prato)
@@ -1393,15 +1412,15 @@ def iniciar_ingredientes() -> list[Ingrediente]:
     
     Returns:
         list[Ingrediente]: todos os objetos Ingrediente a ser inicializados.
+
     """
-        
     ingredientes=[]
-    
+
     for tipo_ingrediente in lista_ingredientes:
         for nome, unidade, quantidade, quantidade_minima in tipo_ingrediente:
             if buscar_ingrediente_por_nome(nome):
                 continue
-            
+
             ingrediente = Ingrediente(
                 nome,
                 unidade,
@@ -1409,7 +1428,7 @@ def iniciar_ingredientes() -> list[Ingrediente]:
                 quantidade_minima,
             )
             ingredientes.append(ingrediente)
-    
+
     return ingredientes
 
 def iniciar_lotes() -> list[Lote]:
@@ -1417,57 +1436,59 @@ def iniciar_lotes() -> list[Lote]:
     
     Returns:
         list[Lote]: todos os objetos lote a ser inicializados.
+
     """
-        
     lotes=[]
-    
+
     for numero, marca, data_recebimento, quantidade_inicial, nome_ingrediente, data_validade in lista_lotes:
         if buscar_lote_por_numero(numero):
             continue
-        
+
         lote = Lote(
             numero,
             marca,
             data_recebimento,
             data_validade,
             quantidade_inicial,
-            buscar_ingrediente_por_nome(nome_ingrediente).id
+            buscar_ingrediente_por_nome(nome_ingrediente).id,
         )
         lotes.append(lote)
-    
+
     return lotes
 
-# ================================== Inicialização CARGOS ================================== 
+# ================================== Inicialização CARGOS ==================================
 
 def iniciar_cargos() -> list[NivelPermissao]:
-    """Inicializa todos os cargos padrão que não constam no banco no momento da inicialização e 
+    """Inicializa todos os cargos padrão que não constam no banco no momento da inicialização e
     corrige seus ids caso estejam em divergência.
 
     Returns:
         list[NivelPermissao]: todos os objetos nivelPermissao a ser inicializados.
-    """
 
+    """
     cargos=[]
 
     for id_cargo, nome in lista_cargos:
         cargo = buscar_permissao_por_nome(nome)
-    
+
         if cargo:
             cargo_valido = (
                 cargo.id_permissao in Cargo._value2member_map_
                 and cargo.nome.upper() in Cargo.__members__
             )
-    
+
             if not cargo_valido:
                 cargo=atualizar_permissao(id_cargo, nome.lower())
         cargos.append(cargo)
-        
+
     return cargos
 
 def iniciar_admin():
-    import security
     from os import environ
+
     from werkzeug.security import generate_password_hash
+
+    import security
     admin_existente = Usuario.query.filter_by(id_permissao=Cargo.ADMIN.value).first()
 
     if not admin_existente:
@@ -1478,18 +1499,18 @@ def iniciar_admin():
             email_criptogradafo=security.criptografar(environ.get("ADMIN_EMAIL")),
             email_hmac=security.gerar_hmac(environ.get("ADMIN_EMAIL")),
             senha_hash=generate_password_hash(environ.get("ADMIN_PASSWORD")),
-            id_permissao=Cargo.ADMIN.value
-        )      
+            id_permissao=Cargo.ADMIN.value,
+        )
 
-# ================================== Inicialização FICHA TECNICA ================================== 
+# ================================== Inicialização FICHA TECNICA ==================================
 
 def iniciar_ficha_tecnica() -> list[FichaTecnica]:
     """Inicializa todas as fichas técnicas padrão que não constam no banco no momento da inicialização.
 
     Returns:
         list[FichaTecnica]: todos os objetos FichaTecnica a serem inicializados.
-    """
 
+    """
     fichas_tecnicas = []
 
     for nome_prato, nome_ingrediente, qtd_necessaria in lista_ficha_tecnica:
@@ -1501,14 +1522,14 @@ def iniciar_ficha_tecnica() -> list[FichaTecnica]:
 
         if db.session.get(
             FichaTecnica,
-            (prato.id_prato, ingrediente.id_ingrediente)
+            (prato.id_prato, ingrediente.id_ingrediente),
         ):
             continue
 
         ficha = FichaTecnica(
             prato.id_prato,
             ingrediente.id_ingrediente,
-            qtd_necessaria
+            qtd_necessaria,
         )
 
         fichas_tecnicas.append(ficha)
@@ -1521,8 +1542,8 @@ def iniciar_ficha_tecnica_bebida() -> list[FichaTecnica_bebida]:
 
     Returns:
         list[FichaTecnica_bebida]: todos os objetos FichaTecnica_bebida a serem inicializados.
-    """
 
+    """
     fichas_tecnicas_bebidas = []
 
     for nome_bebida, nome_ingrediente, qtd_necessaria in ficha_bebidas:
@@ -1534,25 +1555,24 @@ def iniciar_ficha_tecnica_bebida() -> list[FichaTecnica_bebida]:
 
         if db.session.get(
             FichaTecnica_bebida,
-            (bebida.id_bebida, ingrediente.id_ingrediente)
+            (bebida.id_bebida, ingrediente.id_ingrediente),
         ):
             continue
 
         ficha = FichaTecnica_bebida(
             bebida.id_bebida,
             ingrediente.id_ingrediente,
-            qtd_necessaria
+            qtd_necessaria,
         )
 
         fichas_tecnicas_bebidas.append(ficha)
 
-    return fichas_tecnicas_bebidas 
+    return fichas_tecnicas_bebidas
 
 
 def iniciar_servico_bancada() -> list[ServicoBancada]:
     """Inicializa a associacao servico bancada. Responsável por associar a bancada a seus devidos servicos
     """
-
     associacao_servico_bancada = []
 
     for nome_servico, nome_bancada in lista_servicos_bancadas:
@@ -1564,14 +1584,14 @@ def iniciar_servico_bancada() -> list[ServicoBancada]:
 
         if db.session.get(
             ServicoBancada,
-            (servico.id_servico, bancada.id_bancada)
+            (servico.id_servico, bancada.id_bancada),
         ):
             continue
 
         associacao = ServicoBancada(
             servico.id_servico,
-            bancada.id_bancada
-            
+            bancada.id_bancada,
+
         )
 
         associacao_servico_bancada.append(associacao)
@@ -1581,7 +1601,6 @@ def iniciar_servico_bancada() -> list[ServicoBancada]:
 def iniciar_servico_cardapio() -> list[ServicoCardapio]:
     """Inicializa a associacao servico cardapio. Responsável por associar a cardapio a seus devidos servicos
     """
-
     associacao_servico_cardapio = []
 
     for nome_servico, nome_cardapio in lista_servicos_cardapios:
@@ -1593,14 +1612,14 @@ def iniciar_servico_cardapio() -> list[ServicoCardapio]:
 
         if db.session.get(
             ServicoCardapio,
-            (servico.id_servico, cardapio.id_cardapio)
+            (servico.id_servico, cardapio.id_cardapio),
         ):
             continue
 
         associacao = ServicoCardapio(
             servico.id_servico,
-            cardapio.id_cardapio
-            
+            cardapio.id_cardapio,
+
         )
 
         associacao_servico_cardapio.append(associacao)
@@ -1610,7 +1629,6 @@ def iniciar_servico_cardapio() -> list[ServicoCardapio]:
 def iniciar_prato_cardapio() -> list[PratoCardapio]:
     """Inicializa a associacao prato cardapio. Responsável por associar a cardapio a seus devidos servicos
     """
-
     associacao_prato_cardapio = []
 
     for nome_prato, nome_cardapio in lista_prato_cardapio:
@@ -1622,14 +1640,14 @@ def iniciar_prato_cardapio() -> list[PratoCardapio]:
 
         if db.session.get(
             PratoCardapio,
-            (prato.id_prato, cardapio.id_cardapio)
+            (prato.id_prato, cardapio.id_cardapio),
         ):
             continue
 
         associacao = PratoCardapio(
             prato.id_prato,
-            cardapio.id_cardapio
-            
+            cardapio.id_cardapio,
+
         )
 
         associacao_prato_cardapio.append(associacao)

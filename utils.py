@@ -1,9 +1,10 @@
-from zoneinfo import ZoneInfo
 from calendar import monthrange
-from datetime import datetime, timedelta, date
+from datetime import date, datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from zoneinfo import ZoneInfo
+
 from dateutil.relativedelta import relativedelta
 
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 #nomes
 def formatar_nome(nome_completo: str) -> str:
@@ -19,25 +20,25 @@ def formatar_nome(nome_completo: str) -> str:
 
     Returns:
         str: O nome formatado com as devidas maiúsculas e minúsculas.
+
     """
-    
     # Lista de palavras que devem permanecer em minúscula no meio do nome
     conectivos = ["de", "da", "do", "das", "dos", "e", "em", "por", "com", "o", "a", "os", "as"]
-    
+
     # Divide o nome em palavras individuais
     palavras = nome_completo.strip().replace("_", " ").split()
     nome_formatado = []
-    
+
     for i, palavra in enumerate(palavras):
         palavra_lower = palavra.lower()
-        
+
         # A primeira palavra do nome SEMPRE começa com maiúscula.
         # As demais só começam com maiúscula se não forem conectivos.
         if i == 0 or palavra_lower not in conectivos:
             nome_formatado.append(palavra.capitalize())
         else:
             nome_formatado.append(palavra_lower)
-            
+
     # Junta as palavras novamente em uma única string
     return " ".join(nome_formatado)
 
@@ -45,18 +46,16 @@ def formatar_nome(nome_completo: str) -> str:
 #formatação monetária
 def moeda_para_centavos(valor):
     """Pega um valor monetário e o transforma em centavos."""
-    
     texto = str(valor).strip().replace("R$", "").replace(" ", "")
     if "," in texto:
         texto = texto.replace(".", "").replace(",", ".")
     try:
-        return int((Decimal(texto) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        return int((Decimal(texto) * 100).quantize(Decimal(1), rounding=ROUND_HALF_UP))
     except InvalidOperation as erro:
         raise ValueError("Valor monetário inválido") from erro
 
 def formatar_moeda(centavos):
     """Pega um valor em centavos e retorna formatado como Real."""
-    
     valor = Decimal(int(centavos)) / 100
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
@@ -68,19 +67,19 @@ def calcular_periodo(meses_antes: int) -> int:
 
     Returns:
         int: dia equivalente naquele mês.
-    """
 
+    """
     hoje = datetime.now(ZoneInfo("America/Sao_Paulo"))
-    
+
     # True se hoje for o último dia do mês
     ultimo_dia_mes = (int(hoje.day) == monthrange(int(hoje.year), int(hoje.month))[1])
-    
+
     dia = hoje.day
-    
+
     if ultimo_dia_mes:
         dia_mes_passado = hoje - relativedelta(months=meses_antes)
         dia = monthrange(int(dia_mes_passado.year), int(dia_mes_passado.month))[1]
-    
+
     return dia
 
 def hoje() -> datetime:
@@ -88,6 +87,7 @@ def hoje() -> datetime:
 
     Returns:
         datetime: data de hoje.
+
     """
     return datetime.now(ZoneInfo("America/Sao_Paulo"))
 
@@ -96,6 +96,7 @@ def mes_passado() -> datetime:
 
     Returns:
         datetime: data de hoje.
+
     """
     return datetime.now(ZoneInfo("America/Sao_Paulo")) - relativedelta(months=1)
 
@@ -114,6 +115,7 @@ def semana_passada(num_semanas: int) -> tuple[date, date]:
 
     Raises:
         ValueError: Se num_semanas for menor que 1.
+
     """
     if num_semanas < 1:
         raise ValueError("num_semanas deve ser maior ou igual a 1")
@@ -125,7 +127,7 @@ def semana_passada(num_semanas: int) -> tuple[date, date]:
     inicio_semana_passada = inicio_semana_atual - timedelta(weeks=num_semanas)
 
     fim_semana_passada = inicio_semana_passada + timedelta(days=6)
-    
+
     return (inicio_semana_passada, fim_semana_passada)
 
 def ultimos_30_dias():
@@ -133,8 +135,8 @@ def ultimos_30_dias():
 
     Returns:
         datetime: data de exatamente 30 dias atrás.
+
     """
-    
     trita_dias_atras = hoje() - timedelta(days=30)
 
     return trita_dias_atras
@@ -149,8 +151,8 @@ def para_data(dia: int, mes: int, ano: int) -> datetime:
 
     Returns:
         datetime: data em formato YY/MM/DD.
+
     """
-    
     return datetime(ano, mes, dia).date()
 
 def string_para_data(data:str):
