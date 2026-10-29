@@ -1,2 +1,9 @@
-from .enviar_email import enviar_email_nao_responda
-from .relatorios import pedidos_quantidade, pedidos_tipo, pedidos_status, faturamento_periodo, ticket_medio_periodo, faturamento_semanal
+from .enviar_email import enviar_email_nao_responda  # noqa: F401
+from .relatorios import (
+    faturamento_periodo,  # noqa: F401
+    faturamento_semanal,  # noqa: F401
+    pedidos_quantidade,  # noqa: F401
+    pedidos_status,  # noqa: F401
+    pedidos_tipo,  # noqa: F401
+    ticket_medio_periodo,  # noqa: F401
+)
