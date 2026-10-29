@@ -1,18 +1,21 @@
-from admin import admin_bp, _retorno, _bool_form, _int_form
-
-from flask import request, flash
-
 from decimal import Decimal, InvalidOperation
+
+from . import _bool_form, _int_form, _retorno, admin_bp
+from flask import flash, request
 from sqlalchemy.exc import SQLAlchemyError
 
-from model.servico_model import criar_cardapio, atualizar_cardapio, deletar_cardapio
 from model.ficha_model import (
-    # Prato
-    criar_prato, buscar_prato_por_id, listar_pratos, atualizar_prato, deletar_prato,
     # Prato x cardápio
-    associar_prato_cardapio, buscar_prato_cardapio, listar_pratos_por_cardapio,
-    atualizar_prato_cardapio, deletar_prato_cardapio
+    associar_prato_cardapio,
+    atualizar_prato,
+    atualizar_prato_cardapio,
+    criar_prato,
+    deletar_prato,
+    deletar_prato_cardapio,
 )
+from model.servico_model import atualizar_cardapio, criar_cardapio, deletar_cardapio
+
+
 # ========================= CRIAR CARDÁPIO =========================
 @admin_bp.post("/servicos/criar_cardapio")
 def c_cardapio():
@@ -23,17 +26,17 @@ def c_cardapio():
     if not nome or not descricao or not preco_texto:
         flash("Preencha todos os campos.", "danger")
         return _retorno()
-    
+
     try:
         preco_base = Decimal(preco_texto.replace(",", "."))
     except InvalidOperation:
         flash("Preço inválido.", "danger")
         return _retorno()
-    
+
     if not preco_base.is_finite() or preco_base < 0:
         flash("O preço deve ser válido e não negativo.", "danger")
         return _retorno()
-    
+
     criar_cardapio(nome=nome, descricao=descricao, preco_base=preco_base)
 
     flash("Cardápio criado.", "success")
@@ -59,8 +62,8 @@ def at_cardapio(id_cardapio):
     if not preco_base.is_finite() or preco_base < 0:
         flash("O preço deve ser válido e não negativo.", "danger")
         return _retorno()
-    
-    sucesso = atualizar_cardapio(id_cardapio=id_cardapio, nome=nome, descricao=descricao, preco_base=preco_base,)
+
+    sucesso = atualizar_cardapio(id_cardapio=id_cardapio, nome=nome, descricao=descricao, preco_base=preco_base)
 
     if not sucesso:
         flash("Cardápio não encontrado.", "danger")

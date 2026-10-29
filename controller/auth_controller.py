@@ -1,8 +1,14 @@
-from model.usuario_model import buscar_usuario_para_login, buscar_usuario_por_id, criar_usuario
-from model.cargos import Cargo
-from flask import Blueprint, render_template, request, session, flash, redirect, url_for
 from re import fullmatch
-from security import enviar_token, validar_token, validar_senha_forte
+
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+
+from model.cargos import Cargo
+from model.usuario_model import (
+    buscar_usuario_para_login,
+    buscar_usuario_por_id,
+    criar_usuario,
+)
+from security import enviar_token, validar_senha_forte, validar_token
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -114,6 +120,6 @@ def cadastro():
     if not usuario:
         flash("Falha no cadastro. Tente novamente.", "danger")
         return render_template("cadastro.html")
-    
-    return render_template('login.html')  
-        
+
+    return render_template("login.html")
+

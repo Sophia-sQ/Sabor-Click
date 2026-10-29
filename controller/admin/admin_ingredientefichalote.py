@@ -1,17 +1,17 @@
-from admin import admin_bp, _retorno, _int_form, _decimal_form
-
-from flask import request, flash
-from sqlalchemy.exc import SQLAlchemyError
-
 from decimal import InvalidOperation
 
+from . import _decimal_form, _int_form, _retorno, admin_bp
+from flask import flash, request
+from sqlalchemy.exc import SQLAlchemyError
+
 from model.ficha_model import (
+    atualizar_ficha_tecnica,
+    atualizar_ingrediente,
+    criar_ficha_tecnica,
     # Ingrediente
-    criar_ingrediente, buscar_ingrediente_por_id, listar_ingredientes,
-    atualizar_ingrediente, deletar_ingrediente,
-    # Ficha técnica
-    criar_ficha_tecnica, buscar_ficha_tecnica_item, listar_ficha_tecnica_por_prato,
-    atualizar_ficha_tecnica, deletar_ficha_tecnica,
+    criar_ingrediente,
+    deletar_ficha_tecnica,
+    deletar_ingrediente,
 )
 
 # ========================= INGREDIENTE =========================
@@ -35,9 +35,7 @@ def criar_ingrediente_route():
         flash("As quantidades devem ser válidas e não negativas.", "danger")
         return _retorno()
 
-    if unidade == "kg":
-        ...
-    elif unidade == "L":
+    if unidade == "kg" or unidade == "L":
         ...
 
     try:

@@ -1,18 +1,18 @@
-from admin import admin_bp, _retorno, _int_form, _decimal_form
-
-from flask import request, flash
-from sqlalchemy.exc import SQLAlchemyError
-
 from decimal import InvalidOperation
 
-from model.pedido_model import (
-    # Bebida
-    criar_bebida, buscar_bebida_por_id, atualizar_bebida, deletar_bebida,
-)
+from . import _decimal_form, _int_form, _retorno, admin_bp
+from flask import flash, request
+from sqlalchemy.exc import SQLAlchemyError
+
 from model.ficha_model import (
-    # Ficha técnica da bebida (uma linha por par bebida-ingrediente)
-    criar_ficha_tecnica_bebida, buscar_ficha_tecnica_bebida,
-    atualizar_ficha_tecnica_bebida, deletar_ficha_tecnica_bebida,
+    atualizar_ficha_tecnica_bebida,
+    criar_ficha_tecnica_bebida,
+    deletar_ficha_tecnica_bebida,
+)
+from model.pedido_model import (
+    atualizar_bebida,
+    criar_bebida,
+    deletar_bebida,
 )
 
 # ========================= BEBIDA =========================

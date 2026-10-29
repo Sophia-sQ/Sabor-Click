@@ -1,9 +1,8 @@
-from admin import admin_bp
-
-from flask import render_template, request, flash, redirect, url_for
+from . import admin_bp
+from flask import flash, redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
-from model.usuario_model import listar_logs, buscar_log_por_id, deletar_log
+from model.usuario_model import buscar_log_por_id, deletar_log, listar_logs
 
 # ========================= LOG DE ATIVIDADE =========================
 # A trilha de auditoria é somente leitura (gerada automaticamente pelo

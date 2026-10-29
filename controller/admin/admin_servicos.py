@@ -1,10 +1,10 @@
-from admin import admin_bp, _retorno
+from . import _retorno, admin_bp
+from flask import flash, render_template, request
 
-from flask import render_template, flash, request
-
-from model.servico_model import atualizar_servico, deletar_servico, buscar_servicos
+from model.ficha_model import buscar_ingredientes, buscar_lotes, buscar_pratos
 from model.pedido_model import buscar_bebidas
-from model.ficha_model import buscar_pratos, buscar_ingredientes, buscar_lotes
+from model.servico_model import atualizar_servico, buscar_servicos, deletar_servico
+
 # ============================== Servicos =============================
 
 @admin_bp.get("/servicos")
@@ -61,7 +61,7 @@ def at_servico(id_servico: int):
 # ========================= DELETAR SERVIÇO =========================
 @admin_bp.post("/servicos/deletar_servico/<int:id_servico>")
 def del_servico(id_servico: int):
-    sucesso = deletar_servico(id_servico=id_servico,)
+    sucesso = deletar_servico(id_servico=id_servico)
 
     if not sucesso:
         flash("Falha ao tentar deletar o serviço", "danger")

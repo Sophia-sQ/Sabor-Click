@@ -1,12 +1,15 @@
-from admin import admin_bp, _retorno, _int_form, _decimal_form
-
-from flask import request, flash
-from sqlalchemy.exc import SQLAlchemyError
-
-from datetime import datetime, date
+from datetime import date, datetime
 from decimal import InvalidOperation
 
-from model.ficha_model import criar_lote, buscar_lote_por_id, listar_lotes, atualizar_lote, deletar_lote
+from . import _decimal_form, _int_form, _retorno, admin_bp
+from flask import flash, request
+from sqlalchemy.exc import SQLAlchemyError
+
+from model.ficha_model import (
+    atualizar_lote,
+    criar_lote,
+    deletar_lote,
+)
 
 # ========================= LOTE =========================
 # Lote é sempre vinculado a um ingrediente.

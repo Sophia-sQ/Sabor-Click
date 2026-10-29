@@ -1,5 +1,6 @@
-from flask import Blueprint, redirect, url_for
 from decimal import Decimal
+
+from flask import Blueprint, redirect, url_for
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -19,5 +20,13 @@ def _bool_form(valor):
 
 # ============================== routes ==============================
 
-from admin import admin_servicos, admin_pratocardapio, admin_ingredientefichalote, admin_funcionarios, admin_bebidas, admin_lotes, admin_logatividade
+from . import (
+    admin_bebidas,  # noqa: F401
+    admin_funcionarios,  # noqa: F401
+    admin_ingredientefichalote,  # noqa: F401
+    admin_logs,  # noqa: F401
+    admin_lote,  # noqa: F401
+    admin_pratocardapio,  # noqa: F401
+    admin_servicos,  # noqa: F401
+)
 

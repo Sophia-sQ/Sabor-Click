@@ -1,12 +1,13 @@
-from admin import admin_bp
-
-from flask import request, url_for, Response, jsonify, render_template, flash, redirect
-
-from model.usuario_model import criar_usuario, buscar_funcionarios as listar
-from model.cargos import Cargo
-
 from re import fullmatch
+
+from . import admin_bp
+from flask import Response, flash, jsonify, redirect, render_template, request, url_for
+
+from model.cargos import Cargo
+from model.usuario_model import buscar_funcionarios as listar
+from model.usuario_model import criar_usuario
 from security import validar_senha_forte
+
 
 # ========================= Visão geral =========================
 @admin_bp.get("")
@@ -16,7 +17,7 @@ def visao_geral():
 
 # xxxxxxxxxxxxxxxxxxxxxxxxxx RELATÓRIOS DO MÊS xxxxxxxxxxxxxxxxxxxxxxxxxx
 
-@admin_bp.get('/visao-geral/relatorios')
+@admin_bp.get("/visao-geral/relatorios")
 def gerar_relatorios_mensais() -> Response:
     """Gera um relatório com indicadores mensais e semanais de pedidos.
 
@@ -36,47 +37,47 @@ def gerar_relatorios_mensais() -> Response:
             - faturamento_semanal (dict): faturamento de cada uma das
               últimas seis semanas completas.
             - pedidos_status (dict): quantidade de pedidos por status.
+
     """
-    
-    import services 
-    
+    import services
+
     pq=services.pedidos_quantidade()
     fm=services.faturamento_periodo()
     tm=services.ticket_medio_periodo()
     pt=services.pedidos_tipo()
     fs=services.faturamento_semanal()
     ps=services.pedidos_status()
-    
+
     return jsonify({
     "pedidos_quantidade": {
         "numero": pq[0],
-        "porcentagem": pq[1]
+        "porcentagem": pq[1],
     },
     "faturamento_mensal": {
         "numero": fm[0],
-        "porcentagem": fm[1]
+        "porcentagem": fm[1],
     },
     "ticket_medio": {
         "numero": tm[0],
-        "porcentagem": tm[1]
+        "porcentagem": tm[1],
     },
     "pedidos_tipo": pt,
     "faturamento_semanal": fs,
-    "pedidos_status": ps
+    "pedidos_status": ps,
     })
 
 # ========================= Funcionarios =========================
 
-@admin_bp.get('/funcionarios')
+@admin_bp.get("/funcionarios")
 def funcionarios():
     busca = request.args.get("busca", "")
-    return render_template('paginas funcionaris', funcionarios=listar(busca), busca=busca) #TODO: pagina de funcionarios
+    return render_template("paginas funcionaris", funcionarios=listar(busca), busca=busca) #TODO: pagina de funcionarios
 
 @admin_bp.get("/funcionarios/relatorio")
 def dados_funcionarios():
     funcionarios = listar()
     total_funcionarios=len(funcionarios)
-    
+
     total_pagamento = 0
     for funcionario in funcionarios:
         total_pagamento += funcionario.salario #FIXME: verificar se essa é a coluna correta
@@ -91,8 +92,7 @@ def cadastrar_funcionario():
 
 @admin_bp.post("/cadastrar-funcionario/cadastro")
 def cadastro():
-    "adiciona um novo usuario funcionário."
-
+    """Adiciona um novo usuario funcionário."""
     nome=request.form.get("nome", "").strip()
     cpf=request.form.get("cpf", "").strip()
     email=request.form.get("email", "").strip()
@@ -105,19 +105,19 @@ def cadastro():
     # validação de email, cpf e senha com variáveis booleanas
     email_invalido = (not fullmatch(regex, email))
     cpf = cpf.replace(".", "").replace("-", "")
-    cpf_invalido = ((len(cpf) != 11 or not cpf.isdigit()))
+    cpf_invalido = (len(cpf) != 11 or not cpf.isdigit())
 
     senha_invalida = not validar_senha_forte(senha)
 
-    if email_invalido or cpf_invalido or senha_invalida:  
-        flash(f"E-mail, cpf ou senha inválidos.", 'danger')
-        return redirect(url_for(''))
-    elif senha!=senha_comfirma:
-        flash(f"Senha provisória e de confirmação são diferentes.", 'danger')
-        return redirect(url_for('admin.cadastrar_funcionario'))
-    
+    if email_invalido or cpf_invalido or senha_invalida:
+        flash("E-mail, cpf ou senha inválidos.", "danger")
+        return redirect(url_for(""))
+    if senha!=senha_comfirma:
+        flash("Senha provisória e de confirmação são diferentes.", "danger")
+        return redirect(url_for("admin.cadastrar_funcionario"))
+
     criar_usuario(cpf, nome, email, senha, Cargo.CHEFE.value)
 
     flash("novo funcionaria cadastrado", "success")
-    return render_template('admin.cadastrar_funcionario')
+    return render_template("admin.cadastrar_funcionario")
 
