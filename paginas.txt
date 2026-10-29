@@ -2,17 +2,36 @@
 403
 login
 cadastro
+home page
+500 (será a página de erros inesperados usada como padrão)
+validação de codigo de login
+admin (o painel de controle)
+
 
 ========== nomes que devem estar nos formulários ==========
-login(
-    credencial
-    senha
+
+pagina de status de pedido(
+    json com chaves (referentes ao pedido em questão):
+    id 
+    status
 )
 
-cadastro(
+home(
+    ancora de servico = "#servicos"
+)
+
+realizar pedido(
+    endereco (isso aqui vai ser o id do endereco que o cliente selecionou)
+    obs
+)
+
+adicionar endereco(
     nome
-    cpf
-    telefone
-    email
-    senha
+    logadouro
+    num
+    compl
+    bairro
+    cidade
+    cep
+    obs
 )
