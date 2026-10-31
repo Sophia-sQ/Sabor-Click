@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 from flask import Blueprint, request, render_template, session, flash, url_for, redirect, jsonify
 
 from model.usuario_model import registrar_log, buscar_usuario_por_id, adicionar_endereco, buscar_enderco_por_id, atualizar_usuario, buscar_endereco_por_id, atualizar_endereco, deletar_endereco
@@ -12,24 +13,79 @@ cliente_bp = Blueprint("cliente", __name__, url_prefix='/home')
 def pagina_inicial():
     """Redireciona para a home page."""
     
+=======
+from flask import (
+    Blueprint,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+
+from model.pedido_model import (
+    atualizar_pedido,
+    buscar_bebida_por_id,
+    buscar_bebidas_pedido,
+    buscar_cardapios_pedido,
+    criar_pedido,
+    listar_pedidos_por_cliente,
+)
+from model.servico_model import (
+    buscar_cardapio_por_id,
+    buscar_servico_por_id,
+    buscar_servico_por_slug,
+    listar_cardapios_do_servico,
+)
+from model.usuario_model import (
+    adicionar_endereco,
+    atualizar_endereco,
+    atualizar_usuario,
+    buscar_enderco_por_id,
+    buscar_endereco_por_id,
+    buscar_usuario_por_id,
+    deletar_endereco,
+    registrar_log,
+)
+from services import enviar_email_nao_responda
+
+cliente_bp = Blueprint("cliente", __name__, url_prefix="/home")
+
+@cliente_bp.get("")
+def pagina_inicial():
+    """Redireciona para a home page."""
+>>>>>>> Stashed changes
     return render_template("home.html") # TODO: adicionar pagina inicial
 
 # =========================== PEDIDO ===========================
 
+<<<<<<< Updated upstream
 @cliente_bp.route("/carrinho/fazer_pedido", methods=['GET', "POST"])
+=======
+@cliente_bp.route("/carrinho/fazer_pedido", methods=["GET", "POST"])
+>>>>>>> Stashed changes
 def fazer_pedido():
     """Registra o pedido do cliente e envia um email automático."""
     if request.method=="GET":
         return render_template("pagina de pedido")
+<<<<<<< Updated upstream
     
     from utils import string_para_data, string_para_hora
     
+=======
+
+    from utils import string_para_data, string_para_hora
+
+>>>>>>> Stashed changes
     id_endereco=request.form.get("endereco")
     bebidas=request.get_json(silent=True)
     observacao=request.form.get("obs")
     data_evento=request.form.get("data_evento")
     hora_inicio=request.form.get("hora_inicio")
     hora_fim=request.form.get("hora_fim")
+<<<<<<< Updated upstream
     
     data_evento = string_para_data(data_evento)
     hora_inicio = string_para_hora(hora_inicio)
@@ -60,6 +116,37 @@ def cancelar_pedido(id_pedido: int):
         flash("Aconteceu um erro no cancelamento do pedido.", 'danger')
         return redirect(url_for('detalhes do pedido'))
         
+=======
+
+    data_evento = string_para_data(data_evento)
+    hora_inicio = string_para_hora(hora_inicio)
+    hora_fim = string_para_hora(hora_fim)
+
+    total = sum(servico["qtd"] for servico in session["carrinho"])
+
+
+    criar_pedido(session.get("id"), id_endereco, data_evento, hora_inicio, hora_fim, session["carrinho"], total, observacao, bebidas) # FIXME
+
+
+    registrar_log("REALIZOU PEDIDO",
+    "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****")
+
+    enviar_email_nao_responda(f"Pedido Realizado às {"""data de criação da entidade pedido"""}",
+
+    buscar_usuario_por_id(session.get("id")).email, "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****",
+    "conteudo html ***adicionar modelo de pedido")
+
+
+@cliente_bp.post("/cancelar_pedido")
+def cancelar_pedido(id_pedido: int):
+    """Cancela um pedido escolhido pelo cliente."""
+    if atualizar_pedido(id_pedido, status="cancelado"):
+        registrar_log("CANCELOU PEDIDO", "Cancelou o pedido.")
+    else:
+        flash("Aconteceu um erro no cancelamento do pedido.", "danger")
+        return redirect(url_for("detalhes do pedido"))
+
+>>>>>>> Stashed changes
 # =========================== BEBIDA ===========================
 
 # =========================== ENDERECO ===========================
@@ -67,13 +154,20 @@ def cancelar_pedido(id_pedido: int):
 @cliente_bp.get("/endereco")
 def endereco():
     """Mostra a página com todos os endereços cadastrados pelo usuário."""
+<<<<<<< Updated upstream
     
     return render_template('enderecos')
+=======
+    return render_template("enderecos")
+>>>>>>> Stashed changes
 
 @cliente_bp.post("/adicionar_endereco")
 def novo_endereco():
     """Adiciona novo endereço ao cliente logado."""
+<<<<<<< Updated upstream
     
+=======
+>>>>>>> Stashed changes
     nome=request.form.get("nome").strip()
     logadouro=request.form.get("logadouro").strip()
     numero=request.form.get("num").strip()
@@ -81,6 +175,7 @@ def novo_endereco():
     bairro=request.form.get("bairro").strip()
     cidade=request.form.get("cidade").strip()
     cep=request.form.get("cep").replace("-", "").strip()
+<<<<<<< Updated upstream
     
     if not cep.isdigit():
         flash("CEP inválido", 'danger')
@@ -88,12 +183,24 @@ def novo_endereco():
     
     if adicionar_endereco(nome, logadouro, numero, complemento, bairro, cidade, cep) is None:
         flash("Falha no cadastro de novo endereço", 'danger')
+=======
+
+    if not cep.isdigit():
+        flash("CEP inválido", "danger")
+        return redirect(url_for("cliente.endereco"))
+
+    if adicionar_endereco(nome, logadouro, numero, complemento, bairro, cidade, cep) is None:
+        flash("Falha no cadastro de novo endereço", "danger")
+>>>>>>> Stashed changes
         return redirect(url_for("cliente.endereco"))
 
 @cliente_bp.post("/endereco/atualizar/<int:id_endereco>")
 def editar_endereco(id_endereco):
     """Atualiza um endereço do usuário logado."""
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     endereco = buscar_endereco_por_id(id_endereco)
 
     # garante que o endereço existe e pertence ao usuário logado
@@ -124,7 +231,10 @@ def editar_endereco(id_endereco):
 @cliente_bp.post("/endereco/deletar/<int:id_endereco>")
 def remover_endereco(id_endereco):
     """Deleta um endereço do usuário logado."""
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     endereco = buscar_endereco_por_id(id_endereco)
 
     # garante que o endereço existe e pertence ao usuário logado
@@ -139,8 +249,13 @@ def remover_endereco(id_endereco):
     flash("Endereço removido com sucesso.", "success")
     return redirect(url_for("cliente.endereco"))
 
+<<<<<<< Updated upstream
 # ================== SERVICO ================== 
         
+=======
+# ================== SERVICO ==================
+
+>>>>>>> Stashed changes
 @cliente_bp.get("/servico")
 def home_servico():
     """Leve o usuário para a ancora dos servicos na home page."""
@@ -154,6 +269,7 @@ def mostrar_servico(slug):
     
     Retorna o template mais os cardapios para serem acessados com o Jinja2.
     
+<<<<<<< Updated upstream
     cardapios é uma lista de objetos do SQLAlchemy."""
 
     servico=buscar_servico_por_slug(slug)
@@ -162,6 +278,16 @@ def mostrar_servico(slug):
     return render_template("servico.html", cardapios=cardapios)
     
 # ================== CARRINHO DE COMPRAS ================== 
+=======
+    cardapios é uma lista de objetos do SQLAlchemy.
+    """
+    servico=buscar_servico_por_slug(slug)
+    cardapios=listar_cardapios_do_servico(servico.id_servico)
+
+    return render_template("servico.html", cardapios=cardapios)
+
+# ================== CARRINHO DE COMPRAS ==================
+>>>>>>> Stashed changes
 def _carrinho() -> list:
     """Pega o carrinho da sessão, caso ele não exista, cria o carrinho."""
     return session.setdefault("carrinho", [])
@@ -169,12 +295,16 @@ def _carrinho() -> list:
 @cliente_bp.get("/carrinho")
 def mostrar_carrinho():
     """Exibe a página de carrinho para o usuário."""
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     return render_template("carrinho.html")
 
 @cliente_bp.post("/carrinho/adicionar")
 def adicionar():
     """Adiciona um novo cardapio ao carrinho."""
+<<<<<<< Updated upstream
     
     slug_servico = request.form.get("slug_servico")
     id_cardapio = request.form.get("id_cardapio", type=int)
@@ -184,10 +314,21 @@ def adicionar():
     if not slug_servico or id_cardapio is None or (qtd_convidados < 10 or qtd_convidados > 500):
         flash("Valor(es) inválido(s).", 'danger')
         return redirect(url_for('cliente.mostrar_servico'), slug=slug_servico)
+=======
+    slug_servico = request.form.get("slug_servico")
+    id_cardapio = request.form.get("id_cardapio", type=int)
+    qtd_convidados = request.form.get("qtd", type=int)
+
+
+    if not slug_servico or id_cardapio is None or (qtd_convidados < 10 or qtd_convidados > 500):
+        flash("Valor(es) inválido(s).", "danger")
+        return redirect(url_for("cliente.mostrar_servico"), slug=slug_servico)
+>>>>>>> Stashed changes
 
     servico = buscar_servico_por_slug(slug_servico)
 
     cardapio = buscar_cardapio_por_id(id_cardapio)
+<<<<<<< Updated upstream
     
     if servico is None or cardapio is None:
         flash("Serviço ou cardápio inválidos.", "danger")
@@ -207,14 +348,42 @@ def adicionar():
         ), None
     )
     
+=======
+
+    if servico is None or cardapio is None:
+        flash("Serviço ou cardápio inválidos.", "danger")
+        return redirect(url_for("cliente.mostrar_servico"), slug=slug_servico)
+
+    novo = {"id_servico": servico.id_servico,
+            "id_cardapio": id_cardapio,
+            "qtd": qtd_convidados,
+            "subtotal": """TODO: função de calcular os precos""",
+           }
+
+    carrinho = _carrinho()
+
+    existente = next((
+        item for item in carrinho
+        if item["id_cardapio"] == id_cardapio
+        ), None,
+    )
+
+>>>>>>> Stashed changes
     if existente:
         existente["qtd"]=qtd_convidados
     else:
         carrinho.append(novo)
+<<<<<<< Updated upstream
     
     session["carrinho"] = carrinho
     flash("Produto adicionado ao carrinho.", "success")
     return redirect(url_for('cliente.mostrar_servico'), slug=slug_servico)
+=======
+
+    session["carrinho"] = carrinho
+    flash("Produto adicionado ao carrinho.", "success")
+    return redirect(url_for("cliente.mostrar_servico"), slug=slug_servico)
+>>>>>>> Stashed changes
 
 @cliente_bp.post("/carrinho/remover/<int:id_cardapio>/")
 def remover(id_cardapio):
@@ -226,7 +395,11 @@ def remover(id_cardapio):
             for indice, item in enumerate(carrinho)
             if item["id_cardapio"] == id_cardapio
         ),
+<<<<<<< Updated upstream
         None
+=======
+        None,
+>>>>>>> Stashed changes
     )
 
     if posicao is not None:
@@ -237,8 +410,13 @@ def remover(id_cardapio):
         flash("Item não encontrado no carrinho.", "danger")
 
     return redirect(url_for("cliente.mostrar_carrinho"))
+<<<<<<< Updated upstream
     
 # ================== PERFIL DO CLIENTE ================== 
+=======
+
+# ================== PERFIL DO CLIENTE ==================
+>>>>>>> Stashed changes
 
 @cliente_bp.get("/perfil")
 def perfil():
@@ -248,6 +426,7 @@ def perfil():
 def dados_perfil():
     from security import descriptografar
     from utils import formatar_moeda
+<<<<<<< Updated upstream
     
     # usuario
     usuario=buscar_usuario_por_id(session("id"))
@@ -259,6 +438,19 @@ def dados_perfil():
     pedido=next((p for p in listar_pedidos_por_cliente(session("id"))
     if p.status not in ("cancelado", "concluido")), "Nenhum pedido ativo.")
     
+=======
+
+    # usuario
+    usuario=buscar_usuario_por_id(session("id"))
+
+    usuario.cpf_criptografado=descriptografar(usuario.cpf_criptografado)
+    usuario.email_criptografado=descriptografar(usuario.email_criptografado)
+
+    # pedido
+    pedido=next((p for p in listar_pedidos_por_cliente(session("id"))
+    if p.status not in ("cancelado", "concluido")), "Nenhum pedido ativo.")
+
+>>>>>>> Stashed changes
     pedido.valor_total = formatar_moeda(pedido.valor_total)
 
     # detalhamento
@@ -270,9 +462,15 @@ def dados_perfil():
     }
 
     endereco = buscar_enderco_por_id(pedido.id_endereco)
+<<<<<<< Updated upstream
     
     bebidas=buscar_bebidas_pedido(pedido.id_pedido) or []
     
+=======
+
+    bebidas=buscar_bebidas_pedido(pedido.id_pedido) or []
+
+>>>>>>> Stashed changes
     valor_total = 0
     for bebida in bebidas:
         valor_total += bebida.valor_total
@@ -321,7 +519,10 @@ def dados_perfil():
 @cliente_bp.post("/perfil/atualizar")
 def atualizar_perfil():
     """Atualiza os dados cadastrais (nome, email, cpf, senha) do usuário logado."""
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     from security import validar_senha_forte
 
     id_usuario = session.get("id")

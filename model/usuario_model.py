@@ -1,15 +1,26 @@
 # Contém as tabelas: NivelPermissao, Usuario e LogAtividade
+<<<<<<< Updated upstream
 from datetime import datetime, timezone, timedelta
 from database import db
 from sqlalchemy.exc import IntegrityError
 
+=======
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+from database import db
+from sqlalchemy.exc import IntegrityError
+>>>>>>> Stashed changes
 
 from flask import session
 from werkzeug.security import check_password_hash,generate_password_hash
 
 from security import gerar_hmac, criptografar
 
+<<<<<<< Updated upstream
 from zoneinfo import ZoneInfo
+=======
+>>>>>>> Stashed changes
 from utils import hoje
 
 # Tabela Nível de permissão do usuário
@@ -25,9 +36,15 @@ class Usuario(db.Model):
     __tablename__ = "usuario"
 
     id_usuario = db.Column(db.Integer, primary_key=True, autoincrement=True)
+<<<<<<< Updated upstream
     #cpf = db.Column(db.Text, nullable=False) 
     cpf_criptografado = db.Column(db.Text, nullable=False) 
     cpf_hmac = db.Column(db.String(64), unique=True, nullable=False) 
+=======
+    #cpf = db.Column(db.Text, nullable=False)
+    cpf_criptografado = db.Column(db.Text, nullable=False)
+    cpf_hmac = db.Column(db.String(64), unique=True, nullable=False)
+>>>>>>> Stashed changes
     nome = db.Column(db.String(100), nullable=False)
     email_criptografado = db.Column(db.Text, nullable=False)
     email_hmac = db.Column(db.String(64), unique=True, nullable=False)
@@ -50,6 +67,20 @@ class Endereco(db.Model):
     cidade = db.Column(db.String(100), nullable=False)
     cep = db.Column(db.String(9), nullable=False)
 
+# Tabela de endereços do usuário
+class Endereco(db.Model):
+    __tablename__ = "endereco"
+
+    id_endereco = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"))
+    nome = db.Column(db.String(150), nullable=False)
+    logradouro = db.Column(db.String(150), nullable=False)
+    numero = db.Column(db.String(20), nullable=False)
+    complemento = db.Column(db.String(100), nullable=True)  # Opcional
+    bairro = db.Column(db.String(100), nullable=False)
+    cidade = db.Column(db.String(100), nullable=False)
+    cep = db.Column(db.String(9), nullable=False)
+
 # Tabela das atividades realizadas pelo usuário dentro do site
 class LogAtividade(db.Model):
     __tablename__ = "log_atividade"
@@ -57,9 +88,75 @@ class LogAtividade(db.Model):
     id_atividade = db.Column(db.Integer, primary_key=True, autoincrement=True)
     realizado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False) # Se vazio cria data e hora padrão
     acao = db.Column(db.String(45), nullable=False)
-    descricao = db.Column(db.Text, nullable=True)  
+    descricao = db.Column(db.Text, nullable=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
+
+# Tabelas de tokens
+class Token(db.Model):
+    __tablename__ = "token"
+
+    id_token = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    codigo_hash = db.Column(db.Text, nullable=False)
+    ativo = db.Column(db.Boolean, nullable=False, default=True)
+    tentativas = db.Column(db.Integer, nullable=False, default=0)
+    id_usuario = db.Column(db.Integer,db.ForeignKey("usuario.id_usuario"),nullable=False)
+    criado_em = db.Column(db.DateTime(timezone=True),default=hoje,nullable=False)
+
+# funções de consulta
+def criar_token(hash: str, id_usuario: int) -> Token | None:
+    token=Token(codigo_hash=hash, id_usuario=id_usuario)
+    db.session.add(token)
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return None
+    return token
+
+def deletar_token(id_token: int):
+    """Deleta token."""
+    token = db.session.get(Token, id_token)
+    if not token:
+        return False
+    db.session.delete(token)
+    db.session.commit()
+    return True
+
+def buscar_token(id_usuario: int, insercao: datetime) -> Token | None:
+    """Busca o token ativo mais recente e verifica a validade."""
+    token = db.session.execute(
+        db.select(Token)
+        .where(
+            Token.id_usuario == id_usuario,
+            Token.ativo.is_(True),
+        )
+        .order_by(Token.criado_em.desc()),
+    ).scalars().first()
+
+    if token is None:
+        return None
+
+    criado_em = token.criado_em
+    fuso = hoje().tzinfo
+
+    if criado_em.tzinfo is None:
+        criado_em = criado_em.replace(tzinfo=fuso)
+
+    if insercao.tzinfo is None:
+        insercao = insercao.replace(tzinfo=fuso)
+
+    if insercao >= criado_em + timedelta(minutes=10):
+        token.ativo = False
+        db.session.commit()
+        return None
+
+    return token
+
+def criar_cargo(id_permissao:int, nome:str):
+    """Cria novo cargo.
     
+<<<<<<< Updated upstream
 # Tabelas de tokens
 class Token(db.Model):
     __tablename__ = "token"
@@ -131,12 +228,23 @@ def criar_cargo(id_permissao:int, nome:str):
     cargo=NivelPermissao(id_permissao=id_permissao, nome=nome)
     db.session.add(cargo)
     
+=======
+    Caso o cargo já exista, retorna None, senão retorna a nova instância.
+    """
+    cargo=NivelPermissao(id_permissao=id_permissao, nome=nome)
+    db.session.add(cargo)
+
+>>>>>>> Stashed changes
     try:
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
         return None
+<<<<<<< Updated upstream
     
+=======
+
+>>>>>>> Stashed changes
     registrar_log("NOVO CARGO", f"Novo cargo {nome} criado.")
     return cargo
 
@@ -148,14 +256,22 @@ def buscar_permissao_por_nome(nome_permissao: str) -> (NivelPermissao | None):
 
     Returns:
         NivelPermissao: Instância da tabela NivelPermissao.
+<<<<<<< Updated upstream
     """
     
     permissao = db.session.execute(
         db.session.select(NivelPermissao).where(NivelPermissao.nome == nome_permissao.lower())
+=======
+
+    """
+    permissao = db.session.execute(
+        db.session.select(NivelPermissao).where(NivelPermissao.nome == nome_permissao.lower()),
+>>>>>>> Stashed changes
     ).scalar_one_or_none()
 
     if permissao:
         return permissao
+<<<<<<< Updated upstream
     return None
 
 def atualizar_permissao(id_cargo: int, nome: str) -> (NivelPermissao | None):
@@ -233,19 +349,106 @@ def buscar_usuario_para_login(credencial:str, senha:str):
     if usuario and check_password_hash(usuario.senha_hash, senha):
         return usuario.id_usuario
     
+=======
+>>>>>>> Stashed changes
     return None
+
+def atualizar_permissao(id_cargo: int, nome: str) -> (NivelPermissao | None):
+    """Procura uma permissão no banco de dado de nome equivalente.
+
+    Args:
+        nome_permissao (str): nome da permissão alvo.
+
+    Returns:
+        NivelPermissao: Instância da tabela NivelPermissao.
+
+    """
+    cargo=db.session.get(NivelPermissao, id_cargo)
+    if not cargo:
+        return None
+
+    if nome:
+        cargo_conflitante=buscar_permissao_por_nome(nome)
+        cargo.nome, cargo_conflitante.nome = nome, cargo.nome
+
+    db.session.commit()
+    registrar_log("ATUALIZACAO", f"Cargo {id_cargo} atualizado.")
+    return cargo
+
+def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
+   """Cria novo usuario."""
+   cpf_criptografado=criptografar(cpf)
+   cpf_hmac=gerar_hmac(cpf=cpf)
+
+   email_criptografado=criptografar(email)
+   email_hmac=gerar_hmac(email=email)
+
+   senha_criptografada=generate_password_hash(senha)
+
+   novo_usuario=Usuario(cpf_criptografado=cpf_criptografado, cpf_hmac=cpf_hmac, nome=nome, email_criptografado=email_criptografado, email_hmac=email_hmac, senha_hash=senha_criptografada,id_permissao=id_permissao)
+
+   db.session.add(novo_usuario)
+   try:
+        db.session.commit()
+   except IntegrityError:
+       db.session.rollback()
+       return None
+   cargo = db.session.get(NivelPermissao, id_permissao).nome
+   registrar_log("CADASTRO", f"Novo usuário {cargo} {nome} cadastrado.")
+   return novo_usuario.id_usuario
+
+def registrar_log(acao:str, descricao: str | None = None):
+    """Registra uma atividade."""
+    log = LogAtividade(id_usuario=session.get("id"), acao=acao, descricao=descricao )
+    db.session.add(log)
+    db.session.commit()
+    return True
+
+def buscar_usuario_para_login(credencial:str, senha:str):
+    """Busca um usuário pelo CPF ou email e senha e retorna o id.
     
+    Se usuário nao existir, retorna None
+    """
+    # retorna apenas uma entrada ou None
+
+    if "@" in credencial:
+        credencial_hmac=gerar_hmac(email=credencial)
+        campo=Usuario.email_hmac
+    else:
+        credencial_hmac=gerar_hmac(cpf=credencial)
+        campo=Usuario.cpf_hmac
+
+    usuario = db.session.execute(
+        db.select(Usuario).where(campo == credencial_hmac, Usuario.ativo.is_(True)),
+    ).scalar_one_or_none()
+
+
+    if usuario and check_password_hash(usuario.senha_hash, senha):
+        return usuario.id_usuario
+
+    return None
+
 def buscar_usuario_por_id(id:int):
     """Busca um usuário pelo id e retorna o objeto usuário equivalente."""
+<<<<<<< Updated upstream
     
     # retorna apenas uma entrada ou None 
     usuario = db.session.execute(db.select(Usuario).where(Usuario.id_usuario == id, Usuario.ativo.is_(True))).scalar_one_or_none()
     
+=======
+    # retorna apenas uma entrada ou None
+    usuario = db.session.execute(db.select(Usuario).where(Usuario.id_usuario == id, Usuario.ativo.is_(True))).scalar_one_or_none()
+
+>>>>>>> Stashed changes
     if usuario:
         return usuario
-    
+
     return None
+<<<<<<< Updated upstream
     
+=======
+
+>>>>>>> Stashed changes
 def buscar_funcionarios(busca: str = "") -> list[Usuario]:
     """Busca funcionários pelo nome.
 
@@ -254,6 +457,7 @@ def buscar_funcionarios(busca: str = "") -> list[Usuario]:
 
     Returns:
         list[Usuario]: todos os funcionários que se enquadram nos critérios de busca.
+<<<<<<< Updated upstream
     """
     
     # % significa que pode haver quaisquer caracteres entre a busca
@@ -272,6 +476,25 @@ def buscar_funcionarios(busca: str = "") -> list[Usuario]:
 def atualizar_usuario(id_usuario: int, nome: str = None, email: str = None, cpf: str = None, nova_senha: str = None):
     """Atualiza o usuário."""
 
+=======
+
+    """
+    # % significa que pode haver quaisquer caracteres entre a busca
+    termo = f"%{busca.strip()}%"
+
+    from model.cargos import Cargo
+
+    return db.session.execute(
+        db.select(Usuario).where(
+            Usuario.nome.like(termo),
+            Usuario.id_permissao==Cargo.CHEFE.value,
+            ).order_by(Usuario.nome.collate("NOCASE")),
+    ).scalars().all()
+
+
+def atualizar_usuario(id_usuario: int, nome: str | None = None, email: str | None = None, cpf: str | None = None, nova_senha: str | None = None):
+    """Atualiza o usuário."""
+>>>>>>> Stashed changes
     usuario = db.session.get(Usuario, id_usuario)
     if not usuario:
         return False
@@ -294,10 +517,17 @@ def atualizar_usuario(id_usuario: int, nome: str = None, email: str = None, cpf:
 def deletar_usuario(id_usuario: int, soft_delete:bool = True):
     """Deleta ou desativa"""
     usuario=db.session.get(Usuario,id_usuario)
+<<<<<<< Updated upstream
     
     if not usuario:
         return False
     
+=======
+
+    if not usuario:
+        return False
+
+>>>>>>> Stashed changes
     if soft_delete: #Desativa
         usuario.ativo=False
         db.session.commit()
@@ -305,6 +535,7 @@ def deletar_usuario(id_usuario: int, soft_delete:bool = True):
     else: #Deleta
         db.session.delete(usuario)
         db.session.commit()
+<<<<<<< Updated upstream
     
     return True     
 
@@ -320,20 +551,46 @@ def reativar_usuario (id_usuario: int):
     db.session.commit()
     registrar_log("REATIVACAO", f"Conta do usuário {id_usuario} reativada")
     
+=======
+
+    return True
+
+def reativar_usuario (id_usuario: int):
+    """Reativa conta de usuario inativo"""
+    usuario=db.session.get(Usuario,id_usuario)
+
+    if not usuario:
+        return False
+
+    usuario.ativo=True
+    db.session.commit()
+    registrar_log("REATIVACAO", f"Conta do usuário {id_usuario} reativada")
+
+>>>>>>> Stashed changes
     return True
 
 def adicionar_endereco(nome: str, logradouro: str, numero: str, complemento: str, bairro: str, cidade: str, cep: str) -> (Endereco | None):
     """Adiciona novo endereço para o cliente."""
+<<<<<<< Updated upstream
     
     endereco=Endereco(id_usuario=session.get("id"), nome=nome, logradouro=logradouro, numero=int(numero), complemento=complemento, bairro=bairro, cidade=cidade, cep=cep)
     db.session.add(endereco)
     
+=======
+    endereco=Endereco(id_usuario=session.get("id"), nome=nome, logradouro=logradouro, numero=int(numero), complemento=complemento, bairro=bairro, cidade=cidade, cep=cep)
+    db.session.add(endereco)
+
+>>>>>>> Stashed changes
     try:
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
         return None
+<<<<<<< Updated upstream
     
+=======
+
+>>>>>>> Stashed changes
     registrar_log("NOVO ENDERECO", f"Novo endereco no id {endereco.id_endereco} criado.")
     return endereco
 
@@ -345,6 +602,7 @@ def buscar_enderco_por_usuario (id_usuario: int) -> list[Endereco] | None:
 
     Returns:
         list: Todos os endereços do usuário.
+<<<<<<< Updated upstream
     """
     
     enderecos=db.session.execute(
@@ -354,6 +612,17 @@ def buscar_enderco_por_usuario (id_usuario: int) -> list[Endereco] | None:
     if not enderecos:
         return None
     
+=======
+
+    """
+    enderecos=db.session.execute(
+        db.select(Endereco).where(Endereco.id_usuario==id_usuario),
+    ).scalars().all()
+
+    if not enderecos:
+        return None
+
+>>>>>>> Stashed changes
     return enderecos
 
 def buscar_enderco_por_id (id_endereco: int) -> Endereco | None:
@@ -364,6 +633,7 @@ def buscar_enderco_por_id (id_endereco: int) -> Endereco | None:
 
     Returns:
         Endereco: Instância relativa ao id.
+<<<<<<< Updated upstream
     """
     
     endereco=db.session.get(Endereco, id_endereco)
@@ -371,6 +641,15 @@ def buscar_enderco_por_id (id_endereco: int) -> Endereco | None:
     if not endereco:
         return None
     
+=======
+
+    """
+    endereco=db.session.get(Endereco, id_endereco)
+
+    if not endereco:
+        return None
+
+>>>>>>> Stashed changes
     return endereco
 
 def buscar_endereco_por_id(id_endereco: int) -> (Endereco | None):
@@ -380,6 +659,7 @@ def buscar_endereco_por_id(id_endereco: int) -> (Endereco | None):
 def listar_enderecos_do_usuario(id_usuario: int) -> list[Endereco]:
     """Lista todos os endereços de um usuário. Retorna lista vazia se não houver."""
     return db.session.execute(
+<<<<<<< Updated upstream
         db.select(Endereco).where(Endereco.id_usuario == id_usuario)
     ).scalars().all()
 
@@ -387,6 +667,14 @@ def atualizar_endereco(id_endereco: int, nome: str = None, logradouro: str = Non
                        complemento: str = None, bairro: str = None, cidade: str = None, cep: str = None) -> bool:
     """Atualiza os dados de um endereço. Campos None não são alterados."""
 
+=======
+        db.select(Endereco).where(Endereco.id_usuario == id_usuario),
+    ).scalars().all()
+
+def atualizar_endereco(id_endereco: int, nome: str | None = None, logradouro: str | None = None, numero: str | None = None,
+                       complemento: str | None = None, bairro: str | None = None, cidade: str | None = None, cep: str | None = None) -> bool:
+    """Atualiza os dados de um endereço. Campos None não são alterados."""
+>>>>>>> Stashed changes
     endereco = db.session.get(Endereco, id_endereco)
     if not endereco:
         return False
@@ -412,7 +700,10 @@ def atualizar_endereco(id_endereco: int, nome: str = None, logradouro: str = Non
 
 def deletar_endereco(id_endereco: int) -> bool:
     """Deleta um endereço."""
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     endereco = db.session.get(Endereco, id_endereco)
     if not endereco:
         return False
@@ -434,6 +725,10 @@ def listar_logs(busca: str = "") -> list[LogAtividade]:
 
     Returns:
         list[LogAtividade]: registros de atividade. Lista vazia se não houver.
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     """
     stmt = db.select(LogAtividade)
 
