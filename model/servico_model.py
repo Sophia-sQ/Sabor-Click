@@ -1,15 +1,10 @@
 # Contém as tabelas : Bancada, serviço e cardápio
 
 from database import db
-<<<<<<< Updated upstream
-from model.servico_model import registrar_log
-from slugify import slugify
-=======
 from model.usuario_model import registrar_log
 from slugify import slugify
 
 
->>>>>>> Stashed changes
 
 class Bancada(db.Model):
     __tablename__ = "bancada"
@@ -25,16 +20,6 @@ class Servico(db.Model):
     nome = db.Column(db.String(60), unique=True, nullable=False)
     descricao = db.Column(db.Text, nullable=False)
     slug = db.Column(db.String(120), nullable=False, unique=True)
-<<<<<<< Updated upstream
-
-    # É executada cada vez que a classe é instanciada
-    def __init__(self, **kwargs): # **kwargs recebe um dicionario (os dados da propria instancia)
-        if kwargs.get("nome"):
-            kwargs["slug"] = kwargs.get("slug") or slugify(kwargs["nome"])
-
-        super().__init__(**kwargs)
-=======
->>>>>>> Stashed changes
 
     # É executada cada vez que a classe é instanciada
     def __init__(self, **kwargs): # **kwargs recebe um dicionario (os dados da propria instancia)
@@ -80,11 +65,6 @@ def criar_bancada(nome: str, descricao: str):
     db.session.commit()
     registrar_log("CRIACAO BANCADA", "Usuário criou nova bancada")
     return nova_bancada.id_bancada
-<<<<<<< Updated upstream
-    
-=======
-
->>>>>>> Stashed changes
 
 def buscar_bancada_por_id(id_bancada):
     """Busca bancada  pelo id"""
@@ -95,18 +75,10 @@ def buscar_bancada_por_id(id_bancada):
 
 def buscar_bancada_por_nome(nome_bancada) -> (Bancada | None):
     """Busca por id."""
-<<<<<<< Updated upstream
-    
-    bancada = db.session.execute(
-            db.select(Bancada).where(Bancada.nome == nome_bancada)
-    ).scalar_one_or_none()
-    
-=======
     bancada = db.session.execute(
             db.select(Bancada).where(Bancada.nome == nome_bancada),
     ).scalar_one_or_none()
 
->>>>>>> Stashed changes
     if bancada:
         return bancada
     return None
@@ -119,11 +91,7 @@ def listar_bancadas():
     return None
 
 def atualizar_bancada(id_bancada, id_usuario:int, nome=None, descricao=None):
-<<<<<<< Updated upstream
-    """Atualiza os dados da bancada """
-=======
     """Atualiza os dados da bancada"""
->>>>>>> Stashed changes
     bancada = db.session.get(Bancada, id_bancada)
     if not bancada:
         return False
@@ -160,10 +128,6 @@ def criar_servico(nome, descricao):
 
 def buscar_servico_por_id(id_servico):
     """Busca por id."""
-<<<<<<< Updated upstream
-    
-=======
->>>>>>> Stashed changes
     servico = db.session.get(Servico, id_servico)
     if servico:
         return servico
@@ -171,36 +135,20 @@ def buscar_servico_por_id(id_servico):
 
 def buscar_servico_por_nome(nome_servico) -> (Servico | None):
     """Busca por id."""
-<<<<<<< Updated upstream
-    
-    servico = db.session.execute(
-            db.select(Servico).where(Servico.nome == nome_servico)
-    ).scalar_one_or_none()
-    
-=======
     servico = db.session.execute(
             db.select(Servico).where(Servico.nome == nome_servico),
     ).scalar_one_or_none()
 
->>>>>>> Stashed changes
     if servico:
         return servico
     return None
 
 def buscar_servico_por_slug(slug_servico:str) -> (Servico | None):
     """Busca um servico pelo seu slug e retorna o servico, se existir."""
-<<<<<<< Updated upstream
-        
-    servico = db.session.execute(
-        db.select(Servico).where(Servico.slug == slug_servico)
-    ).scalar_one_or_none()
-    
-=======
     servico = db.session.execute(
         db.select(Servico).where(Servico.slug == slug_servico),
     ).scalar_one_or_none()
 
->>>>>>> Stashed changes
     if servico:
         return servico
     return None
@@ -256,12 +204,7 @@ def deletar_servico(id_servico):
 
 
 def criar_cardapio(nome, descricao, preco_base):
-<<<<<<< Updated upstream
-    '''cria cardapio'''
-    
-=======
     """Cria cardapio"""
->>>>>>> Stashed changes
     novo_cardapio = Cardapio(nome=nome, descricao=descricao, preco_base=preco_base)
     db.session.add(novo_cardapio)
     db.session.commit()
@@ -270,11 +213,7 @@ def criar_cardapio(nome, descricao, preco_base):
     return novo_cardapio.id_cardapio
 
 def buscar_cardapio_por_id(id_cardapio):
-<<<<<<< Updated upstream
-    '''busca cardapio'''
-=======
     """Busca cardapio"""
->>>>>>> Stashed changes
     cardapio = db.session.get(Cardapio, id_cardapio)
     if cardapio:
         return cardapio
@@ -282,39 +221,23 @@ def buscar_cardapio_por_id(id_cardapio):
 
 def buscar_cardapio_por_nome(nome_cardapio) -> (Cardapio | None):
     """Busca por id."""
-<<<<<<< Updated upstream
-    
-    cardapio = db.session.execute(
-            db.select(Cardapio).where(Cardapio.nome == nome_cardapio)
-    ).scalar_one_or_none()
-    
-=======
     cardapio = db.session.execute(
             db.select(Cardapio).where(Cardapio.nome == nome_cardapio),
     ).scalar_one_or_none()
 
->>>>>>> Stashed changes
     if cardapio:
         return cardapio
     return None
 
 def listar_cardapios():
-<<<<<<< Updated upstream
-    '''lista cardapio'''
-=======
     """Lista cardapio"""
->>>>>>> Stashed changes
     cardapios = db.session.execute(db.select(Cardapio)).scalars().all()
     if cardapios:
         return cardapios
     return None
 
 def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, preco_base=None):
-<<<<<<< Updated upstream
-    '''atualiza cardapio'''
-=======
     """Atualiza cardapio"""
->>>>>>> Stashed changes
     cardapio = db.session.get(Cardapio, id_cardapio)
     if not cardapio:
         return False
@@ -346,13 +269,8 @@ def deletar_cardapio(id_cardapio, id_usuario: int):
 
 def associar_servico_bancada(id_servico, id_bancada, id_usuario: int):
     """Associa a bancada aos serviços. Se bancada e serviço já forem
-<<<<<<< Updated upstream
-    associados, retorna False, do contrário, retorna True."""
-    
-=======
     associados, retorna False, do contrário, retorna True.
     """
->>>>>>> Stashed changes
     associacao = db.session.get(ServicoBancada, (id_servico, id_bancada))
     if associacao:
         return False
@@ -364,15 +282,9 @@ def associar_servico_bancada(id_servico, id_bancada, id_usuario: int):
     return True
 
 def desassociar_servico_bancada(id_servico: int, id_bancada: int, id_usuario: int) -> bool:
-<<<<<<< Updated upstream
-    """desassocia a bancada dos serviços. Se bancada e serviço já não forem
-        associados, retorna False, do contrário, retorna True."""
-        
-=======
     """Desassocia a bancada dos serviços. Se bancada e serviço já não forem
     associados, retorna False, do contrário, retorna True.
     """
->>>>>>> Stashed changes
     associacao = db.session.get(ServicoBancada, (id_servico, id_bancada))
     if not associacao:
         return False
@@ -384,18 +296,10 @@ def desassociar_servico_bancada(id_servico: int, id_bancada: int, id_usuario: in
 
 def listar_bancadas_do_servico(id_servico: int) -> (list | None):
     """Lista as bancadas que o serviço possui."""
-<<<<<<< Updated upstream
-    
-    bancadas = db.session.execute(
-        db.select(Bancada)
-        .join(ServicoBancada, Bancada.id_bancada == ServicoBancada.id_bancada)
-        .where(ServicoBancada.id_servico == id_servico)
-=======
     bancadas = db.session.execute(
         db.select(Bancada)
         .join(ServicoBancada, Bancada.id_bancada == ServicoBancada.id_bancada)
         .where(ServicoBancada.id_servico == id_servico),
->>>>>>> Stashed changes
     ).scalars().all()
     if bancadas:
         return bancadas
@@ -406,13 +310,8 @@ def listar_bancadas_do_servico(id_servico: int) -> (list | None):
 
 def associar_servico_cardapio(id_servico, id_cardapio, descricao=None, id_usuario= int) -> bool:
     """Associa o cardapio aos serviços. Se cardápio e serviço já estiverem
-<<<<<<< Updated upstream
-    associados, retorna False, do contrário, retorna True."""
-    
-=======
     associados, retorna False, do contrário, retorna True.
     """
->>>>>>> Stashed changes
     associacao = db.session.get(ServicoCardapio, (id_servico, id_cardapio))
     if associacao:
         return False
@@ -424,15 +323,9 @@ def associar_servico_cardapio(id_servico, id_cardapio, descricao=None, id_usuari
     return True
 
 def desassociar_servico_cardapio(id_servico, id_cardapio, id_usuario: int):
-<<<<<<< Updated upstream
-    """desassocia o cardapio aos serviços. Se cardápio e serviço já não forem
-    associados, retorna False, do contrário, retorna True."""
-    
-=======
     """Desassocia o cardapio aos serviços. Se cardápio e serviço já não forem
     associados, retorna False, do contrário, retorna True.
     """
->>>>>>> Stashed changes
     associacao = db.session.get(ServicoCardapio, (id_servico, id_cardapio))
     if not associacao:
         return False
@@ -444,20 +337,11 @@ def desassociar_servico_cardapio(id_servico, id_cardapio, id_usuario: int):
 
 def listar_cardapios_do_servico(id_servico: int) -> (list):
     """Retorna todos os cardápios associados a um servico."""
-<<<<<<< Updated upstream
-    
-    cardapios = db.session.execute(
-            db.select(ServicoCardapio).where(
-        ServicoCardapio.id_servico == id_servico
-        )).scalars().all()
-    
-=======
     cardapios = db.session.execute(
             db.select(ServicoCardapio).where(
         ServicoCardapio.id_servico == id_servico,
         )).scalars().all()
 
->>>>>>> Stashed changes
     if cardapios:
         return cardapios
     return None

@@ -1,10 +1,6 @@
 from datetime import datetime, timezone
 from database import db
 from model.usuario_model import registrar_log
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 
 class Prato(db.Model):
     __tablename__ = "prato"
@@ -16,11 +12,6 @@ class Prato(db.Model):
         db.Enum("entrada", "acompanhamento", "prato principal", "sobremesa", name="tipo_prato"),
         nullable=False,
     )
-<<<<<<< Updated upstream
-    
-=======
-
->>>>>>> Stashed changes
     tempo_preparo = db.Column(db.Integer, nullable=False)
     requer_pre_preparo = db.Column(db.Boolean, default=False, nullable=False)
 
@@ -64,11 +55,6 @@ class FichaTecnica_bebida(db.Model):
 
     id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_bebida"), primary_key=True)
     id_ingrediente = db.Column(db.Integer, db.ForeignKey("ingrediente.id_ingrediente"), primary_key=True)
-<<<<<<< Updated upstream
-    
-=======
-
->>>>>>> Stashed changes
     qtd_necessaria = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
@@ -99,11 +85,7 @@ class Lote(db.Model):
 
 def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, requer_pre_preparo: bool = False):
     """Cria um novo prato"""
-<<<<<<< Updated upstream
-    novo_prato = Prato(nome=nome,descricao=descricao,tipo_prato=tipo_prato,tempo_preparo=tempo_preparo,requer_pre_preparo=requer_pre_preparo
-=======
     novo_prato = Prato(nome=nome,descricao=descricao,tipo_prato=tipo_prato,tempo_preparo=tempo_preparo,requer_pre_preparo=requer_pre_preparo,
->>>>>>> Stashed changes
     )
     db.session.add(novo_prato)
     db.session.commit()
@@ -120,18 +102,10 @@ def buscar_prato_por_id(id_prato: int):
 
 def buscar_prato_por_nome(nome_prato: str):
     """Busca prato pelo id"""
-<<<<<<< Updated upstream
-    
-    prato = db.session.execute(
-        db.session.select(Prato).where(Prato.nome == nome_prato)
-    ).scalar_one_or_none()
-    
-=======
     prato = db.session.execute(
         db.session.select(Prato).where(Prato.nome == nome_prato),
     ).scalar_one_or_none()
 
->>>>>>> Stashed changes
     if prato:
         return prato
     return None
@@ -191,15 +165,9 @@ def deletar_prato(id_prato: int):
 
 """==================CRUD PRATO CARDAPIO============="""
 
-<<<<<<< Updated upstream
-def associar_prato_cardapio(id_prato: int, id_cardapio: int, qtd: int, descricao: str = None):
-    """Associa um prato a um cardápio"""
-    novo_item = PratoCardapio(id_prato=id_prato,id_cardapio=id_cardapio,qtd=qtd,descricao=descricao
-=======
 def associar_prato_cardapio(id_prato: int, id_cardapio: int, qtd: int, descricao: str | None = None):
     """Associa um prato a um cardápio"""
     novo_item = PratoCardapio(id_prato=id_prato,id_cardapio=id_cardapio,qtd=qtd,descricao=descricao,
->>>>>>> Stashed changes
     )
     db.session.add(novo_item)
     db.session.commit()
@@ -254,11 +222,7 @@ def deletar_prato_cardapio(id_prato: int, id_cardapio: int):
 
 def criar_ingrediente(nome: str, unidade: str, qtd: float = 0.0, qtd_min: float = 0.0):
     """Cria um novo ingrediente"""
-<<<<<<< Updated upstream
-    novo_ingrediente = Ingrediente(nome=nome,unidade=unidade,qtd=qtd,qtd_min=qtd_min
-=======
     novo_ingrediente = Ingrediente(nome=nome,unidade=unidade,qtd=qtd,qtd_min=qtd_min,
->>>>>>> Stashed changes
     )
     db.session.add(novo_ingrediente)
     db.session.commit()
@@ -275,18 +239,10 @@ def buscar_ingrediente_por_id(id_ingrediente: int):
 
 def buscar_ingrediente_por_nome(nome_ingrediente: str):
     """Busca ingrediente pelo id"""
-<<<<<<< Updated upstream
-    
-    ingrediente = db.session.execute(
-        db.session.select(Ingrediente).where(Ingrediente.nome == nome_ingrediente)
-    ).scalar_one_or_none()
-    
-=======
     ingrediente = db.session.execute(
         db.session.select(Ingrediente).where(Ingrediente.nome == nome_ingrediente),
     ).scalar_one_or_none()
 
->>>>>>> Stashed changes
     if ingrediente:
         return ingrediente
     return None
@@ -346,11 +302,7 @@ def deletar_ingrediente(id_ingrediente: int):
 
 def criar_ficha_tecnica(id_prato: int, id_ingrediente: int, qtd_necessaria: float):
     """Vincula ingrediente à ficha técnica de um prato"""
-<<<<<<< Updated upstream
-    nova_ficha = FichaTecnica(id_prato=id_prato,id_ingrediente=id_ingrediente,qtd_necessaria=qtd_necessaria
-=======
     nova_ficha = FichaTecnica(id_prato=id_prato,id_ingrediente=id_ingrediente,qtd_necessaria=qtd_necessaria,
->>>>>>> Stashed changes
     )
     db.session.add(nova_ficha)
     db.session.commit()
@@ -375,11 +327,7 @@ def listar_ficha_tecnica_por_prato(id_prato: int):
     return None
 
 
-<<<<<<< Updated upstream
-def atualizar_ficha_tecnica(id_prato: int, id_ingrediente: int, qtd_necessaria: float, id_usuario: int = None):
-=======
 def atualizar_ficha_tecnica(id_prato: int, id_ingrediente: int, qtd_necessaria: float, id_usuario: int | None = None):
->>>>>>> Stashed changes
     """Atualiza a quantidade necessária na ficha técnica"""
     ficha = db.session.get(FichaTecnica, (id_prato, id_ingrediente))
     if not ficha:
@@ -409,20 +357,11 @@ def criar_lote(
     marca: str,
     data_recebimento: datetime,
     qtd_inicial: float,
-<<<<<<< Updated upstream
-    id_ingrediente: int = None,
-    id_bebida: int = None,
-    data_validade=None
-):
-    """Cria um novo lote (vinculado a um ingrediente OU bebida)."""
-
-=======
     id_ingrediente: int | None = None,
     id_bebida: int | None = None,
     data_validade=None,
 ):
     """Cria um novo lote (vinculado a um ingrediente OU bebida)."""
->>>>>>> Stashed changes
     novo_lote = Lote(
         num_lote=num_lote,
         marca=marca,
@@ -430,11 +369,7 @@ def criar_lote(
         data_validade=data_validade,
         qtd_inicial=qtd_inicial,
         id_ingrediente=id_ingrediente,
-<<<<<<< Updated upstream
-        id_bebida=id_bebida
-=======
         id_bebida=id_bebida,
->>>>>>> Stashed changes
     )
 
     db.session.add(novo_lote)
@@ -450,11 +385,7 @@ def criar_lote(
 
     registrar_log(
         "CRIACAO LOTE",
-<<<<<<< Updated upstream
-        f"Usuário criou o lote {novo_lote.num_lote}"
-=======
         f"Usuário criou o lote {novo_lote.num_lote}",
->>>>>>> Stashed changes
     )
 
     return novo_lote.id_lote
@@ -469,18 +400,10 @@ def buscar_lote_por_id(id_lote: int):
 
 def buscar_lote_por_numero(num_lote: str):
     """Busca ingrediente pelo id"""
-<<<<<<< Updated upstream
-    
-    lote = db.session.execute(
-        db.session.select(Lote).where(Lote.num_lote == num_lote)
-    ).scalar_one_or_none()
-    
-=======
     lote = db.session.execute(
         db.session.select(Lote).where(Lote.num_lote == num_lote),
     ).scalar_one_or_none()
 
->>>>>>> Stashed changes
     if lote:
         return lote
     return None
@@ -540,11 +463,7 @@ def deletar_lote(id_lote: int):
     db.session.delete(lote)
     db.session.commit()
     registrar_log("DELETAR LOTE", f"Usuário deletou o lote {id_lote}")
-<<<<<<< Updated upstream
-    return True    
-=======
     return True
->>>>>>> Stashed changes
 
 
 """==================CRUD FICHA TECNICA BEBIDA============="""
