@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido Confirmado</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, Helvetica, sans-serif; color: #333333;">
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+           style="background-color: #f4f4f4; padding: 30px 10px;">
+        <tr>
+            <td align="center">
+
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0"
+                       style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+
+                    <!-- Cabeçalho -->
+                    <tr>
+                        <td style="background-color: #6B381F; padding: 30px 20px; text-align: center; color: #ffffff;">
+                            <h1 style="margin: 0; font-size: 26px;">
+                                Pedido confirmado!
+                            </h1>
+                            <p style="margin: 10px 0 0; font-size: 15px;">
+                                Recebemos a confirmação do seu pedido.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Conteúdo -->
+                    <tr>
+                        <td style="padding: 30px 25px;">
+
+                            <p style="font-size: 16px; line-height: 1.6;">
+                                Olá, <strong>{{ nome }}</strong>!
+                            </p>
+
+                            <p style="font-size: 15px; line-height: 1.7;">
+                                Temos uma notícia! Houve uma atualização do seu pedido.
+                            </p>
+
+                            <!-- Resumo do pedido -->
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                   style="background-color: #f8f9fa; border: 1px solid #e5e5e5; border-radius: 6px; margin: 25px 0;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <p style="margin: 0 0 15px; font-size: 18px; font-weight: bold;">
+                                            Resumo do pedido
+                                        </p>
+
+                                        <p style="margin: 10px 0; font-size: 15px;">
+                                            <strong>Número:</strong> #{{ id }}
+                                        </p>
+
+                                        <p style="margin: 10px 0; font-size: 15px;">
+                                            <strong>Status:</strong>
+                                            <span style="color: #2e7d32; font-weight: bold;">
+                                                Em preparo
+                                            </span>
+                                        </p>
+
+                                        <p style="margin: 10px 0 0; font-size: 15px;">
+                                            <strong>Data da confirmação:</strong>
+                                            {{ data_confirmacao }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 15px; line-height: 1.7;">
+                                Agradecemos pela preferência! Você poderá acompanhar
+                                as atualizações do seu pedido pela nossa plataforma.
+                            </p>
+
+                            <p style="font-size: 15px; line-height: 1.7;">
+                                Atenciosamente,<br>
+                                <strong>Equipe da Sabor & Click</strong>
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- Rodapé -->
+                    <tr>
+                        <td style="background-color: #eeeeee; padding: 20px; text-align: center;">
+                            <p style="margin: 0; font-size: 12px; color: #666666; line-height: 1.6;">
+                                Este é um e-mail automático. Por favor, não responda a esta mensagem.
+                                <br>
+                                &copy; {{ ano }} Equipe da Sabor & Click. Todos os direitos reservados.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
+```
