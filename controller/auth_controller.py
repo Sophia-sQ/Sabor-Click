@@ -1,10 +1,3 @@
-<<<<<<< Updated upstream
-from model.usuario_model import buscar_usuario_para_login, buscar_usuario_por_id, criar_usuario
-from model.cargos import Cargo
-from flask import Blueprint, render_template, request, session, flash, redirect, url_for
-from re import fullmatch
-from security import enviar_token, validar_token, validar_senha_forte
-=======
 from re import fullmatch
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
@@ -16,7 +9,6 @@ from model.usuario_model import (
     criar_usuario,
 )
 from security import enviar_token, validar_senha_forte, validar_token
->>>>>>> Stashed changes
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -114,25 +106,6 @@ def logout():
 def cadastro():
     if request.method == "GET":
         return render_template("cadastro.html")
-<<<<<<< Updated upstream
-
-    nome = request.form.get("nome", "").strip()
-    cpf = request.form.get("cpf", "").strip()
-    email = request.form.get("email", "").strip()
-    senha = request.form.get("senha", "")
-
-    if not all([nome, cpf, email, senha]):
-        flash("Preencha todos os campos.", "danger")
-        return render_template("cadastro.html")
-
-    usuario = criar_usuario(cpf, nome, email, senha, Cargo.CLIENTE.value)
-    if not usuario:
-        flash("Falha no cadastro. Tente novamente.", "danger")
-        return render_template("cadastro.html")
-    
-    return render_template('login.html')  
-        
-=======
 
     nome = request.form.get("nome", "").strip()
     cpf = request.form.get("cpf", "").strip()
@@ -150,4 +123,3 @@ def cadastro():
 
     return render_template("login.html")
 
->>>>>>> Stashed changes
