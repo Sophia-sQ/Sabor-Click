@@ -42,6 +42,11 @@
 @media(max-width:1000px){.estrutura.estrutura-admin{grid-template-columns:220px minmax(0,1fr)}.area-admin main{padding:32px 24px}.menu-admin{padding:28px 14px}}
 @media(max-width:700px){.area-admin .cabecalho{padding:20px}.estrutura.estrutura-admin{grid-template-columns:minmax(0,1fr)}.menu-admin{padding:14px 18px;border-right:0;border-bottom:1px solid var(--linha)}.menu-admin-titulo{margin:0 0 12px}.menu-admin nav{flex-direction:row;gap:8px;flex-wrap:wrap}.menu-admin a{padding:10px 12px;min-height:44px;font-size:13px;gap:8px}.menu-admin svg{width:17px;height:17px}.area-admin main{padding:28px 18px}.area-admin main>.card{padding:20px}.area-admin main>footer{margin-top:40px}.area-admin main>footer::before{display:none}}
 
+/* Filtros por entidade na prévia do estoque. */
+.pagina-estoque [hidden]{display:none!important}.pagina-estoque .filtros-estoque{display:flex;flex-direction:row;align-items:flex-end;justify-content:flex-start;flex-wrap:wrap;gap:16px;width:100%;margin:24px 0 16px}.filtros-estoque>div{flex:1 1 180px;min-width:0}.filtros-estoque>div:nth-child(2){flex-grow:2}.filtros-estoque>button{flex:0 0 auto;white-space:nowrap;cursor:pointer}.filtros-estoque label{text-align:left}.filtros-estoque label{display:block;margin-bottom:8px}.filtros-estoque input,.filtros-estoque select{width:100%}#estoque-contagem{font-size:13px;margin-bottom:16px}#estoque-vazio{padding:24px 0;color:#614a3d}.pagina-estoque .card>.muted{margin-top:20px;font-size:12px}
+
+@media(max-width:560px){.pagina-estoque .filtros-estoque{gap:12px}.filtros-estoque>div{flex-basis:calc(50% - 12px)}.filtros-estoque>div:nth-child(2){flex-grow:1}.filtros-estoque>button{align-self:flex-end}}
+
 /* Ação de saída no fim do menu administrativo. */
 .menu-admin{display:flex;flex-direction:column;min-width:0}
 .menu-admin-rodape{margin-top:auto;padding-top:36px}

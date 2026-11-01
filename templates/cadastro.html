@@ -8,6 +8,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cadastro.css') }}">
+    <style>
+        .requisitos-senha {
+            list-style: none;
+            color: var(--texto-secundario);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .requisitos-senha li::before {
+            content: "○";
+            display: inline-block;
+            width: 20px;
+        }
+        .requisitos-senha li.atendido { color: #27613b; }
+        .requisitos-senha li.atendido::before { content: "✓"; }
+    </style>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 </head>
 <body class="pagina-acesso">
@@ -45,12 +60,49 @@
                 </div>
                 <div class="campo">
                     <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" placeholder="Crie uma senha" autocomplete="new-password">
+                    <input type="password" id="senha" name="senha" placeholder="Crie uma senha" autocomplete="new-password" required minlength="8" pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9\s]).{8,}" aria-describedby="requisitos-senha" title="Use pelo menos 8 caracteres, um número, um caractere especial, uma letra maiúscula e uma minúscula.">
+                    <ul class="requisitos-senha" id="requisitos-senha" aria-label="Requisitos da senha">
+                        <li data-regra="tamanho">Pelo menos 8 caracteres</li>
+                        <li data-regra="numero">Pelo menos 1 número</li>
+                        <li data-regra="especial">Pelo menos 1 caractere especial (ex.: @, !, #)</li>
+                        <li data-regra="maiuscula">Pelo menos 1 letra maiúscula</li>
+                        <li data-regra="minuscula">Pelo menos 1 letra minúscula</li>
+                    </ul>
                 </div>
                 <a class="cadastro" href="{{ url_for('auth.login') }}">Já tem uma conta? Entre</a>
                 <button class="entrar" type="submit">Cadastrar</button>
             </form>
         </section>
     </main>
+    <script>
+        const senha = document.getElementById('senha');
+        const requisitos = document.querySelectorAll('#requisitos-senha [data-regra]');
+
+        function verificarSenha() {
+            const valor = senha.value;
+            const regras = {
+                tamanho: valor.length >= 8,
+                numero: /[0-9]/.test(valor),
+                especial: /[^A-Za-z0-9\s]/.test(valor),
+                maiuscula: /[A-Z]/.test(valor),
+                minuscula: /[a-z]/.test(valor)
+            };
+
+            requisitos.forEach((item) => {
+                item.classList.toggle('atendido', regras[item.dataset.regra]);
+            });
+
+            senha.setCustomValidity(
+                Object.values(regras).every(Boolean)
+                    ? ''
+                    : 'A senha deve atender a todos os requisitos indicados abaixo.'
+            );
+        }
+
+        senha.addEventListener('input', verificarSenha);
+        senha.addEventListener('change', verificarSenha);
+        window.addEventListener('pageshow', verificarSenha);
+        verificarSenha();
+    </script>
 </body>
 </html>
