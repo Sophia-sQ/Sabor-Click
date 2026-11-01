@@ -11,7 +11,7 @@
 </head>
 <body>
     <header class="navbar" id="inicio">
-        <a class="marca" href="#inicio"><img src="{{ url_for('static', filename='images/home-logo.svg') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
+        <a class="marca" href="#inicio"><img src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
         <nav aria-label="Navegação principal"><a href="#inicio" aria-current="page">Início</a><a href="#sobre">Sobre</a><a href="#servicos">Serviços</a><a class="botao" href="{{ url_for('auth.login') }}">Login</a></nav>
     </header>
     <main>
@@ -41,15 +41,15 @@
             <div class="servicos-intro"><p class="rotulo">NOSSOS SERVIÇOS</p><h2 id="titulo-servicos">Escolha como quer celebrar.</h2><p>Soluções flexíveis para receber seus convidados com praticidade, beleza e muito sabor.</p></div>
             <div class="servicos-grade">
                 {% for numero, nome, imagem, descricao in [
-                    ('01', 'Buffet para eventos', 'home-buffet.jpg', 'Cardápio, equipe, montagem e finalização para festas sociais ou encontros corporativos.'),
-                    ('02', 'Chef em casa', 'home-chef.jpg', 'Uma experiência intimista: o chef prepara, serve e organiza tudo na sua própria cozinha.'),
-                    ('03', 'Salgados para eventos', 'home-salgados.jpg', 'Coxinhas, quibes e outros salgados para todos os tipos de evento.'),
-                    ('04', 'Bebidas', 'home-bebidas.jpg', 'Seleção de bebidas, sucos e coquetéis para brindar cada momento do seu evento.')
+                    ('01', 'Buffet para eventos', 'home-buffet-hd.jpg', 'Cardápio, equipe, montagem e finalização para festas sociais ou encontros corporativos.'),
+                    ('02', 'Chef em casa', 'home-chef-hd.jpg', 'Uma experiência intimista: o chef prepara, serve e organiza tudo na sua própria cozinha.'),
+                    ('03', 'Salgados para eventos', 'home-salgados-hd.jpg', 'Coxinhas, quibes e outros salgados para todos os tipos de evento.'),
+                    ('04', 'Bebidas', 'home-bebidas-hd.jpg', 'Seleção de bebidas, sucos e coquetéis para brindar cada momento do seu evento.')
                 ] %}
                 <article class="servico"><img src="{{ url_for('static', filename='images/' ~ imagem) }}" alt="" loading="lazy"><div><h3>{{ numero }} &nbsp;{{ nome }}</h3><p>{{ descricao }}</p></div></article>
                 {% endfor %}
             </div>
-            <div class="menu-acao"><button class="botao botao-menu" type="button" disabled title="Menu disponível em breve">Conhecer o menu</button></div>
+            <div class="menu-acao"><a class="botao botao-menu" href="{{ url_for('cliente.menu') }}">Conhecer o menu</a></div>
         </section>
         <section class="processo" aria-labelledby="titulo-processo">
             <div class="processo-intro"><p class="rotulo">SIMPLES DO INÍCIO AO BRINDE</p><h2 id="titulo-processo">Seu evento pronto em 3 passos.</h2></div>

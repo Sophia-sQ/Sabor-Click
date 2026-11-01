@@ -23,12 +23,14 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(chefe_bp)
     app.register_blueprint(cliente_bp)
+    from controller.cliente_controller import home
+    app.add_url_rule("/", endpoint="cliente.home", view_func=home)
     
     app.jinja_env.filters["moeda"] = formatar_moeda
     
     @app.before_request
     def exigir_login():
-        rotas_publicas = {"auth.login", "auth.cadastro", "auth.verificacao", "auth.verificar_token", "static", "cliente.pagina_inicial"}
+        rotas_publicas = {"auth.login", "auth.cadastro", "auth.verificacao", "auth.verificar_token", "static", "cliente.pagina_inicial", "cliente.home"}
         if request.endpoint is None:
             return
         if request.endpoint not in rotas_publicas and "id" not in session:

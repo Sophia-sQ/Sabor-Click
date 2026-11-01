@@ -375,3 +375,8 @@ def atualizar_perfil():
     return redirect(url_for("cliente.perfil"))
 
 
+
+
+def home():
+    return render_template("home.html")
+
