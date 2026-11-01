@@ -380,3 +380,7 @@ def atualizar_perfil():
 def home():
     return render_template("home.html")
 
+
+def menu():
+    from menu_data import categorias
+    return render_template("menu.html", categorias=categorias)
