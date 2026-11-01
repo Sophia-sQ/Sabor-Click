@@ -10,10 +10,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/carrinho.css') }}">
     <script src="{{ url_for('static', filename='js/carrinho.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 </head>
 <body class="pagina-carrinho">
     <header class="navbar">
-        <a class="marca" href="/"><img src="{{ url_for('static', filename='images/home-logo.svg') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
+        <a class="marca" href="/"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
         <nav aria-label="Navegação principal">
             <a href="/">Início</a><a href="/#sobre">Sobre</a><a href="/#servicos">Serviços</a>
             <div class="acoes-usuario"><a class="icone-acao carrinho-ativo" href="/carrinho" aria-label="Carrinho" aria-current="page"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a><a class="icone-acao perfil" href="{{ perfil_url|default(url_for('auth.login')) }}" aria-label="Meu perfil"><img src="{{ url_for('static', filename='images/icone-perfil.svg') }}" width="20" height="20" alt=""></a></div>

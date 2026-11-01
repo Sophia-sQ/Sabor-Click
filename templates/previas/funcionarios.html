@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funcionários | Sabor &amp; Click</title>
     <link rel="stylesheet" href="/static/css/previas.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 </head>
 <body class="area-admin">
-    <header class="cabecalho"><a class="marca" href="/"><img src="/static/images/home-logo.svg" width="38" height="38" alt="">Sabor &amp; Click</a></header>
+    <header class="cabecalho"><a class="marca" href="/"><img class="logo-marca" src="/static/images/logo-chef.png" width="38" height="38" alt="">Sabor &amp; Click</a></header>
     {% set pagina_admin = "funcionarios" %}<div class="estrutura estrutura-admin">{% include "componentes/menu_admin.html" %}<main>
         <header class="intro"><h1>Funcionários</h1><p>Cadastre e consulte os funcionários da equipe.</p></header>
         <section class="card">

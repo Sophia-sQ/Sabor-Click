@@ -7,13 +7,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 </head>
 {% from "componentes/fotos_menu.html" import fotos_menu %}
 {% from "componentes/precos_menu.html" import precos_menu %}
 {% set categorias = categorias | rejectattr("id", "equalto", "sobremesas") | list %}
 {% macro moeda(centavos) %}R$ {{ '{:,.2f}'.format(centavos / 100).replace(',', '_').replace('.', ',').replace('_', '.') }}{% endmacro %}
 <body class="pagina-menu">
-<header class="navbar"><a class="marca" href="{{ url_for('cliente.home') }}"><img src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a><nav aria-label="Navegação principal"><a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.menu') }}" aria-current="page">Menu</a><a class="botao" href="{{ url_for('auth.login') }}">Login</a></nav></header>
+<header class="navbar"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a><nav aria-label="Navegação principal"><a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.menu') }}" aria-current="page">Menu</a><a class="botao" href="{{ url_for('auth.login') }}">Login</a></nav></header>
 <main>
 <section class="menu-intro"><div class="menu-intro-texto"><p class="rotulo">SABORES QUE REÚNEM</p><h1>Menus para celebrar.</h1><p class="introducao">Boa comida, companhia especial e um evento com a sua cara. Explore nossos cardápios e encontre seus sabores favoritos.</p></div><figure class="menu-intro-foto"><img src="{{ url_for('static', filename='images/menu-encontro.jpg') }}" alt="Pessoas reunidas ao redor de uma mesa com pratos, queijos e acompanhamentos para compartilhar" width="1400" height="934" fetchpriority="high" decoding="async"></figure></section>
 <section class="menu-catalogo" aria-label="Catálogo de cardápios">
@@ -38,7 +39,7 @@
 </div><div class="menu-vazio" hidden><h2>Nenhum sabor encontrado.</h2><p>Tente outro nome, ingrediente ou tipo de cardápio.</p></div>
 </section>
 <section class="menu-convite"><p class="rotulo">O PRÓXIMO PASSO É SEU</p><h2>Gostou? Vamos planejar seu evento.</h2><p>Acesse sua conta para continuar.</p><a class="botao" href="{{ url_for('auth.login') }}">Entrar na minha conta <span aria-hidden="true">&nbsp;↗</span></a></section>
-</main><footer class="menu-rodape"><a class="marca" href="{{ url_for('cliente.home') }}">Sabor &amp; Click</a><span>© 2026 Sabor &amp; Click</span><a href="{{ url_for('cliente.home') }}">Voltar ao início ↑</a></footer>
+</main><footer class="menu-rodape"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a><span>© 2026 Sabor &amp; Click</span><a href="{{ url_for('cliente.home') }}">Voltar ao início ↑</a></footer>
 <dialog id="menu-detalhe" aria-labelledby="detalhe-nome"><button type="button" class="fechar-modal" aria-label="Fechar detalhes">×</button><p class="rotulo" id="detalhe-tipo"></p><h2 id="detalhe-nome"></h2><p id="detalhe-descricao"></p><div class="detalhe-orcamento" id="detalhe-orcamento" hidden><p><strong id="detalhe-preco"></strong> / pessoa</p><label for="detalhe-pessoas">Quantidade de pessoas</label><input id="detalhe-pessoas" type="number" min="10" max="500" step="1" value="50" inputmode="numeric" list="sugestoes-convidados"><p id="detalhe-total" role="status" aria-live="polite"></p></div><p class="detalhe-nota" id="detalhe-sem-preco" hidden>Preço sob consulta.</p><a class="botao" href="{{ url_for('auth.login') }}">Entrar para planejar meu evento ↗</a></dialog>
 <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
 </body></html>

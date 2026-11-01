@@ -8,11 +8,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/erro.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 </head>
 <body class="pagina-erro">
     <main class="conteudo-erro">
         <section class="cartao-erro" aria-labelledby="titulo">
             <header class="cabecalho">
+                <a class="marca-erro" href="{{ url_for('cliente.home') }}" aria-label="Sabor &amp; Click — página inicial"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""></a>
                 <p class="codigo-erro" aria-label="Erro {% block codigo_acessivel %}{% endblock %}">{% block codigo %}{% endblock %}</p>
                 <h1 id="titulo">{% block mensagem %}{% endblock %}</h1>
                 <p class="descricao">{% block descricao %}{% endblock %}</p>

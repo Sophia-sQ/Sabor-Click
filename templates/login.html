@@ -11,13 +11,14 @@
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 </head>
 <body class="pagina-acesso">
     <a class="voltar" aria-disabled="true" title="Página inicial ainda indisponível">
         <span class="seta" aria-hidden="true">←</span>
         <span>Voltar</span>
         <span class="divisor" aria-hidden="true"></span>
-        <span class="marca">Sabor &amp; Click</span>
+        <span class="marca marca-com-logo"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></span>
     </a>
 
     <main class="login">
