@@ -12,6 +12,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
 </head>
 <body class="pagina-acesso">
     <a class="voltar" href="{{ url_for('cliente.home') }}">
@@ -32,6 +33,7 @@
                     Acesse para organizar seu evento com sabor e praticidade.
                 </p>
             </header>
+            {% include "componentes/mensagens.html" %}
 
             <fieldset class="opcoes-login">
                 <legend>Como deseja entrar?</legend>

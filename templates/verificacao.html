@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/verificacao.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
 </head>
 <body class="pagina-acesso">
     <a class="voltar" href="{{ url_for('auth.login') }}">
@@ -23,6 +24,7 @@
                 <h1 id="titulo">Verifique seu acesso</h1>
                 <p class="descricao">Insira o código de verificação recebido por e-mail.</p>
             </header>
+            {% include "componentes/mensagens.html" %}
             {% if erro %}<p class="mensagem-erro" role="alert" id="erro-codigo">{{ erro }}</p>{% endif %}
             <form class="formulario" action="{{ url_for('auth.verificacao') }}" method="post">
                 <div class="campo">

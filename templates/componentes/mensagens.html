@@ -1,0 +1,13 @@
+{% with mensagens = get_flashed_messages(with_categories=true) %}
+{% if mensagens %}
+<div class="mensagens-formulario">
+    {% for categoria, mensagem in mensagens %}
+    {% set tipo = categoria if categoria in ['success', 'danger', 'error', 'warning', 'info'] else 'info' %}
+    <div class="mensagem-formulario mensagem-{{ tipo }}" role="{{ 'alert' if tipo in ['danger', 'error', 'warning'] else 'status' }}">
+        <span class="mensagem-simbolo" aria-hidden="true">{{ '✓' if tipo == 'success' else '!' if tipo in ['danger', 'error', 'warning'] else 'i' }}</span>
+        <p>{{ mensagem }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
