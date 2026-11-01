@@ -1,0 +1,8 @@
+{% extends "erro.html" %}
+{% block titulo %}Erro interno{% endblock %}
+{% block codigo_acessivel %}500{% endblock %}
+{% block codigo %}500{% endblock %}
+{% block mensagem %}Algo deu errado por aqui{% endblock %}
+{% block descricao %}Uma falha inesperada impediu que concluíssemos sua solicitação. Tente novamente em alguns instantes.{% endblock %}
+{% block acao %}<a class="acao-erro" href="{{ url_for('cliente.home') }}">Voltar ao início</a>{% endblock %}
+{% block ajuda %}Se você estava confirmando um pedido, confira seu histórico antes de repetir a operação.{% endblock %}

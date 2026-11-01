@@ -19,7 +19,7 @@
                 <h1 id="titulo">{% block mensagem %}{% endblock %}</h1>
                 <p class="descricao">{% block descricao %}{% endblock %}</p>
             </header>
-            <a class="acao-erro" href="{{ url_for('auth.login') }}">Ir para o login</a>
+            {% block acao %}<a class="acao-erro" href="{{ url_for('auth.login') }}">Ir para o login</a>{% endblock %}
             <p class="ajuda-erro">{% block ajuda %}{% endblock %}</p>
         </section>
     </main>
