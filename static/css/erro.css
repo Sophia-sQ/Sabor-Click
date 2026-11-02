@@ -1,0 +1,83 @@
+.pagina-erro,
+.pagina-erro * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.pagina-erro {
+  background-color: #f5f0e8;
+  color: #312118;
+  font-family: "DM Sans", sans-serif;
+}
+
+.conteudo-erro {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 40px 24px;
+}
+
+.cartao-erro {
+  width: 540px;
+  max-width: 100%;
+  text-align: center;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.cartao-erro h1 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(30px, 8vw, 42px);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.descricao {
+  color: #614a3d;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.codigo-erro {
+  margin: 12px 0;
+  color: #8c4d29;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(80px, 20vw, 112px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.acao-erro {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  background-color: #6f391f;
+  color: #fff8ed;
+  text-decoration: none;
+}
+
+.acao-erro:hover {
+  background-color: #582b17;
+}
+
+.acao-erro:focus-visible {
+  outline: 3px solid #8c4d29;
+  outline-offset: 4px;
+}
+
+.ajuda-erro {
+  margin-top: 20px;
+  color: #614a3d;
+  font-size: 14px;
+  line-height: 22px;
+}

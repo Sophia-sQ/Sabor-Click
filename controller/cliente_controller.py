@@ -94,7 +94,8 @@ def cancelar_pedido(id_pedido: int):
 @cliente_bp.get("/endereco")
 def endereco():
     """Mostra a página com todos os endereços cadastrados pelo usuário."""
-    return render_template("enderecos")
+    
+    return redirect(url_for("cliente.perfil") + "#enderecos")
 
 @cliente_bp.post("/adicionar_endereco")
 def novo_endereco():
@@ -114,6 +115,9 @@ def novo_endereco():
     if adicionar_endereco(nome, logadouro, numero, complemento, bairro, cidade, cep) is None:
         flash("Falha no cadastro de novo endereço", "danger")
         return redirect(url_for("cliente.endereco"))
+
+    flash("Endereço cadastrado com sucesso.", "success")
+    return redirect(url_for("cliente.endereco"))
 
 @cliente_bp.post("/endereco/atualizar/<int:id_endereco>")
 def editar_endereco(id_endereco):
@@ -263,7 +267,19 @@ def remover(id_cardapio):
 
 @cliente_bp.get("/perfil")
 def perfil():
-    return render_template("perfil.html") #TODO
+    from security import descriptografar
+    from model.usuario_model import listar_enderecos_do_usuario
+
+    usuario = buscar_usuario_por_id(session.get("id"))
+    if usuario is None:
+        return redirect(url_for("auth.login"))
+    pessoa = {"nome": usuario.nome,
+              "email": descriptografar(usuario.email_criptografado),
+              "cpf": descriptografar(usuario.cpf_criptografado)}
+    campos = ("id_endereco", "nome", "logradouro", "numero", "complemento", "bairro", "cidade", "cep")
+    enderecos = [{campo: getattr(endereco, campo) for campo in campos}
+                 for endereco in listar_enderecos_do_usuario(usuario.id_usuario)]
+    return render_template("perfil.html", pessoa=pessoa, enderecos=enderecos)
 
 @cliente_bp.get("/perfil/dados")
 def dados_perfil():
@@ -357,12 +373,12 @@ def atualizar_perfil():
     # valida CPF (apenas dígitos e 11 posições) quando enviado
     if cpf is not None and (not cpf.isdigit() or len(cpf) != 11):
         flash("CPF inválido.", "danger")
-        return redirect(url_for("cliente.pagina_perfil"))  # ajuste p/ sua rota de perfil
+        return redirect(url_for("cliente.perfil"))  # ajuste p/ sua rota de perfil
 
     # valida força da senha quando enviada
     if nova_senha is not None and not validar_senha_forte(nova_senha):
         flash("A nova senha não atende aos requisitos de segurança.", "danger")
-        return redirect(url_for("cliente.pagina_perfil"))
+        return redirect(url_for("cliente.perfil"))
 
     resultado = atualizar_usuario(
         id_usuario,
@@ -374,9 +390,18 @@ def atualizar_perfil():
 
     if resultado is False:
         flash("Não foi possível atualizar os dados.", "danger")
-        return redirect(url_for("cliente.pagina_perfil"))
+        return redirect(url_for("cliente.perfil"))
 
     flash("Dados atualizados com sucesso.", "success")
-    return redirect(url_for("cliente.pagina_perfil"))
+    return redirect(url_for("cliente.perfil"))
 
 
+
+
+def home():
+    return render_template("home.html")
+
+
+def menu():
+    from menu_data import categorias
+    return render_template("menu.html", categorias=categorias)

@@ -1,0 +1,11 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "pedidos" %}
+{% set inicio_admin = '/previas/' %}
+{% block titulo %}Meus pedidos | Sabor &amp; Click{% endblock %}
+{% block classe_admin %} pagina-pedidos{% endblock %}
+{% block conteudo_admin %}
+<header class="intro"><h1>Acompanhe cada sabor.</h1><p>Histórico e andamento dos seus pedidos.</p></header><section class="card"><h2>Pedidos recentes</h2><div class="tabela"><table><thead><tr><th scope="col">Pedido</th><th scope="col">Data</th><th scope="col">Itens</th><th scope="col">Status</th><th scope="col">Total</th><th scope="col">Chefe designado</th></tr></thead><tbody><tr><td><button type="button" class="abrir-pedido" data-pedido="01" aria-expanded="false" aria-controls="detalhes-pedido">#01</button></td><td>24 out. 2026</td><td>2 pratos e 2 bebidas</td><td><span class="status">Em preparo</span></td><td>R$ 86,00</td><td class="chefe-pedido" aria-live="polite"><button type="button" class="assumir-pedido" aria-label="Assumir pedido #01">Assumir pedido</button></td></tr><tr><td><button type="button" class="abrir-pedido" data-pedido="02" aria-expanded="false" aria-controls="detalhes-pedido">#02</button></td><td>20 out. 2026</td><td>Salgados</td><td><span class="status verde">Concluído</span></td><td>R$ 54,00</td><td class="chefe-pedido">Chef Ana</td></tr></tbody></table></div></section><div class="colunas espaco" id="detalhes-pedido" hidden><section class="card"><h2 id="titulo-pedido">Pedido #01</h2><ol class="etapas-pedido"><li>Pedido recebido</li><li aria-current="step"><strong>Em preparo</strong></li><li>Aguardando entrega</li></ol></section><section class="card"><h2>Detalhes da entrega</h2><p>Rua das Flores, 128 · Vila Mariana</p><p>São Paulo / SP</p><p class="muted">Sem observações para a entrega.</p></section></div>
+{% endblock %}
+{% block scripts_admin %}
+<script src="/static/js/pedidos.js" defer></script>
+{% endblock %}

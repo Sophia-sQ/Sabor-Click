@@ -1,16 +1,13 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>b</title>
+    <title>{% block titulo %}Sabor &amp; Click{% endblock %}</title>
+    {% block estilos %}{% endblock %}
 </head>
-{%block conteudo%}
-conteudo
-{%end block%}
-
-<body>
-    <p>Sophia é muito legal</p>
-    <p> Rafaella está testando</p>
+<body{% block atributos_body %}{% endblock %}>
+    {% block conteudo %}{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

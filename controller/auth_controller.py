@@ -8,12 +8,16 @@ from model.usuario_model import (
     buscar_usuario_por_id,
     criar_usuario,
 )
-from security import enviar_token, validar_senha_forte, validar_token
+from security import validar_senha_forte
+from security.token_auth import enviar_token, validar_token
 
 auth_bp = Blueprint("auth", __name__)
 
+@auth_bp.route("/verificacao", methods=["GET", "POST"])
+def verificacao():
+    return verificar_token()
 
-@auth_bp.route("/login", methods=["GET", "POST"])
+@auth_bp.route("/login", methods=("GET", "POST"))
 def login():
     if request.method == "GET":
         return render_template("login.html")
