@@ -40,7 +40,7 @@ cliente_bp = Blueprint("cliente", __name__, url_prefix="/home")
 @cliente_bp.get("")
 def pagina_inicial():
     """Redireciona para a home page."""
-    return render_template("home.html") # TODO: adicionar pagina inicial
+    return render_template("home.html")
 
 # =========================== PEDIDO ===========================
 
@@ -66,7 +66,7 @@ def fazer_pedido():
     total = sum(servico["qtd"] for servico in session["carrinho"])
 
 
-    criar_pedido(session.get("id"), id_endereco, data_evento, hora_inicio, hora_fim, session["carrinho"], total, observacao, bebidas) # FIXME
+    criar_pedido(session.get("id"), id_endereco, data_evento, hora_inicio, hora_fim, session["carrinho"], total, observacao, bebidas)
 
 
     registrar_log("REALIZOU PEDIDO",
@@ -169,7 +169,7 @@ def home_servico():
     """Leve o usuário para a ancora dos servicos na home page."""
     # garante que não vai existir um /servico 404
 
-    return redirect(url_for("cliente.home") + "#servicos") #TODO: verificar se a ancora é essa
+    return redirect(url_for("cliente.home") + "#servicos") 
 
 @cliente_bp.get("/servico/<string:slug>")
 def mostrar_servico(slug):

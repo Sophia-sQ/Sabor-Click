@@ -35,6 +35,7 @@ class Usuario(db.Model):
     ativo = db.Column(db.Boolean, default=True, nullable=False)
     criado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False)
     id_permissao = db.Column(db.Integer, db.ForeignKey("nivel_permissao.id_permissao"), nullable=False)
+    salario = db.Column(db.Integer, nullable=True, default=0)
     
 # Tabela de endereços do usuário
 class Endereco(db.Model):
@@ -192,7 +193,7 @@ def atualizar_permissao(id_cargo: int, nome: str) -> (NivelPermissao | None):
     registrar_log("ATUALIZACAO", f"Cargo {id_cargo} atualizado.")
     return cargo
 
-def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
+def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int, salario = None):
    """Cria novo usuario."""
    cpf_criptografado=criptografar(cpf)
    cpf_hmac=gerar_hmac(cpf=cpf)
@@ -201,8 +202,11 @@ def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int):
    email_hmac=gerar_hmac(email=email)
 
    senha_criptografada=generate_password_hash(senha)
+   from utils import moeda_para_centavos
+   if salario:
+    salario = moeda_para_centavos(salario)
 
-   novo_usuario=Usuario(cpf_criptografado=cpf_criptografado, cpf_hmac=cpf_hmac, nome=nome, email_criptografado=email_criptografado, email_hmac=email_hmac, senha_hash=senha_criptografada,id_permissao=id_permissao)
+   novo_usuario=Usuario(cpf_criptografado=cpf_criptografado, cpf_hmac=cpf_hmac, nome=nome, email_criptografado=email_criptografado, email_hmac=email_hmac, senha_hash=senha_criptografada,id_permissao=id_permissao, salario=salario)
 
    db.session.add(novo_usuario)
    try:

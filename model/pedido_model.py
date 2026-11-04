@@ -195,7 +195,9 @@ def criar_pedido(id_cliente: int, id_endereco: int , num_convidados: int, valor_
                 )
                 db.session.add(p_b)
 
-        # TODO: adicionar triggers de baixa de estoque
+        from triggers import criar_trigger_baixa_estoque
+        
+        criar_trigger_baixa_estoque()
 
         db.session.commit()
     except IntegrityError:
