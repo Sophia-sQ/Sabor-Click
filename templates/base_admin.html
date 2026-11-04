@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}Administração | Sabor &amp; Click{% endblock %}
+{% block estilos %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/previas.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+    {% block estilos_admin %}{% endblock %}
+{% endblock %}
+{% block atributos_body %} class="area-admin{% block classe_admin %}{% endblock %}"{% endblock %}
+{% block conteudo %}
+    <header class="cabecalho">
+        <a class="marca" href="{{ inicio_admin|default('/') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt="">Sabor &amp; Click</a>
+        {% block cabecalho_admin %}{% endblock %}
+    </header>
+    <div class="estrutura estrutura-admin">
+        {% include "componentes/menu_admin.html" %}
+        <main>{% block conteudo_admin %}{% endblock %}</main>
+    </div>
+    {% block dialogos_admin %}{% endblock %}
+{% endblock %}
+{% block scripts %}{% block scripts_admin %}{% endblock %}{% endblock %}

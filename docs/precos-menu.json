@@ -1,0 +1,33 @@
+{
+  "fonte": "https://docs.google.com/document/d/1evPw2Npetwva2MzBXRogjf1QmSVwbT8tUf9NI8l5eUM/edit",
+  "unidade": "centavos por pessoa, conforme solicitação do usuário",
+  "precos": {
+    "Feijoada completa": 14990,
+    "Bobó de camarão": 13990,
+    "Tilápia com alcaparras": 12990,
+    "Strogonoff de filé-mignon": 12990,
+    "Nhoque ao molho": 11990,
+    "Risoto de cogumelos": 13990,
+    "Escondidinho de carne-seca": 12990,
+    "Ravioli de queijo": 12990,
+    "Salgados completo": 12990,
+    "Salgados reduzido": 9990,
+    "Hambúrguer tradicional": 7990,
+    "Hambúrguer smash": 8990,
+    "Hambúrguer mega bacon": 9990,
+    "Mexicano": 8990,
+    "Boteco brasileiro": 6990,
+    "Sem álcool": 16990,
+    "Com álcool": 18990,
+    "Misto": 17990
+  },
+  "observacoes": {
+    "Misto": "R$ 179,90 indicado na primeira linha da seção 3.3. Bebidas mistas; aplicado ao pacote misto.",
+    "Sobremesas": "Documento não informa valor separado; mantido sob consulta."
+  },
+  "convidados": {
+    "minimo": 10,
+    "maximo": 500,
+    "padrao": 50
+  }
+}

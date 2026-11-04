@@ -21,30 +21,31 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(chefe_bp)
     app.register_blueprint(cliente_bp)
-
+    from controller.cliente_controller import home, menu
+    app.add_url_rule("/", endpoint="cliente.home", view_func=home)
+    app.add_url_rule("/menu", endpoint="cliente.menu", view_func=menu)
+    
     app.jinja_env.filters["moeda"] = formatar_moeda
 
     @app.before_request
     def exigir_login():
-        rotas_publicas = {"auth.login", "auth.cadastro", "static", "cliente.pagina_inicial"}
+        rotas_publicas = {"auth.login", "auth.cadastro", "auth.verificacao", "auth.verificar_token", "static", "cliente.pagina_inicial", "cliente.home", "cliente.menu"}
+        if request.endpoint is None:
+            return
         if request.endpoint not in rotas_publicas and "id" not in session:
             return redirect(url_for("auth.login", proxima=request.path))
 
     @app.before_request
     def verificar_cargo():
 
+        if request.blueprint not in {"admin", "chefe"}:
+            return None
         cargo_usuario = session.get("cargo")
-
         if cargo_usuario is None:
             return abort(403)
-
-        if request.endpoint == "static":
-            return None
-
-        if request.blueprint=="admin" and session.get("cargo")<Cargo.ADMIN.value:
+        if request.blueprint == "admin" and cargo_usuario < Cargo.ADMIN.value:
             return abort(403)
-
-        if request.blueprint=="chef" and session.get("cargo")<Cargo.CHEFE.value:
+        if request.blueprint == "chefe" and cargo_usuario < Cargo.CHEFE.value:
             return abort(403)
 
 

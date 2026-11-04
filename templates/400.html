@@ -1,0 +1,8 @@
+{% extends "erro.html" %}
+{% block titulo %}Solicitação inválida{% endblock %}
+{% block codigo_acessivel %}400{% endblock %}
+{% block codigo %}400{% endblock %}
+{% block mensagem %}Não conseguimos processar sua solicitação{% endblock %}
+{% block descricao %}Os dados enviados não puderam ser processados. Volte à página anterior, confira as informações e tente novamente.{% endblock %}
+{% block acao %}<a class="acao-erro" href="{{ url_for('cliente.home') }}">Voltar ao início</a>{% endblock %}
+{% block ajuda %}Se o problema continuar, retorne ao início para tentar outra vez.{% endblock %}

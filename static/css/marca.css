@@ -1,0 +1,7 @@
+/* Logo oficial compartilhada pelas telas do site. */
+.logo-marca { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; vertical-align: middle; }
+.marca-com-logo { display: inline-flex; align-items: center; gap: 8px; }
+.rodape .logo-marca { filter: invert(1); }
+.marca-erro { display: inline-flex; justify-content: center; margin-bottom: 20px; }
+.marca-erro .logo-marca { width: 58px; height: 70px; }
+@media (max-width: 420px) { .marca-com-logo { gap: 6px; } .marca-com-logo .logo-marca { width: 28px; height: 34px; } }
