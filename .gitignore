@@ -29,3 +29,8 @@ dist/
 # Arquivos do sistema 
 .DS_Store 
 Thumbs.db
+
+# Dados locais da prévia administrativa
+instance/catalogo-previa.json
+instance/catalogo-previa.tmp
+static/images/catalogo/

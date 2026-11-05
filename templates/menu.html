@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-chef.png') }}">
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nosso menu | Sabor &amp; Click</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,6 +12,8 @@
 </head>
 {% from "componentes/fotos_menu.html" import fotos_menu %}
 {% from "componentes/precos_menu.html" import precos_menu %}
+{% set fotos_menu = dict(fotos_menu) %}{% set precos_menu = dict(precos_menu) %}
+{% for item in adicionais_menu|default([]) %}{% set _ = fotos_menu.update({item.nome: {'imagem': '', 'versao': 'local', 'url': imagem_catalogo_url(item.imagem)}}) %}{% set _ = precos_menu.update({item.nome: (item.preco * 100)|round|int}) %}{% endfor %}
 {% set categorias = categorias | rejectattr("id", "equalto", "sobremesas") | list %}
 {% macro moeda(centavos) %}R$ {{ '{:,.2f}'.format(centavos / 100).replace(',', '_').replace('.', ',').replace('_', '.') }}{% endmacro %}
 <body class="pagina-menu">
@@ -28,7 +31,7 @@
 {% for categoria in categorias %}{% for nome, descricao, imagem, credito in categoria.itens %}{% set credito = fotos_menu[nome] %}{% set imagem = credito.imagem %}
 {% set preco = precos_menu.get(nome) %}
 <article class="prato" data-preco-centavos="{{ preco if preco is not none else '' }}" data-categoria="{{ categoria.id }}" data-busca="{{ nome }} {{ descricao }}">
-<div class="prato-visual"><img class="prato-imagem" src="{{ url_for('static', filename='images/menu/' ~ imagem ~ '.' ~ credito.get('extensao', 'jpg'), v=credito.versao) }}" alt="Fotografia ilustrativa de {{ nome }}" width="960" height="640" loading="lazy" decoding="async"><span class="prato-selo">{{ categoria.nome }}</span></div>
+<div class="prato-visual"><img class="prato-imagem" src="{{ credito.url if credito.url is defined else url_for('static', filename='images/menu/' ~ imagem ~ '.' ~ credito.get('extensao', 'jpg'), v=credito.versao) }}" alt="Fotografia ilustrativa de {{ nome }}" width="960" height="640" loading="lazy" decoding="async"><span class="prato-selo">{{ categoria.nome }}</span></div>
 <div class="prato-texto"><h2>{{ nome }}</h2><p>{{ descricao }}</p></div>
 <div class="prato-acoes">
 {% if preco is not none %}<div class="preco-pessoa"><strong>{{ moeda(preco) }}</strong><span>/ pessoa</span></div><div class="escolha-menu"><label class="convidados-label">Para <input class="quantidade-pessoas" type="number" name="convidados" min="10" max="500" step="1" value="50" inputmode="numeric" list="sugestoes-convidados" aria-label="Quantidade de pessoas para {{ nome }}"></label><button type="button" class="ver-menu" data-nome="{{ nome }}" data-descricao="{{ descricao }}" data-tipo="{{ categoria.nome }}">Ver menu <span aria-hidden="true">↗</span></button></div><p class="total-menu" aria-live="polite" aria-atomic="true">Total para <span class="total-pessoas">50</span> pessoas: <strong class="total-valor">{{ moeda(preco * 50) }}</strong></p>
