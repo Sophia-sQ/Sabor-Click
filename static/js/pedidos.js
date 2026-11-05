@@ -3,15 +3,6 @@ const tituloPedido = document.getElementById("titulo-pedido");
 const etapas = detalhes.querySelector(".etapas-pedido");
 const botoesPedidos = document.querySelectorAll(".abrir-pedido");
 
-document.querySelectorAll(".assumir-pedido").forEach((botao) => {
-  botao.addEventListener("click", () => {
-    const celula = botao.closest(".chefe-pedido");
-    celula.textContent = "Você";
-    celula.setAttribute("tabindex", "-1");
-    celula.focus();
-  });
-});
-
 botoesPedidos.forEach((botao) => {
   botao.addEventListener("click", () => {
     const fechar = botao.getAttribute("aria-expanded") === "true";
