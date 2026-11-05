@@ -1,8 +1,26 @@
+"""Criação da trigger de baixa automática de estoque no banco (SQLite)."""
+
 from sqlalchemy import text
 from database import db
 
 
-def criar_trigger_baixa_estoque():
+def criar_trigger_baixa_estoque() -> None:
+    """Cria a view, a tabela auxiliar e a trigger de baixa de estoque.
+
+    Monta a estrutura necessária para dar baixa no estoque quando um pedido é
+    confirmado:
+      1. view `consumo_ingrediente_pedido`: consolida o consumo de cada
+         ingrediente por pedido (pratos e bebidas somados).
+      2. tabela `baixa_lote_pedido`: guarda temporariamente a distribuição da
+         baixa entre os lotes.
+      3. trigger `baixa_estoque_pedido_confirmado`: ao mudar o status de um
+         pedido para 'confirmado', valida o estoque, distribui a baixa entre os
+         lotes (priorizando validade mais próxima) e atualiza o estoque geral.
+
+    A operação é idempotente (usa IF NOT EXISTS / DROP IF EXISTS) e executa
+    dentro de uma transação com a engine do SQLAlchemy.
+    """
+    
     with db.engine.begin() as conexao:
 
         # 1. Calcula o consumo total de cada ingrediente por pedido.

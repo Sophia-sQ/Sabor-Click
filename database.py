@@ -1,29 +1,49 @@
+"""Inicialização do SQLAlchemy e carga inicial (seeds) do banco de dados."""
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase
 
 from seeds import *
 
-#classe base: Não contém nada, pois utiliza o padrão do Python
 class Base(DeclarativeBase):
+    """Classe base declarativa do SQLAlchemy para todos os modelos."""
+    
     pass
 
 db = SQLAlchemy(model_class=Base)
 
 # ADMIN INICIAL CADASTRO
-def criar_admin():
+def criar_admin() -> None:
+    """Adiciona o usuário administrador inicial à sessão do banco.
+
+    Não realiza commit; a persistência é feita por quem chama a função.
+    """
+    
     from seeds import iniciar_admin
     admin = iniciar_admin()
     db.session.add(admin)
 
 # CRIAÇÃO DE CARGOS
-def criar_cargos():
+def criar_cargos() -> None:
+    """Adiciona os cargos (níveis de permissão) iniciais à sessão do banco.
+
+    Não realiza commit; a persistência é feita por quem chama a função.
+    """
+    
     from seeds import iniciar_cargos
     cargos = iniciar_cargos()
     db.session.add_all(cargos)
 
 # CRIAÇÃO DE ESTOQUE
-def criar_estoque():
+def criar_estoque() -> None:
+    """Adiciona à sessão os dados iniciais de estoque e seus vínculos.
+
+    Inclui serviços, bancadas, cardápios, pratos, ingredientes, lotes, fichas
+    técnicas (de pratos e de bebidas) e as associações serviço-bancada,
+    serviço-cardápio e prato-cardápio. Não realiza commit.
+    """
+    
     from seeds import (
         iniciar_servicos,
         iniciar_bancadas,
@@ -85,7 +105,17 @@ def criar_estoque():
 
     # Inicializa o banco
 
-def init_app(app):
+def init_app(app) -> None:
+    """Inicializa o banco de dados na aplicação Flask.
+
+    Vincula o SQLAlchemy ao app, cria as tabelas inexistentes e executa a carga
+    inicial de cargos, administrador e estoque dentro do contexto da aplicação.
+    Em caso de erro no commit, desfaz a transação (rollback).
+
+    Args:
+        app (Flask): instância da aplicação Flask a ser configurada.
+    """
+    
     db.init_app(app)
     # Cria automaticamente todas as tabelas no arquivo do banco se elas não existirem
     with app.app_context():

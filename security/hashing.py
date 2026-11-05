@@ -4,9 +4,22 @@ import hmac
 import hashlib
 
 def gerar_hmac(cpf: str = None, email: str = None) -> str:
-    """Gera um hash determinístico do CPF ou email para ser utilizado em buscas no banco de dados.
-    
-    Warning: essa função trata apenas cpf ou email."""
+    """Gera um hash HMAC determinístico de um CPF ou e-mail para buscas no banco.
+
+    O hash permite localizar registros por valores sensíveis sem armazená-los em
+    claro. Deve-se informar apenas CPF OU e-mail por chamada.
+
+    Args:
+        cpf (str, optional): CPF a ser transformado em hash.
+        email (str, optional): e-mail a ser transformado em hash.
+
+    Returns:
+        str: hash HMAC-SHA256 em hexadecimal.
+
+    Raises:
+        ValueError: se a variável *_LOOKUP_HMAC_SECRET correspondente não estiver
+            configurada no .env.
+    """
     
     if cpf:
         chave_secret_hmac = env.get("CPF_LOOKUP_HMAC_SECRET")

@@ -11,13 +11,25 @@ from database import db
 from utils import hoje
 
 
-def gerar_token():
-    """Gera um código numérico aleatório de seis dígitos."""
+def gerar_token() -> str:
+    """Gera um código numérico aleatório de seis dígitos (com zeros à esquerda)."""
     return f"{secrets.randbelow(1_000_000):06d}"
 
 
-def enviar_token(email_criptografado: str, id_usuario: int):
-    """Gera, armazena e envia o código de verificação."""
+def enviar_token(email_criptografado: str, id_usuario: int) -> None:
+    """Gera, armazena (hash) e envia por e-mail o código de verificação.
+
+    Cria um código de seis dígitos, grava seu HMAC no banco e dispara o e-mail
+    com o código em texto e HTML.
+
+    Args:
+        email_criptografado (str): e-mail de destino (criptografado).
+        id_usuario (int): identificador do usuário dono do token.
+
+    Raises:
+        RuntimeError: se a variável TOKEN_SHA não estiver configurada ou se não
+            for possível registrar o token.
+    """
 
     chave = env.get("TOKEN_SHA")
 
@@ -54,7 +66,22 @@ def enviar_token(email_criptografado: str, id_usuario: int):
 
 
 def validar_token(id_usuario: int, token_informado: str) -> bool:
-    """Valida o código, o prazo de validade e as tentativas."""
+    """Valida o código informado, verificando validade, tentativas e expiração.
+
+    Compara o hash do código informado com o armazenado. Em caso de erro,
+    incrementa o contador de tentativas e desativa o token após 5 tentativas.
+    Em caso de sucesso, invalida o token para impedir reutilização.
+
+    Args:
+        id_usuario (int): identificador do usuário dono do token.
+        token_informado (str): código digitado pelo usuário.
+
+    Returns:
+        bool: True se o código for válido; False caso contrário.
+
+    Raises:
+        RuntimeError: se a variável TOKEN_SHA não estiver configurada.
+    """
 
     chave = env.get("TOKEN_SHA")
 
