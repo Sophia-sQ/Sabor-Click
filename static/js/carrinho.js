@@ -60,8 +60,77 @@ formulario.addEventListener('submit', (evento) => {
   dialogo.close();
 });
 
-document.getElementById('finalizar-compra')?.addEventListener('click', () => {
-  const aviso = document.getElementById('aviso-carrinho');
-  aviso.textContent = 'A finalização da compra ainda não está disponível. Nenhum pedido foi enviado.';
-  aviso.hidden = false;
+const finalizar = document.getElementById('finalizar-compra');
+const sugestao = document.getElementById('sugestao-bebidas');
+const catalogoCarrinho = window.SaborBebidas;
+const avisoCarrinho = document.getElementById('aviso-carrinho');
+function continuarCompra() {
+  sugestao.close();
+  const bebidas = catalogoCarrinho.ler();
+  const pendentes = catalogoCarrinho.catalogo.some(b => bebidas[b.id] && b.preco === null);
+  if (pendentes) {
+    avisoCarrinho.textContent = 'Confirme os valores das bebidas antes de finalizar. Nenhum pedido foi enviado.';
+    avisoCarrinho.hidden = false;
+    return;
+  }
+  if (finalizar.dataset.checkout) {
+    window.location.assign(finalizar.dataset.checkout);
+    return;
+  }
+  avisoCarrinho.textContent = 'A finalização da compra ainda não está disponível. Nenhum pedido foi enviado.';
+  avisoCarrinho.hidden = false;
+}
+function renderizarBebidasCarrinho() {
+  const quantidades = catalogoCarrinho.ler();
+  const selecionadas = catalogoCarrinho.catalogo.filter(b => quantidades[b.id]);
+  const container = document.getElementById('bebidas-no-carrinho');
+  container.replaceChildren();
+  const criar = (tag, texto) => { const node = document.createElement(tag); node.textContent = texto; return node; };
+  selecionadas.forEach(bebida => {
+    const card = document.createElement('article');
+    card.className = 'bebida-carrinho';
+    const info = document.createElement('div');
+    info.append(criar('p', 'BEBIDA À PARTE'), criar('h2', bebida.nome), criar('p', `${quantidades[bebida.id]} unidade(s)${bebida.volume_ml ? ' · ' + bebida.volume_ml + ' ml cada' : ''}`));
+    const acoes = document.createElement('div');
+    acoes.append(criar('strong', bebida.preco === null ? 'Valor a confirmar' : catalogoCarrinho.dinheiro(bebida.preco * quantidades[bebida.id])));
+    const remover = criar('button', 'Remover');
+    remover.type = 'button';
+    remover.setAttribute('aria-label', `Remover ${bebida.nome} do carrinho`);
+    remover.addEventListener('click', () => {
+      const atuais = catalogoCarrinho.ler();
+      delete atuais[bebida.id];
+      try {
+        catalogoCarrinho.salvar(atuais);
+        renderizarBebidasCarrinho();
+        avisoCarrinho.textContent = `${bebida.nome} removida do carrinho.`;
+        avisoCarrinho.hidden = false;
+        finalizar.focus();
+      } catch {
+        avisoCarrinho.textContent = 'Não foi possível remover a bebida. Verifique o armazenamento do navegador.';
+        avisoCarrinho.hidden = false;
+      }
+    });
+    acoes.append(remover);
+    card.append(info, acoes);
+    container.append(card);
+  });
+  const servicos = document.querySelectorAll('[data-servico]').length;
+  document.getElementById('carrinho-vazio')?.toggleAttribute('hidden', selecionadas.length > 0);
+  finalizar.disabled = !servicos && !selecionadas.length;
+  const pendentes = selecionadas.some(b => b.preco === null);
+  document.getElementById('aviso-precos').hidden = !pendentes;
+  const total = Number(finalizar.dataset.totalBase) + selecionadas.reduce((s, b) => s + (bebidaPreco(b) * quantidades[b.id]), 0);
+  document.querySelectorAll('[data-total-carrinho]').forEach(node => { node.textContent = pendentes ? 'A confirmar' : catalogoCarrinho.dinheiro(total); });
+}
+function bebidaPreco(bebida) { return bebida.preco === null ? 0 : bebida.preco; }
+finalizar.addEventListener('click', () => {
+  if (finalizar.disabled) return;
+  const temBebidas = Object.keys(catalogoCarrinho.ler()).length > 0 || document.querySelector('[data-servico][data-inclui-bebidas="true"]');
+  if (!temBebidas && catalogoCarrinho.catalogo.length) sugestao.showModal();
+  else continuarCompra();
 });
+document.getElementById('fechar-sugestao').addEventListener('click', () => sugestao.close());
+document.getElementById('continuar-sem-bebidas').addEventListener('click', continuarCompra);
+window.addEventListener('pageshow', renderizarBebidasCarrinho);
+window.addEventListener('storage', evento => { if (evento.key === 'sabor-click-bebidas-v1' || evento.key === null) renderizarBebidasCarrinho(); });
+renderizarBebidasCarrinho();

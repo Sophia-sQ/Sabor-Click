@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-chef.png') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seu carrinho | Sabor &amp; Click</title>
@@ -9,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/carrinho.css') }}">
+    <script src="{{ url_for('static', filename='js/bebidas.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/carrinho.js') }}" defer></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 </head>
@@ -28,14 +30,15 @@
         <div class="carrinho-colunas">
             <section class="itens-carrinho" aria-label="Serviços escolhidos">
                 {% for item in itens %}
-                <article class="item-carrinho">
+                <article class="item-carrinho" data-servico data-inclui-bebidas="{{ 'true' if item.inclui_bebidas|default(false) or item.tipo|default('') in ['bar', 'bebidas', 'bebida'] or item.nome|lower in ['bar', 'bebidas', 'bebida sem alcool', 'bebida com alcool', 'bebida mista'] else 'false' }}">
                     <img class="item-imagem" src="{{ url_for('static', filename='images/' ~ item.imagem) }}" alt="{{ item.nome }}" width="180" height="140">
                     <div class="item-informacoes"><p class="item-numero">SERVIÇO {{ item.numero }}</p><h2>{{ item.nome }}</h2><p>{{ item.descricao }}</p></div>
                     <div class="item-subtotal"><p>Subtotal</p><strong>{{ moeda(item.subtotal) }}</strong></div>
                 </article>
                 {% else %}
-                <div class="carrinho-vazio"><h2>Seu carrinho está vazio</h2><p>Conheça nossos serviços para planejar seu evento.</p><a class="botao" href="/#servicos">Conhecer serviços</a></div>
+                <div class="carrinho-vazio" id="carrinho-vazio"><h2>Seu carrinho está vazio</h2><p>Conheça nossos serviços para planejar seu evento.</p><a class="botao" href="/#servicos">Conhecer serviços</a></div>
                 {% endfor %}
+                <div id="bebidas-no-carrinho"></div>
                 {% if itens %}
                 <section class="endereco-evento" aria-label="Endereço do evento">
                     <div class="endereco-informacoes"><span class="localizacao"><img src="{{ url_for('static', filename='images/icone-localizacao.svg') }}" width="20" height="20" alt=""></span><div><h2>ENDEREÇO DO EVENTO</h2><p class="endereco-linha" id="endereco-linha">{{ endereco_linha|default('Escolha o endereço do evento') }}</p><p class="endereco-cidade" id="endereco-cidade">{{ endereco_cidade|default('') }}</p></div></div>
@@ -45,12 +48,22 @@
             </section>
             <aside class="resumo-compra" aria-labelledby="titulo-resumo">
                 <h2 id="titulo-resumo">Resumo da compra</h2>
-                <dl><div class="resumo-subtotal"><dt>Subtotal</dt><dd>{{ moeda(total) }}</dd></div><div class="resumo-total"><dt>Total</dt><dd>{{ moeda(total) }}</dd></div></dl>
-                {% if checkout_url and itens %}<a class="finalizar-compra" href="{{ checkout_url }}">Finalizar compra</a>{% else %}<button class="finalizar-compra" id="finalizar-compra" type="button" {% if not itens %}disabled{% endif %}>Finalizar compra</button>{% endif %}
+                <dl><div class="resumo-subtotal"><dt>Subtotal</dt><dd data-total-carrinho>{{ moeda(total) }}</dd></div><div class="resumo-total"><dt>Total</dt><dd data-total-carrinho>{{ moeda(total) }}</dd></div></dl>
+                <button class="finalizar-compra" id="finalizar-compra" type="button" data-total-base="{{ total }}" data-checkout="{{ checkout_url|default('') }}" {% if not itens %}disabled{% endif %}>Finalizar compra</button>
+                <p class="aviso-carrinho" id="aviso-precos" hidden>Há bebidas com valor a confirmar. O total será definido após a confirmação dos preços.</p>
                 <p class="aviso-carrinho" id="aviso-carrinho" role="status" hidden></p>
             </aside>
         </div>
     </main>
+    <script id="catalogo-bebidas" type="application/json">{{ bebidas|default([])|tojson }}</script>
+    <dialog class="dialogo-sugestao" id="sugestao-bebidas" aria-labelledby="titulo-sugestao" aria-describedby="descricao-sugestao">
+        <button type="button" id="fechar-sugestao" aria-label="Fechar sugestão de bebidas">×</button>
+        <div class="icone-sugestao" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 8h20l-3 30H17L14 8ZM16 17h16M27 17l4-14h7"/></svg></div>
+        <h2 id="titulo-sugestao">Que tal uma bebida para acompanhar?</h2>
+        <p id="descricao-sugestao">Seu carrinho ainda não tem bebidas. Gostaria de adicionar bebidas à parte antes de finalizar?</p>
+        <a class="botao" href="{{ bebidas_url|default('/bebidas') }}">Escolher bebidas</a>
+        <button type="button" id="continuar-sem-bebidas">Continuar sem bebidas</button>
+    </dialog>
     <dialog class="dialogo-endereco" id="dialogo-endereco" aria-labelledby="titulo-endereco">
         <form id="formulario-endereco">
             <h2 id="titulo-endereco">Endereço do evento</h2>

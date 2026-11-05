@@ -16,6 +16,7 @@ from model.pedido_model import (
     buscar_cardapios_pedido,
     criar_pedido,
     listar_pedidos_por_cliente,
+    listar_bebidas,
 )
 from model.servico_model import (
     buscar_cardapio_por_id,
@@ -88,6 +89,18 @@ def cancelar_pedido(id_pedido: int):
         return redirect(url_for("detalhes do pedido"))
 
 # =========================== BEBIDA ===========================
+
+def _catalogo_bebidas():
+    from bebidas_data import formatar_bebidas
+    return formatar_bebidas([dict(id=b.id_bebida, nome=b.nome,
+        descricao=b.descricao, preco=b.valor_unitario) for b in listar_bebidas()])
+
+
+@cliente_bp.get("/bebidas")
+def bebidas_avulsas():
+    return render_template("bebidas.html", bebidas=_catalogo_bebidas(),
+                           carrinho_url=url_for("cliente.mostrar_carrinho"))
+
 
 # =========================== ENDERECO ===========================
 
@@ -196,7 +209,8 @@ def _carrinho() -> list:
 @cliente_bp.get("/carrinho")
 def mostrar_carrinho():
     """Exibe a página de carrinho para o usuário."""
-    return render_template("carrinho.html")
+    return render_template("carrinho.html", bebidas=_catalogo_bebidas(),
+                           bebidas_url=url_for("cliente.bebidas_avulsas"))
 
 @cliente_bp.post("/carrinho/adicionar")
 def adicionar():

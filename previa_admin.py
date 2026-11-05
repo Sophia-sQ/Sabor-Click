@@ -1,6 +1,6 @@
 """Execute a prévia administrativa com: python previa_admin.py."""
 import os
-from flask import Flask, redirect, render_template, url_for
+from flask import Flask, redirect, render_template, url_for, request
 from catalogo_previa_admin import registrar, menu_publico, listar, bebidas_publicas
 
 app = Flask(__name__)
@@ -25,7 +25,17 @@ def bebidas():
 
 @app.get('/carrinho', endpoint='menu_admin_retorno')
 def carrinho():
-    return redirect(url_for('cliente.menu'))
+    exemplo = request.args.get('exemplo', '')
+    itens = []
+    if exemplo in {'sem-bebidas', 'com-bar'}:
+        bar = exemplo == 'com-bar'
+        itens = [dict(numero=1, nome='Bar' if bar else 'Buffet para eventos',
+                      descricao='Serviço ilustrativo para visualizar o carrinho.',
+                      imagem='home-bebidas.jpg' if bar else 'home-buffet.jpg',
+                      subtotal=350, inclui_bebidas=bar)]
+    return render_template('carrinho.html', itens_carrinho=itens,
+                           perfil_url=url_for('auth.login'), bebidas=bebidas_publicas(),
+                           bebidas_url=url_for('bebidas', exemplo=exemplo))
 
 @app.get('/previas/')
 def indice():
