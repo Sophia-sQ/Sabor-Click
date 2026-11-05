@@ -1,4 +1,10 @@
-"""Cardápios de apresentação baseados em docs/documentos/Cardapio.md e seeds da main."""
+"""Dados estáticos dos cardápios de apresentação da home/menu.
+
+Baseado em docs/documentos/Cardapio.md. Define a estrutura `categorias`,
+uma lista de categorias (pratos quentes, salgados e bebidas), cada uma com
+seus itens.
+"""
+    
 categorias = [
     {'id': 'quentes', 'nome': 'Pratos quentes', 'resumo': 'Receitas que acolhem, sabores que ficam.', 'itens': [
         ('Feijoada completa', 'Feijoada com arroz branco, couve refogada, farofa, vinagrete e molho de pimenta. Acompanha tábua de frios e mandioca frita. Sobremesa incluída: sorvete de maracujá e limão.', 'quentes', 0),

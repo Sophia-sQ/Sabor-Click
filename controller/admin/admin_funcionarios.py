@@ -79,7 +79,7 @@ def dados_funcionarios():
     
     total_pagamento = 0
     for funcionario in funcionarios:
-        total_pagamento += funcionario.salario #FIXME: verificar se essa é a coluna correta
+        total_pagamento += funcionario.salario
 
     return jsonify({"total_funcionarios": total_funcionarios,
                     "total_pagamento": total_pagamento})

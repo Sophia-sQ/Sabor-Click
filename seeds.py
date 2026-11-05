@@ -212,29 +212,29 @@ lista_bebida = [
     ('Cha_preto','Cha_preto',700),
     ('Agua_de_coco','Agua_de_coco', 1200),
     ('Suco_de_melancia','Suco_de_melancia',1500),
-    ('Gin','Gin', 17),
-    ('Uisque_de_centeio_rye','Uisque_de_centeio_rye',20)
+    ('Gin','Gin', 1700),
+    ('Uisque_de_centeio_rye','Uisque_de_centeio_rye',2000)
     #SEM ALCOOL - BAR
-    ("Pink Lemonade", "Bebida sem álcool feita com suco de limão-siciliano, xarope de groselha ou framboesa, água com gás, gelo e suco de limão-tahiti.", 0, 0),
-    ("Mojito Sem Álcool", "Bebida sem álcool preparada com folhas de hortelã, xarope simples de açúcar, água com gás e gelo.", 0, 0),
-    ("Piña Colada Zero", "Bebida sem álcool feita com suco de abacaxi, leite de coco, leite condensado e gelo triturado.", 0, 0),
-    ("Soda Italiana de Maçã Verde", "Bebida sem álcool preparada com xarope de maçã verde, água com gás, suco de limão e gelo.", 0, 0),
-    ("Coquetel de Frutas Vermelhas", "Bebida sem álcool feita com polpa ou purê de frutas vermelhas, suco de laranja, refrigerante de guaraná ou soda e gelo.", 0, 0),
-    ("Iced Tea de Pêssego e Limão", "Bebida sem álcool preparada com chá preto gelado, xarope ou suco concentrado de pêssego, suco de limão e gelo.", 0, 0),
-    ("Sunrise de Laranja e Grenadine", "Bebida sem álcool feita com suco de laranja natural e xarope de grenadine ou groselha.", 0, 0),
-    ("Coquetel Tropical de Coco", "Bebida sem álcool preparada com água de coco, suco de maracujá, xarope de baunilha e gelo.", 0, 0),
-    ("Lemonade de Extrato de Manjericão", "Bebida sem álcool feita com suco de limão-tahiti, folhas frescas de manjericão, xarope de açúcar e água filtrada gelada.", 0, 0),
-    ("Refresco de Melancia e Gengibre", "Bebida sem álcool preparada com suco de melancia fresco, suco de gengibre, açúcar e gelo picado.", 0, 0),
+    ("Pink Lemonade", "Bebida sem álcool feita com suco de limão-siciliano, xarope de groselha ou framboesa, água com gás, gelo e suco de limão-tahiti.", 0),
+    ("Mojito Sem Álcool", "Bebida sem álcool preparada com folhas de hortelã, xarope simples de açúcar, água com gás e gelo.", 0),
+    ("Piña Colada Zero", "Bebida sem álcool feita com suco de abacaxi, leite de coco, leite condensado e gelo triturado.", 0),
+    ("Soda Italiana de Maçã Verde", "Bebida sem álcool preparada com xarope de maçã verde, água com gás, suco de limão e gelo.", 0),
+    ("Coquetel de Frutas Vermelhas", "Bebida sem álcool feita com polpa ou purê de frutas vermelhas, suco de laranja, refrigerante de guaraná ou soda e gelo.", 0),
+    ("Iced Tea de Pêssego e Limão", "Bebida sem álcool preparada com chá preto gelado, xarope ou suco concentrado de pêssego, suco de limão e gelo.", 0),
+    ("Sunrise de Laranja e Grenadine", "Bebida sem álcool feita com suco de laranja natural e xarope de grenadine ou groselha.", 0),
+    ("Coquetel Tropical de Coco", "Bebida sem álcool preparada com água de coco, suco de maracujá, xarope de baunilha e gelo.", 0),
+    ("Lemonade de Extrato de Manjericão", "Bebida sem álcool feita com suco de limão-tahiti, folhas frescas de manjericão, xarope de açúcar e água filtrada gelada.", 0),
+    ("Refresco de Melancia e Gengibre", "Bebida sem álcool preparada com suco de melancia fresco, suco de gengibre, açúcar e gelo picado.", 0),
     # COM ALCOOL - BAR
-    ("Caipirinha", "Drink alcoólico preparado com cachaça, limão e gelo.", 0, 0),
-    ("Margarita", "Drink alcoólico feito com tequila, Cointreau, suco de limão, sal e gelo.", 0, 0),
-    ("Negroni", "Drink alcoólico preparado com gin, Campari, vermute tinto, gelo e casca de laranja.", 0, 0),
-    ("Moscow Mule", "Drink alcoólico feito com vodka, suco de limão, ginger beer, gelo e rodela de limão.", 0, 0),
-    ("Cosmopolitan", "Drink alcoólico preparado com vodka, Cointreau, suco de cranberry, suco de limão e gelo.", 0, 0),
-    ("Mai Tai", "Drink alcoólico feito com rum branco, rum escuro, Cointreau, xarope de amêndoa e suco de limão.", 0, 0),
-    ("Old Fashioned", "Drink alcoólico preparado com uísque bourbon, açúcar, Angostura bitters, gelo e casca de laranja.", 0, 0),
-    ("Manhattan", "Drink alcoólico feito com uísque de centeio, vermute tinto, Angostura bitters, gelo e cereja marasquino.", 0, 0),
-    ("Piña Colada", "Drink alcoólico preparado com rum branco, suco de abacaxi, leite de coco e gelo.", 0, 0)
+    ("Caipirinha", "Drink alcoólico preparado com cachaça, limão e gelo.", 0),
+    ("Margarita", "Drink alcoólico feito com tequila, Cointreau, suco de limão, sal e gelo.", 0),
+    ("Negroni", "Drink alcoólico preparado com gin, Campari, vermute tinto, gelo e casca de laranja.", 0),
+    ("Moscow Mule", "Drink alcoólico feito com vodka, suco de limão, ginger beer, gelo e rodela de limão.", 0),
+    ("Cosmopolitan", "Drink alcoólico preparado com vodka, Cointreau, suco de cranberry, suco de limão e gelo.", 0),
+    ("Mai Tai", "Drink alcoólico feito com rum branco, rum escuro, Cointreau, xarope de amêndoa e suco de limão.", 0),
+    ("Old Fashioned", "Drink alcoólico preparado com uísque bourbon, açúcar, Angostura bitters, gelo e casca de laranja.", 0),
+    ("Manhattan", "Drink alcoólico feito com uísque de centeio, vermute tinto, Angostura bitters, gelo e cereja marasquino.", 0),
+    ("Piña Colada", "Drink alcoólico preparado com rum branco, suco de abacaxi, leite de coco e gelo.", 0)
 ]
 
 ingredientes_carnes = [

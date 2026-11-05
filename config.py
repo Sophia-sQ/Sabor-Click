@@ -1,3 +1,10 @@
+"""Configurações da aplicação Flask por ambiente.
+
+    Carrega variáveis de ambiente a partir de um arquivo .env (quando existe) e
+    expõe classes de configuração para desenvolvimento e produção, além do
+    objeto `mail` (Flask-Mail) e do dicionário `config_dict` usado pelo app.
+"""
+
 import os
 from os import path
 
@@ -14,7 +21,7 @@ if path.exists(path.join(basedir, ".env")):
 mail = Mail()
 
 class Config:
-    """Configurações base"""
+    """Configurações base compartilhadas por todos os ambientes."""
 
     SECRET_KEY = os.environ.get("SECRET_KEY")
 

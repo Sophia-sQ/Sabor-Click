@@ -24,7 +24,7 @@ def pagina_servicos():
     lotes = buscar_lotes(busca)
 
     return render_template(
-        "servico.html",  # TODO: nome da pagina
+        "estoque.html",
         busca=busca,
         servicos=servicos,
         bebidas=bebidas,

@@ -6,23 +6,26 @@ from utils import calcular_periodo, hoje, mes_passado, ultimos_30_dias, semana_p
 # ================================= funções internas =================================
 
 def _pedidos_30_dias(status=None) -> list:
-    """Retorna todos os pedidos de status especifico nos últimos 30 dias.
+    """Retorna os pedidos de um status específico nos últimos 30 dias.
 
     Args:
-        status (None, optional): status para filtragem. Defaults to None.
+        status (str | None, optional): status para filtragem. Padrão: None.
 
     Returns:
-        list: lista dos pedidos que se enquadram.
+        list: lista de pedidos que se enquadram no período e status.
     """
     
     data_inicio=ultimos_30_dias()
     return listar_pedidos_entre_datas(data_inicio.year, data_inicio.month, data_inicio.day, status=status)
 
 def _pedidos_mensais(status='concluido') -> tuple[list, list]:
-    """Retorna todos os pedidos do mês atual e do mês passado nos mesmos períodos.
+    """Retorna os pedidos do mês atual e do mês passado no mesmo período.
+
+    Args:
+        status (str, optional): status para filtragem. Padrão: "concluido".
 
     Returns:
-        tuple[list[Pedido], list[Pedido]]: pedidos do mês atual, pedidos do mês passado.
+        tuple[list, list]: (pedidos do mês atual, pedidos do mês passado).
     """
     
     data_hoje = hoje()
@@ -34,10 +37,10 @@ def _pedidos_mensais(status='concluido') -> tuple[list, list]:
     return (pedidos_atual, pedidos_anterior)
 
 def _faturamento() -> tuple[int, int]:
-    """Calcula o faturamento do mês atual e do anterior.
+    """Calcula o faturamento do mês atual e do mês anterior.
 
     Returns:
-        tuple[int, int]: faturamento do mês atual, faturamento do mês anterior.
+        tuple[int, int]: (faturamento do mês atual, faturamento do mês anterior).
     """
     
     pedidos=_pedidos_mensais()
@@ -56,10 +59,11 @@ def _faturamento() -> tuple[int, int]:
 # =================================== RELATÓRIOS ======================================
 
 def pedidos_quantidade() -> tuple[int, float]:
-    """Calcula a quantidade de pedidos no mês e compara com o mesmo período do mês anterior.
+    """Conta os pedidos do mês e compara com o mesmo período do mês anterior.
 
     Returns:
-        tuple[int, float]: total de pedidos e porcentagem comparativa (pode ser <= 0).
+        tuple[int, float | None]: total de pedidos e variação percentual em
+        relação ao período anterior (None quando não há base de comparação).
     """
     
     pedidos=_pedidos_mensais()
@@ -72,10 +76,10 @@ def pedidos_quantidade() -> tuple[int, float]:
     return (n_pedidos_atual, porcentagem)
 
 def pedidos_tipo() -> dict:
-    """Calcula quantas vezes um serviço foi pedido.
+    """Conta quantas vezes cada serviço foi pedido nos últimos 30 dias.
 
     Returns:
-        dict: contém o valor para cada serviço.
+        dict: contagem de pedidos por serviço.
     """
     
     servicos ={
@@ -96,10 +100,10 @@ def pedidos_tipo() -> dict:
     return servicos
 
 def pedidos_status() -> dict:
-    """Calcula quantos pedidos tem cada status.
-    
+    """Conta quantos pedidos do mês existem em cada status.
+
     Returns:
-        dict: contém o valor para cada status.
+        dict: contagem de pedidos por status.
     """
     
     status ={
@@ -118,10 +122,11 @@ def pedidos_status() -> dict:
     return status
 
 def faturamento_periodo() -> tuple[int, float]:
-    """Soma o total faturado no mês e compara com o mesmo período do mês anterior.
+    """Soma o faturamento do mês e compara com o mesmo período do mês anterior.
 
     Returns:
-        tuple[int, float]: faturamento total e porcentagem comparativa (pode ser <= 0).
+        tuple[int, float | None]: faturamento total e variação percentual em
+        relação ao período anterior (None quando não há base de comparação).
     """
     
     valor=_faturamento()
@@ -131,10 +136,11 @@ def faturamento_periodo() -> tuple[int, float]:
     return (valor[0], porcentagem)
 
 def ticket_medio_periodo() -> tuple[int, float]:
-    """Calcula o ticket médio do mês e compara com o mesmo período do mês anterior.
+    """Calcula o ticket médio do mês e compara com o mês anterior.
 
     Returns:
-        tuple[int, float]: ticket médio e porcentagem comparativa (pode ser <= 0).
+        tuple[int, float]: ticket médio atual e variação percentual em relação
+        ao período anterior.
     """
     
     # valores monetários
@@ -167,10 +173,10 @@ def ticket_medio_periodo() -> tuple[int, float]:
     return (media_atual, porcentagem)
 
 def faturamento_semanal() -> dict:
-    """Calcula o faturamento para cada um das últimas 6 semanas.
+    """Calcula o faturamento de cada uma das últimas 6 semanas.
 
     Returns:
-        dict: faturamento dividido para cada semana.
+        dict: faturamento por semana (chaves 'S1' a 'S6').
     """
     
     semanas = {
