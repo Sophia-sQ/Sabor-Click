@@ -29,12 +29,14 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///banco.db")
 
     # --- CONFIGURAÇÕES DO FLASK-MAIL ---
+    # Usa valores padrão seguros quando a variável não está definida, para não
+    # impedir a inicialização da aplicação por configuração de e-mail ausente.
     MAIL_SERVER = os.environ.get("MAIL_SERVER")
-    MAIL_PORT = int(os.environ.get("MAIL_PORT"))
+    MAIL_PORT = int(os.environ.get("MAIL_PORT") or 587)
 
     # Segurança da conexão
-    MAIL_USE_TLS = bool(int(os.environ.get("MAIL_USE_TLS")))
-    MAIL_USE_SSL = bool(int(os.environ.get("MAIL_USE_SSL")))
+    MAIL_USE_TLS = bool(int(os.environ.get("MAIL_USE_TLS") or 0))
+    MAIL_USE_SSL = bool(int(os.environ.get("MAIL_USE_SSL") or 0))
 
     # Credenciais de autenticação
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")

@@ -268,6 +268,24 @@ def buscar_ingredientes(busca: str = "") -> list:
     return db.session.execute(stmt).scalars().all()
 
 
+def listar_ingredientes_abaixo_minimo() -> list:
+    """Lista os ingredientes cujo estoque atingiu ou ficou abaixo do mínimo.
+
+    Serve de base para o alerta de reposição exibido ao administrador: retorna
+    os ingredientes em que ``qtd <= qtd_min``, ordenados por nome.
+
+    Returns:
+        list[Ingrediente]: ingredientes que precisam de reposição. Lista vazia
+        quando todo o estoque está regular.
+    """
+    stmt = (
+        db.select(Ingrediente)
+        .where(Ingrediente.qtd <= Ingrediente.qtd_min)
+        .order_by(Ingrediente.nome)
+    )
+    return db.session.execute(stmt).scalars().all()
+
+
 def atualizar_ingrediente(id_ingrediente: int, nome=None, unidade=None, qtd=None, qtd_min=None):
     """Atualiza dados do ingrediente"""
     ingrediente = db.session.get(Ingrediente, id_ingrediente)
@@ -334,8 +352,7 @@ def atualizar_ficha_tecnica(id_prato: int, id_ingrediente: int, qtd_necessaria: 
         return False
     ficha.qtd_necessaria = qtd_necessaria
     db.session.commit()
-    if id_usuario:
-        registrar_log(id_usuario, "ATUALIZACAO FICHA_TECNICA", f"Usuário atualizou ficha técnica do prato {id_prato}")
+    registrar_log("ATUALIZACAO FICHA_TECNICA", f"Usuário atualizou ficha técnica do prato {id_prato}")
     return True
 
 
@@ -358,10 +375,23 @@ def criar_lote(
     data_recebimento: datetime,
     qtd_inicial: float,
     id_ingrediente: int | None = None,
-    id_bebida: int | None = None,
     data_validade=None,
 ):
-    """Cria um novo lote (vinculado a um ingrediente OU bebida)."""
+    """Cria um novo lote vinculado a um ingrediente.
+
+    Também soma a quantidade inicial do lote ao estoque geral do ingrediente.
+
+    Args:
+        num_lote (str): código/identificação do lote.
+        marca (str): fornecedor/marca do lote.
+        data_recebimento (datetime): data de recebimento do lote.
+        qtd_inicial (float): quantidade recebida neste lote.
+        id_ingrediente (int | None): ingrediente vinculado ao lote.
+        data_validade: data de validade (opcional).
+
+    Returns:
+        int: identificador do lote criado.
+    """
     novo_lote = Lote(
         num_lote=num_lote,
         marca=marca,
@@ -369,7 +399,6 @@ def criar_lote(
         data_validade=data_validade,
         qtd_inicial=qtd_inicial,
         id_ingrediente=id_ingrediente,
-        id_bebida=id_bebida,
     )
 
     db.session.add(novo_lote)
@@ -430,7 +459,7 @@ def buscar_lotes(busca: str = "") -> list:
     return db.session.execute(stmt).scalars().all()
 
 
-def atualizar_lote(id_lote: int, num_lote=None, marca=None, data_recebimento=None, data_validade=None, qtd_inicial=None, id_ingrediente=None, id_bebida=None):
+def atualizar_lote(id_lote: int, num_lote=None, marca=None, data_recebimento=None, data_validade=None, qtd_inicial=None, id_ingrediente=None):
     """Atualiza dados do lote"""
     lote = db.session.get(Lote, id_lote)
     if not lote:
@@ -447,8 +476,6 @@ def atualizar_lote(id_lote: int, num_lote=None, marca=None, data_recebimento=Non
         lote.qtd_inicial = qtd_inicial
     if id_ingrediente is not None:
         lote.id_ingrediente = id_ingrediente
-    if id_bebida is not None:
-        lote.id_bebida = id_bebida
 
     db.session.commit()
     registrar_log("ATUALIZACAO LOTE", f"Usuário atualizou o lote {id_lote}")

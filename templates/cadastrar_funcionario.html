@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "funcionarios" %}
+{% block titulo %}Cadastrar funcionário | Sabor &amp; Click{% endblock %}
+{% block conteudo_admin %}
+<header class="intro">
+    <h1>Cadastrar funcionário</h1>
+    <p>Adicione um novo chefe à equipe.</p>
+</header>
+
+{% include "componentes/mensagens.html" %}
+
+<section class="card">
+    <form class="formulario" method="post" action="{{ url_for('admin.cadastro') }}">
+        <small>* Campos obrigatórios</small>
+        <label for="func-nome">Nome completo *</label>
+        <input id="func-nome" name="nome" autocomplete="name" required maxlength="100">
+        <label for="func-cpf">CPF *</label>
+        <input id="func-cpf" name="cpf" inputmode="numeric" maxlength="14" required>
+        <label for="func-email">E-mail *</label>
+        <input id="func-email" name="email" type="email" autocomplete="email" required>
+        <label for="func-senha">Senha provisória *</label>
+        <input id="func-senha" name="senha_provisoria" type="password" required>
+        <label for="func-senha2">Confirmar senha *</label>
+        <input id="func-senha2" name="senha_confirmacao" type="password" required>
+        <button type="submit">Cadastrar funcionário</button>
+    </form>
+</section>
+
+<footer>Sabor &amp; Click · 2026</footer>
+{% endblock %}

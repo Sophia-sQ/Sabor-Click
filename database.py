@@ -51,11 +51,13 @@ def criar_estoque() -> None:
         iniciar_pratos,
         iniciar_ingredientes,
         iniciar_lotes,
+        iniciar_bebidas,
         iniciar_ficha_tecnica,
         iniciar_ficha_tecnica_bebida,
         iniciar_servico_bancada,
         iniciar_servico_cardapio,
-        iniciar_prato_cardapio
+        iniciar_prato_cardapio,
+        iniciar_bebida_cardapio
     )
     # CRIAÇÃO DE SERVICOS
     servicos = iniciar_servicos()
@@ -81,6 +83,10 @@ def criar_estoque() -> None:
     lotes = iniciar_lotes()
     db.session.add_all(lotes)
 
+    # CRIAÇÃO DE BEBIDAS (inclui as que o cliente pede à parte, fora do Bar)
+    bebidas = iniciar_bebidas()
+    db.session.add_all(bebidas)
+
     # Inicializa a ficha tecnica dos ingredientes
     fichas_tecnicas = iniciar_ficha_tecnica()
     db.session.add_all(fichas_tecnicas)
@@ -100,6 +106,10 @@ def criar_estoque() -> None:
     # Inicializa a associacao de pratocardapio
     prato_cardapio= iniciar_prato_cardapio()
     db.session.add_all(prato_cardapio)
+
+    # Inicializa a associacao de bebida_cardapio
+    bebida_cardapio = iniciar_bebida_cardapio()
+    db.session.add_all(bebida_cardapio)
 
 
 
@@ -125,6 +135,14 @@ def init_app(app) -> None:
         criar_estoque()
         try:
             db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+
+        # Cria a trigger de baixa automática de estoque uma única vez, após as
+        # tabelas existirem. A operação é idempotente (DROP/CREATE).
+        from triggers import criar_trigger_baixa_estoque
+        try:
+            criar_trigger_baixa_estoque()
         except SQLAlchemyError:
             db.session.rollback()
 

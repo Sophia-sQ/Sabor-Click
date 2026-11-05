@@ -1,0 +1,62 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "visao-geral" %}
+{% block titulo %}Visão geral | Sabor &amp; Click{% endblock %}
+{% block conteudo_admin %}
+<header class="intro">
+    <h1>Visão geral</h1>
+    <p>Acompanhe o desempenho do estabelecimento e organize os cadastros.</p>
+</header>
+
+{% include "componentes/mensagens.html" %}
+
+<section class="card">
+    <h2>Indicadores do mês</h2>
+    <p id="vg-status" role="status" aria-live="polite">Carregando indicadores…</p>
+    <div class="tabela">
+        <table>
+            <tbody>
+                <tr><th scope="row">Pedidos no mês</th><td id="vg-pedidos">—</td></tr>
+                <tr><th scope="row">Faturamento mensal</th><td id="vg-faturamento">—</td></tr>
+                <tr><th scope="row">Ticket médio</th><td id="vg-ticket">—</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <h3>Pedidos por status</h3>
+    <div class="tabela"><table><tbody id="vg-status-tabela"></tbody></table></div>
+    <h3>Pedidos por serviço</h3>
+    <div class="tabela"><table><tbody id="vg-tipo-tabela"></tbody></table></div>
+</section>
+
+<section class="card">
+    <h2>Atalhos</h2>
+    <nav aria-label="Atalhos administrativos">
+        <a href="{{ url_for('admin.pagina_servicos') }}">Estoque e cadastros</a> ·
+        <a href="{{ url_for('admin.funcionarios') }}">Funcionários</a> ·
+        <a href="{{ url_for('admin.pagina_logs') }}">Logs de atividade</a>
+    </nav>
+</section>
+
+<footer>Sabor &amp; Click · 2026</footer>
+{% endblock %}
+{% block scripts_admin %}
+<script>
+// Busca os relatórios mensais (JSON) e preenche os indicadores da página.
+fetch("{{ url_for('admin.gerar_relatorios_mensais') }}")
+    .then((r) => r.json())
+    .then((dados) => {
+        document.getElementById("vg-status").hidden = true;
+        document.getElementById("vg-pedidos").textContent = dados.pedidos_quantidade.numero;
+        document.getElementById("vg-faturamento").textContent = dados.faturamento_mensal.numero;
+        document.getElementById("vg-ticket").textContent = dados.ticket_medio.numero;
+        const status = document.getElementById("vg-status-tabela");
+        Object.entries(dados.pedidos_status).forEach(([k, v]) => {
+            status.insertAdjacentHTML("beforeend", `<tr><th scope="row">${k}</th><td>${v}</td></tr>`);
+        });
+        const tipo = document.getElementById("vg-tipo-tabela");
+        Object.entries(dados.pedidos_tipo).forEach(([k, v]) => {
+            tipo.insertAdjacentHTML("beforeend", `<tr><th scope="row">${k}</th><td>${v}</td></tr>`);
+        });
+    })
+    .catch(() => { document.getElementById("vg-status").textContent = "Não foi possível carregar os indicadores."; });
+</script>
+{% endblock %}

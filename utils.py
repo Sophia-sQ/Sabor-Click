@@ -137,17 +137,16 @@ def ultimos_30_dias():
 
     return trita_dias_atras
 
-def para_data(dia: int, mes: int, ano: int) -> datetime:
-    """_summary_
+def para_data(ano: int, mes: int, dia: int) -> date:
+    """Monta um objeto date a partir de ano, mês e dia.
 
     Args:
-        dia (int): dia da data.
-        mes (int): mês da data.
         ano (int): ano da data.
+        mes (int): mês da data (1 a 12).
+        dia (int): dia da data.
 
     Returns:
-        datetime: data em formato YY/MM/DD.
-
+        date: data correspondente.
     """
     return datetime(ano, mes, dia).date()
 

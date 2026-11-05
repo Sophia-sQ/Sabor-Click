@@ -90,7 +90,7 @@ def listar_bancadas():
         return bancadas
     return None
 
-def atualizar_bancada(id_bancada, id_usuario:int, nome=None, descricao=None):
+def atualizar_bancada(id_bancada, id_usuario:int | None = None, nome=None, descricao=None):
     """Atualiza os dados da bancada"""
     bancada = db.session.get(Bancada, id_bancada)
     if not bancada:
@@ -100,18 +100,18 @@ def atualizar_bancada(id_bancada, id_usuario:int, nome=None, descricao=None):
     if descricao:
         bancada.descricao = descricao
     db.session.commit()
-    registrar_log(id_usuario,"ATUALIZACAO BANCADA", "Usuário atualizou bancada")
+    registrar_log("ATUALIZACAO BANCADA", "Usuário atualizou bancada")
 
     return True
 
-def deletar_bancada(id_bancada, id_usuario: int):
+def deletar_bancada(id_bancada, id_usuario: int | None = None):
     """Deleta bancada"""
     bancada = db.session.get(Bancada, id_bancada)
     if not bancada:
         return False
     db.session.delete(bancada)
     db.session.commit()
-    registrar_log(id_usuario,"DELETAR BANCADA", "Usuário deletou bancada")
+    registrar_log("DELETAR BANCADA", "Usuário deletou bancada")
 
     return True
 
@@ -173,7 +173,7 @@ def buscar_servicos(busca: str = "") -> list:
     return db.session.execute(stmt).scalars().all()
 
 
-def atualizar_servico(id_servico, id_usuario:int, nome=None, descricao=None):
+def atualizar_servico(id_servico, id_usuario:int | None = None, nome=None, descricao=None):
     """Atualiza servico"""
     servico = db.session.get(Servico, id_servico)
     if not servico:
@@ -183,7 +183,7 @@ def atualizar_servico(id_servico, id_usuario:int, nome=None, descricao=None):
     if descricao:
         servico.descricao = descricao
     db.session.commit()
-    registrar_log(id_usuario,"ATUALIZACAO SERVICO", "Usuário atulizou o servico")
+    registrar_log("ATUALIZACAO SERVICO", "Usuário atualizou o servico")
 
     return True
 
@@ -236,7 +236,7 @@ def listar_cardapios():
         return cardapios
     return None
 
-def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, preco_base=None):
+def atualizar_cardapio(id_cardapio, id_usuario: int | None = None, nome=None, descricao=None, preco_base=None):
     """Atualiza cardapio"""
     cardapio = db.session.get(Cardapio, id_cardapio)
     if not cardapio:
@@ -248,18 +248,18 @@ def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, 
     if preco_base is not None:
         cardapio.preco_base = preco_base
     db.session.commit()
-    registrar_log(id_usuario,"ATUALIZACAO CARDAPIO", "Usuário atualizou cardapio")
+    registrar_log("ATUALIZACAO CARDAPIO", "Usuário atualizou cardapio")
 
     return True
 
-def deletar_cardapio(id_cardapio, id_usuario: int):
+def deletar_cardapio(id_cardapio, id_usuario: int | None = None):
     """Deleta cardapio"""
     cardapio = db.session.get(Cardapio, id_cardapio)
     if not cardapio:
         return False
     db.session.delete(cardapio)
     db.session.commit()
-    registrar_log(id_usuario,"DELETAR CARDAPIO", "Usuário deletou cardapio")
+    registrar_log("DELETAR CARDAPIO", "Usuário deletou cardapio")
 
     return True
 
@@ -267,7 +267,7 @@ def deletar_cardapio(id_cardapio, id_usuario: int):
 
 """============= CRUD - SERVIÇO / BANCADA (Tabela de Associação) ============"""
 
-def associar_servico_bancada(id_servico, id_bancada, id_usuario: int):
+def associar_servico_bancada(id_servico, id_bancada, id_usuario: int | None = None):
     """Associa a bancada aos serviços. Se bancada e serviço já forem
     associados, retorna False, do contrário, retorna True.
     """
@@ -277,11 +277,11 @@ def associar_servico_bancada(id_servico, id_bancada, id_usuario: int):
     nova_associacao = ServicoBancada(id_servico=id_servico, id_bancada=id_bancada)
     db.session.add(nova_associacao)
     db.session.commit()
-    registrar_log(id_usuario,"ASSOCIACAO SERVICO_BANCADA", "Usuário associou uma bancada a um servico")
+    registrar_log("ASSOCIACAO SERVICO_BANCADA", "Usuário associou uma bancada a um servico")
 
     return True
 
-def desassociar_servico_bancada(id_servico: int, id_bancada: int, id_usuario: int) -> bool:
+def desassociar_servico_bancada(id_servico: int, id_bancada: int, id_usuario: int | None = None) -> bool:
     """Desassocia a bancada dos serviços. Se bancada e serviço já não forem
     associados, retorna False, do contrário, retorna True.
     """
@@ -290,7 +290,7 @@ def desassociar_servico_bancada(id_servico: int, id_bancada: int, id_usuario: in
         return False
     db.session.delete(associacao)
     db.session.commit()
-    registrar_log(id_usuario,"DESASSOCIACAO SERVICO_BANCADA", "Usuário desassociou uma bancada a um servico")
+    registrar_log("DESASSOCIACAO SERVICO_BANCADA", "Usuário desassociou uma bancada a um servico")
 
     return True
 
@@ -308,21 +308,25 @@ def listar_bancadas_do_servico(id_servico: int) -> (list | None):
 
 """=====CRUD SERVIÇO / CARDÁPIO (Tabela de Associação)======"""
 
-def associar_servico_cardapio(id_servico, id_cardapio, descricao=None, id_usuario= int) -> bool:
+def associar_servico_cardapio(id_servico, id_cardapio, descricao=None, id_usuario: int | None = None) -> bool:
     """Associa o cardapio aos serviços. Se cardápio e serviço já estiverem
     associados, retorna False, do contrário, retorna True.
+
+    Observação: a tabela de associação ``servico_cardapio`` não possui coluna de
+    descrição; o parâmetro ``descricao`` é mantido por compatibilidade, porém é
+    ignorado na persistência.
     """
     associacao = db.session.get(ServicoCardapio, (id_servico, id_cardapio))
     if associacao:
         return False
-    nova_associacao = ServicoCardapio(id_servico=id_servico, id_cardapio=id_cardapio,descricao=descricao)
+    nova_associacao = ServicoCardapio(id_servico=id_servico, id_cardapio=id_cardapio)
     db.session.add(nova_associacao)
     db.session.commit()
-    registrar_log(id_usuario,"ASSOCIACAO SERVICO_CARDAPIO", "Usuário associou um cardapio a um servico")
+    registrar_log("ASSOCIACAO SERVICO_CARDAPIO", "Usuário associou um cardapio a um servico")
 
     return True
 
-def desassociar_servico_cardapio(id_servico, id_cardapio, id_usuario: int):
+def desassociar_servico_cardapio(id_servico, id_cardapio, id_usuario: int | None = None):
     """Desassocia o cardapio aos serviços. Se cardápio e serviço já não forem
     associados, retorna False, do contrário, retorna True.
     """
@@ -331,18 +335,27 @@ def desassociar_servico_cardapio(id_servico, id_cardapio, id_usuario: int):
         return False
     db.session.delete(associacao)
     db.session.commit()
-    registrar_log(id_usuario,"DESASSOCIACAO SERVICO_CARDAPIO", "Usuário desassociou um cardapio a um servico")
+    registrar_log("DESASSOCIACAO SERVICO_CARDAPIO", "Usuário desassociou um cardapio a um servico")
 
     return True
 
-def listar_cardapios_do_servico(id_servico: int) -> (list):
-    """Retorna todos os cardápios associados a um servico."""
-    cardapios = db.session.execute(
-            db.select(ServicoCardapio).where(
-        ServicoCardapio.id_servico == id_servico,
-        )).scalars().all()
+def listar_cardapios_do_servico(id_servico: int) -> list:
+    """Retorna todos os cardápios associados a um serviço.
 
-    if cardapios:
-        return cardapios
-    return None
+    Faz o join da tabela de associação ``servico_cardapio`` com ``cardapio`` e
+    devolve os próprios objetos :class:`Cardapio` (com ``nome``, ``descricao`` e
+    ``preco_base``), prontos para exibição.
+
+    Args:
+        id_servico (int): identificador do serviço.
+
+    Returns:
+        list[Cardapio]: cardápios do serviço. Lista vazia se não houver.
+    """
+    return db.session.execute(
+        db.select(Cardapio)
+        .join(ServicoCardapio, ServicoCardapio.id_cardapio == Cardapio.id_cardapio)
+        .where(ServicoCardapio.id_servico == id_servico)
+        .order_by(Cardapio.nome),
+    ).scalars().all()
 

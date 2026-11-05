@@ -1,4 +1,4 @@
-from admin import admin_bp
+from controller.admin import admin_bp
 
 from flask import request, url_for, Response, jsonify, render_template, flash, redirect
 
@@ -12,7 +12,8 @@ from security import validar_senha_forte
 @admin_bp.get("")
 @admin_bp.get("/visao-geral")
 def visao_geral():
-    return render_template("TODO: visao geral painel administrativo")
+    """Painel inicial da administração (visão geral)."""
+    return render_template("visao_geral.html")
 
 # xxxxxxxxxxxxxxxxxxxxxxxxxx RELATÓRIOS DO MÊS xxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -69,8 +70,9 @@ def gerar_relatorios_mensais() -> Response:
 
 @admin_bp.get('/funcionarios')
 def funcionarios():
+    """Lista os funcionários cadastrados, com filtro opcional por nome."""
     busca = request.args.get("busca", "")
-    return render_template('paginas funcionaris', funcionarios=listar(busca), busca=busca) #TODO: pagina de funcionarios
+    return render_template('funcionarios.html', funcionarios=listar(busca), busca=busca)
 
 @admin_bp.get("/funcionarios/relatorio")
 def dados_funcionarios():
@@ -87,11 +89,16 @@ def dados_funcionarios():
 # xxxxxxxxxxxxxxxxxxxxxxxxxxx cadastro xxxxxxxxxxxxxxxxxxxxxxxxxxx
 @admin_bp.get("/cadastrar-funcionario")
 def cadastrar_funcionario():
-    return render_template("casadtro do admin") #TODO
+    """Exibe o formulário de cadastro de um novo funcionário (chefe)."""
+    return render_template("cadastrar_funcionario.html")
 
 @admin_bp.post("/cadastrar-funcionario/cadastro")
 def cadastro():
-    "adiciona um novo usuario funcionário."
+    """Adiciona um novo usuário funcionário (cargo chefe).
+
+    Valida e-mail, CPF e força da senha, confere a confirmação de senha e cria
+    o funcionário. Em caso de erro, retorna ao formulário com a mensagem.
+    """
 
     nome=request.form.get("nome", "").strip()
     cpf=request.form.get("cpf", "").strip()
@@ -100,7 +107,7 @@ def cadastro():
     senha_comfirma=request.form.get("senha_confirmacao", "")
 
     # estabelece qual o formato de um email válido
-    regex=r"^['A-Za-z0-9._%+-']+@[A-Za-z0-9.-]+\.['A-Za-z']{2,}$"
+    regex=r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 
     # validação de email, cpf e senha com variáveis booleanas
     email_invalido = (not fullmatch(regex, email))
@@ -109,15 +116,15 @@ def cadastro():
 
     senha_invalida = not validar_senha_forte(senha)
 
-    if email_invalido or cpf_invalido or senha_invalida:  
-        flash(f"E-mail, cpf ou senha inválidos.", 'danger')
-        return redirect(url_for(''))
-    elif senha!=senha_comfirma:
-        flash(f"Senha provisória e de confirmação são diferentes.", 'danger')
+    if email_invalido or cpf_invalido or senha_invalida:
+        flash("E-mail, cpf ou senha inválidos.", 'danger')
         return redirect(url_for('admin.cadastrar_funcionario'))
-    
+    elif senha!=senha_comfirma:
+        flash("Senha provisória e de confirmação são diferentes.", 'danger')
+        return redirect(url_for('admin.cadastrar_funcionario'))
+
     criar_usuario(cpf, nome, email, senha, Cargo.CHEFE.value)
 
-    flash("novo funcionaria cadastrado", "success")
-    return render_template('admin.cadastrar_funcionario')
+    flash("Novo funcionário cadastrado.", "success")
+    return redirect(url_for('admin.funcionarios'))
 

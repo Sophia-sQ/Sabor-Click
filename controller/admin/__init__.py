@@ -19,5 +19,11 @@ def _bool_form(valor):
 
 # ============================== routes ==============================
 
-from admin import admin_servicos, admin_pratocardapio, admin_ingredientefichalote, admin_funcionarios, admin_bebidas, admin_lotes, admin_logatividade
+from controller.admin import admin_servicos  # noqa: E402,F401
+from controller.admin import admin_pratocardapio  # noqa: E402,F401
+from controller.admin import admin_ingredientefichalote  # noqa: E402,F401
+from controller.admin import admin_funcionarios  # noqa: E402,F401
+from controller.admin import admin_bebidas  # noqa: E402,F401
+from controller.admin import admin_lote  # noqa: E402,F401
+from controller.admin import admin_logs  # noqa: E402,F401
 

@@ -166,10 +166,8 @@ def ticket_medio_periodo() -> tuple[int, float]:
     
     media_anterior = (faturamento_anterior/total_pedidos_anterior)
     
-    porcentagem = (((media_atual - media_anterior) * 100/ media_anterior) if media_anterior > 0 else 0)
-    
-    porcentagem=((media_atual-media_anterior)*100)/media_anterior
-    
+    porcentagem = (((media_atual - media_anterior) * 100 / media_anterior) if media_anterior > 0 else 0)
+
     return (media_atual, porcentagem)
 
 def faturamento_semanal() -> dict:

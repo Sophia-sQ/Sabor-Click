@@ -1,0 +1,267 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "estoque" %}
+{% block titulo %}Estoque e cadastros | Sabor &amp; Click{% endblock %}
+{% block classe_admin %} pagina-estoque{% endblock %}
+{% block conteudo_admin %}
+<header class="intro">
+    <h1>Estoque e cadastros</h1>
+    <p>Consulte e cadastre serviços, cardápios, pratos, ingredientes, bebidas, lotes e suas associações.</p>
+</header>
+
+{% include "componentes/mensagens.html" %}
+
+{# ===== Alerta de estoque mínimo ===== #}
+{% if ingredientes_repor %}
+<section class="card" aria-labelledby="titulo-alerta-estoque">
+    <h2 id="titulo-alerta-estoque">⚠️ Reposição de estoque</h2>
+    <p>Os ingredientes abaixo atingiram ou ficaram abaixo do estoque mínimo:</p>
+    <div class="tabela">
+        <table>
+            <thead><tr><th scope="col">Ingrediente</th><th scope="col">Quantidade</th><th scope="col">Mínimo</th><th scope="col">Unidade</th></tr></thead>
+            <tbody>
+                {% for ing in ingredientes_repor %}
+                <tr>
+                    <td>{{ ing.nome }}</td>
+                    <td>{{ ing.qtd }}</td>
+                    <td>{{ ing.qtd_min }}</td>
+                    <td>{{ ing.unidade }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{# ===== Busca unificada ===== #}
+<section class="card">
+    <form class="filtros-estoque formulario" method="get" action="{{ url_for('admin.pagina_servicos') }}" aria-label="Buscar no estoque">
+        <div>
+            <label for="estoque-busca">Buscar</label>
+            <input id="estoque-busca" name="busca" type="search" value="{{ busca }}" placeholder="Nome do item">
+        </div>
+        <button type="submit">Buscar</button>
+    </form>
+</section>
+
+{# ===== SERVIÇOS ===== #}
+<section class="card">
+    <div class="cabecalho-estoque"><h2>Serviços</h2></div>
+    <form class="formulario" method="post" action="{{ url_for('admin.c_servico') }}">
+        <label for="servico-nome">Nome do serviço *</label>
+        <input id="servico-nome" name="nome" required maxlength="60">
+        <label for="servico-desc">Descrição *</label>
+        <input id="servico-desc" name="descricao" required>
+        <button type="submit">Cadastrar serviço</button>
+    </form>
+    <div class="tabela">
+        <table>
+            <thead><tr><th scope="col">ID</th><th scope="col">Nome</th><th scope="col">Descrição</th><th scope="col">Ações</th></tr></thead>
+            <tbody>
+                {% for s in servicos %}
+                <tr>
+                    <td>{{ s.id_servico }}</td>
+                    <td>{{ s.nome }}</td>
+                    <td>{{ s.descricao }}</td>
+                    <td>
+                        <form method="post" action="{{ url_for('admin.del_servico', id_servico=s.id_servico) }}" onsubmit="return confirm('Excluir o serviço {{ s.nome }}?')">
+                            <button type="submit">Excluir</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4">Nenhum serviço encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{# ===== CARDÁPIOS ===== #}
+<section class="card">
+    <div class="cabecalho-estoque"><h2>Cardápios</h2></div>
+    <form class="formulario" method="post" action="{{ url_for('admin.c_cardapio') }}">
+        <label for="cardapio-nome">Nome *</label>
+        <input id="cardapio-nome" name="nome" required maxlength="60">
+        <label for="cardapio-desc">Descrição *</label>
+        <input id="cardapio-desc" name="descricao" required>
+        <label for="cardapio-preco">Preço base (por pessoa) *</label>
+        <input id="cardapio-preco" name="preco_base" inputmode="decimal" required>
+        <button type="submit">Cadastrar cardápio</button>
+    </form>
+    <h3>Associar cardápio a serviço</h3>
+    <form class="formulario" method="post" action="{{ url_for('admin.associar_servico_cardapio_route') }}">
+        <label for="sc-servico">ID do serviço *</label>
+        <input id="sc-servico" name="id_servico" type="number" min="1" required>
+        <label for="sc-cardapio">ID do cardápio *</label>
+        <input id="sc-cardapio" name="id_cardapio" type="number" min="1" required>
+        <button type="submit">Associar</button>
+    </form>
+</section>
+
+{# ===== PRATOS ===== #}
+<section class="card">
+    <div class="cabecalho-estoque"><h2>Pratos</h2></div>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_prato_route') }}">
+        <label for="prato-nome">Nome *</label>
+        <input id="prato-nome" name="nome" required maxlength="60">
+        <label for="prato-desc">Descrição *</label>
+        <input id="prato-desc" name="descricao" required>
+        <label for="prato-tipo">Tipo *</label>
+        <select id="prato-tipo" name="tipo_prato" required>
+            <option value="entrada">Entrada</option>
+            <option value="prato principal">Prato principal</option>
+            <option value="acompanhamento">Acompanhamento</option>
+            <option value="sobremesa">Sobremesa</option>
+        </select>
+        <label for="prato-tempo">Tempo de preparo (min) *</label>
+        <input id="prato-tempo" name="tempo_preparo" type="number" min="0" required>
+        <label><input type="checkbox" name="requer_pre_preparo" value="1"> Requer pré-preparo</label>
+        <button type="submit">Cadastrar prato</button>
+    </form>
+    <h3>Associar prato a cardápio</h3>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_prato_cardapio_route') }}">
+        <label for="pc-prato">ID do prato *</label>
+        <input id="pc-prato" name="id_prato" type="number" min="1" required>
+        <label for="pc-cardapio">ID do cardápio *</label>
+        <input id="pc-cardapio" name="id_cardapio" type="number" min="1" required>
+        <label for="pc-qtd">Quantidade por pessoa *</label>
+        <input id="pc-qtd" name="qtd" type="number" min="1" required>
+        <label for="pc-desc">Descrição</label>
+        <input id="pc-desc" name="descricao">
+        <button type="submit">Associar</button>
+    </form>
+    <div class="tabela">
+        <table>
+            <thead><tr><th scope="col">ID</th><th scope="col">Nome</th><th scope="col">Tipo</th></tr></thead>
+            <tbody>
+                {% for p in pratos %}
+                <tr><td>{{ p.id_prato }}</td><td>{{ p.nome }}</td><td>{{ p.tipo_prato }}</td></tr>
+                {% else %}
+                <tr><td colspan="3">Nenhum prato encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{# ===== INGREDIENTES ===== #}
+<section class="card">
+    <div class="cabecalho-estoque"><h2>Ingredientes</h2></div>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_ingrediente_route') }}">
+        <label for="ing-nome">Nome *</label>
+        <input id="ing-nome" name="nome" required maxlength="60">
+        <label for="ing-unidade">Unidade *</label>
+        <input id="ing-unidade" name="unidade" required placeholder="kg, g, mL, un">
+        <label for="ing-qtd">Quantidade *</label>
+        <input id="ing-qtd" name="qtd" inputmode="decimal" value="0" required>
+        <label for="ing-min">Estoque mínimo *</label>
+        <input id="ing-min" name="qtd_min" inputmode="decimal" value="0" required>
+        <button type="submit">Cadastrar ingrediente</button>
+    </form>
+    <h3>Ficha técnica (ingrediente do prato)</h3>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_ficha_tecnica_route') }}">
+        <label for="ft-prato">ID do prato *</label>
+        <input id="ft-prato" name="id_prato" type="number" min="1" required>
+        <label for="ft-ing">ID do ingrediente *</label>
+        <input id="ft-ing" name="id_ingrediente" type="number" min="1" required>
+        <label for="ft-qtd">Quantidade necessária (por pessoa) *</label>
+        <input id="ft-qtd" name="qtd_necessaria" inputmode="decimal" required>
+        <button type="submit">Adicionar à ficha técnica</button>
+    </form>
+    <div class="tabela">
+        <table>
+            <thead><tr><th scope="col">ID</th><th scope="col">Nome</th><th scope="col">Quantidade</th><th scope="col">Mínimo</th><th scope="col">Unidade</th></tr></thead>
+            <tbody>
+                {% for i in ingredientes %}
+                <tr>
+                    <td>{{ i.id_ingrediente }}</td>
+                    <td>{{ i.nome }}</td>
+                    <td>{{ i.qtd }}</td>
+                    <td>{{ i.qtd_min }}</td>
+                    <td>{{ i.unidade }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">Nenhum ingrediente encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{# ===== BEBIDAS (fora do Bar) ===== #}
+<section class="card">
+    <div class="cabecalho-estoque"><h2>Bebidas</h2></div>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_bebida_route') }}">
+        <label for="beb-nome">Nome *</label>
+        <input id="beb-nome" name="nome" required maxlength="60">
+        <label for="beb-desc">Descrição *</label>
+        <input id="beb-desc" name="descricao" required>
+        <label for="beb-valor">Valor unitário *</label>
+        <input id="beb-valor" name="valor_unitario" inputmode="decimal" required>
+        <button type="submit">Cadastrar bebida</button>
+    </form>
+    <h3>Ficha técnica da bebida</h3>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_ficha_tecnica_bebida_route') }}">
+        <label for="ftb-beb">ID da bebida *</label>
+        <input id="ftb-beb" name="id_bebida" type="number" min="1" required>
+        <label for="ftb-ing">ID do ingrediente *</label>
+        <input id="ftb-ing" name="id_ingrediente" type="number" min="1" required>
+        <label for="ftb-qtd">Quantidade necessária (por unidade) *</label>
+        <input id="ftb-qtd" name="qtd_necessaria" type="number" min="1" required>
+        <button type="submit">Adicionar à ficha técnica</button>
+    </form>
+    <div class="tabela">
+        <table>
+            <thead><tr><th scope="col">ID</th><th scope="col">Nome</th><th scope="col">Valor unitário</th></tr></thead>
+            <tbody>
+                {% for b in bebidas %}
+                <tr><td>{{ b.id_bebida }}</td><td>{{ b.nome }}</td><td>{{ b.valor_unitario }}</td></tr>
+                {% else %}
+                <tr><td colspan="3">Nenhuma bebida encontrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{# ===== LOTES ===== #}
+<section class="card">
+    <div class="cabecalho-estoque"><h2>Lotes</h2></div>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_lote_route') }}">
+        <label for="lote-num">Número do lote *</label>
+        <input id="lote-num" name="num_lote" required>
+        <label for="lote-marca">Marca/Fornecedor *</label>
+        <input id="lote-marca" name="marca" required>
+        <label for="lote-receb">Data de recebimento *</label>
+        <input id="lote-receb" name="data_recebimento" type="date" required>
+        <label for="lote-val">Data de validade</label>
+        <input id="lote-val" name="data_validade" type="date">
+        <label for="lote-qtd">Quantidade inicial *</label>
+        <input id="lote-qtd" name="qtd_inicial" inputmode="decimal" required>
+        <label for="lote-ing">ID do ingrediente *</label>
+        <input id="lote-ing" name="id_ingrediente" type="number" min="1" required>
+        <button type="submit">Cadastrar lote</button>
+    </form>
+    <div class="tabela">
+        <table>
+            <thead><tr><th scope="col">ID</th><th scope="col">Lote</th><th scope="col">Marca</th><th scope="col">Qtd. inicial</th><th scope="col">Validade</th></tr></thead>
+            <tbody>
+                {% for l in lotes %}
+                <tr>
+                    <td>{{ l.id_lote }}</td>
+                    <td>{{ l.num_lote }}</td>
+                    <td>{{ l.marca }}</td>
+                    <td>{{ l.qtd_inicial }}</td>
+                    <td>{{ l.data_validade or '—' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">Nenhum lote encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<footer>Sabor &amp; Click · 2026</footer>
+{% endblock %}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar pedido | Sabor &amp; Click</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/carrinho.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+</head>
+<body class="pagina-fazer-pedido">
+    <header class="navbar">
+        <a class="marca" href="/"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
+        <nav aria-label="Navegação principal">
+            <a href="/">Início</a>
+            <div class="acoes-usuario">
+                <a class="icone-acao" href="{{ url_for('cliente.mostrar_carrinho') }}" aria-label="Carrinho"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a>
+                <a class="icone-acao" href="{{ url_for('cliente.perfil') }}" aria-label="Meu perfil"><img src="{{ url_for('static', filename='images/icone-perfil.svg') }}" width="20" height="20" alt=""></a>
+            </div>
+        </nav>
+    </header>
+
+    <main style="max-width:720px;margin:0 auto;padding:24px;">
+        {% include "componentes/mensagens.html" %}
+        <header class="intro"><h1>Finalizar pedido</h1><p>Selecione o endereço e informe a data e o horário do evento.</p></header>
+
+        <form method="post" action="{{ url_for('cliente.fazer_pedido') }}" class="formulario">
+            <fieldset>
+                <legend>Endereço do evento</legend>
+                {% if enderecos %}
+                    {% for e in enderecos %}
+                    <label>
+                        <input type="radio" name="endereco" value="{{ e.id_endereco }}" {{ 'checked' if loop.first }}>
+                        {{ e.nome }} — {{ e.logradouro }}, {{ e.numero }} · {{ e.bairro }} · {{ e.cidade }} · {{ e.cep }}
+                    </label>
+                    {% endfor %}
+                {% else %}
+                    <p>Você ainda não possui endereços. <a href="{{ url_for('cliente.perfil') }}#enderecos">Cadastre um endereço</a> antes de finalizar.</p>
+                {% endif %}
+            </fieldset>
+
+            <label for="data_evento">Data do evento *</label>
+            <input id="data_evento" name="data_evento" type="date" required>
+            <label for="hora_inicio">Horário de início *</label>
+            <input id="hora_inicio" name="hora_inicio" type="time" required>
+            <label for="hora_fim">Horário de término *</label>
+            <input id="hora_fim" name="hora_fim" type="time" required>
+            <label for="obs">Observações</label>
+            <textarea id="obs" name="obs" rows="3"></textarea>
+
+            <button type="submit" {{ 'disabled' if not enderecos }}>Confirmar pedido</button>
+        </form>
+
+        <p style="margin-top:16px;"><a href="{{ url_for('cliente.mostrar_carrinho') }}">← Voltar ao carrinho</a></p>
+    </main>
+</body>
+</html>

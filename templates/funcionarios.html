@@ -1,0 +1,39 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "funcionarios" %}
+{% block titulo %}Funcionários | Sabor &amp; Click{% endblock %}
+{% block conteudo_admin %}
+<header class="intro">
+    <h1>Funcionários</h1>
+    <p>Cadastre e consulte os funcionários da equipe.</p>
+</header>
+
+{% include "componentes/mensagens.html" %}
+
+<section class="card">
+    <div class="cabecalho-estoque">
+        <h2>Equipe</h2>
+        <a class="cadastrar-item" href="{{ url_for('admin.cadastrar_funcionario') }}">Cadastrar funcionário</a>
+    </div>
+    <form class="filtros-estoque formulario" method="get" action="{{ url_for('admin.funcionarios') }}">
+        <div>
+            <label for="busca-func">Buscar por nome</label>
+            <input id="busca-func" name="busca" type="search" value="{{ busca }}">
+        </div>
+        <button type="submit">Buscar</button>
+    </form>
+    <div class="tabela">
+        <table>
+            <thead><tr><th scope="col">ID</th><th scope="col">Nome</th><th scope="col">Cargo</th></tr></thead>
+            <tbody>
+                {% for f in funcionarios %}
+                <tr><td>{{ f.id_usuario }}</td><td>{{ f.nome }}</td><td>Chefe</td></tr>
+                {% else %}
+                <tr><td colspan="3">Nenhum funcionário encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<footer>Sabor &amp; Click · 2026</footer>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "pedidos" %}
+{% block titulo %}Pedidos | Sabor &amp; Click{% endblock %}
+{% block classe_admin %} pagina-pedidos{% endblock %}
+{% block conteudo_admin %}
+<header class="intro">
+    <h1>Pedidos</h1>
+    <p>Aceite novos pedidos e atualize o andamento dos seus.</p>
+</header>
+
+{% include "componentes/mensagens.html" %}
+
+<section class="card">
+    <h2>Pedidos aguardando aceite</h2>
+    <div class="tabela">
+        <table>
+            <thead><tr><th scope="col">Pedido</th><th scope="col">Cliente</th><th scope="col">Convidados</th><th scope="col">Data do evento</th><th scope="col">Ação</th></tr></thead>
+            <tbody>
+                {% for p in pendentes %}
+                <tr>
+                    <td>#{{ p.id_pedido }}</td>
+                    <td>{{ p.id_cliente }}</td>
+                    <td>{{ p.num_convidados }}</td>
+                    <td>{{ p.data_evento }}</td>
+                    <td><button type="button" class="assumir-pedido" data-id="{{ p.id_pedido }}">Aceitar pedido</button></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">Nenhum pedido aguardando.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Meus pedidos</h2>
+    <div class="tabela">
+        <table>
+            <thead><tr><th scope="col">Pedido</th><th scope="col">Status</th><th scope="col">Convidados</th><th scope="col">Atualizar</th></tr></thead>
+            <tbody>
+                {% for p in meus_pedidos %}
+                <tr>
+                    <td>#{{ p.id_pedido }}</td>
+                    <td><span class="status">{{ p.status }}</span></td>
+                    <td>{{ p.num_convidados }}</td>
+                    <td>
+                        <button type="button" class="atualizar-status" data-id="{{ p.id_pedido }}" data-status="em preparo">Em preparo</button>
+                        <button type="button" class="atualizar-status" data-id="{{ p.id_pedido }}" data-status="concluido">Entregue</button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4">Você ainda não assumiu nenhum pedido.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<footer>Sabor &amp; Click · 2026</footer>
+{% endblock %}
+{% block scripts_admin %}
+<script>
+async function enviar(url, corpo) {
+    const resposta = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corpo),
+    });
+    const dados = await resposta.json().catch(() => ({}));
+    alert(dados.mensagem || (resposta.ok ? "Operação concluída." : "Erro na operação."));
+    if (resposta.ok) location.reload();
+}
+
+document.querySelectorAll(".assumir-pedido").forEach((botao) => {
+    botao.addEventListener("click", () => {
+        botao.disabled = true;
+        enviar("{{ url_for('chefe.aceitar_pedido') }}", { id: Number(botao.dataset.id) })
+            .finally(() => { botao.disabled = false; });
+    });
+});
+
+document.querySelectorAll(".atualizar-status").forEach((botao) => {
+    botao.addEventListener("click", () => {
+        enviar("{{ url_for('chefe.atualizar_status') }}", {
+            id: Number(botao.dataset.id),
+            status: botao.dataset.status,
+        });
+    });
+});
+</script>
+{% endblock %}

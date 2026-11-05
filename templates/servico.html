@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápios do serviço | Sabor &amp; Click</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+</head>
+<body class="pagina-servico">
+    <header class="navbar">
+        <a class="marca" href="/"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
+        <nav aria-label="Navegação principal">
+            <a href="/">Início</a><a href="/#servicos">Serviços</a>
+            <div class="acoes-usuario">
+                <a class="icone-acao" href="{{ url_for('cliente.mostrar_carrinho') }}" aria-label="Carrinho"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a>
+                <a class="icone-acao" href="{{ url_for('cliente.perfil') }}" aria-label="Meu perfil"><img src="{{ url_for('static', filename='images/icone-perfil.svg') }}" width="20" height="20" alt=""></a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="servico-conteudo" style="max-width:960px;margin:0 auto;padding:24px;">
+        {% include "componentes/mensagens.html" %}
+        <header class="intro"><h1>Cardápios disponíveis</h1><p>Escolha um cardápio e informe o número de convidados (de 10 a 500). O preço é por pessoa.</p></header>
+
+        {% set slug = request.view_args.slug if request.view_args else '' %}
+        {% for cardapio in cardapios %}
+        <article class="card" style="margin-bottom:16px;">
+            <h2>{{ cardapio.nome }}</h2>
+            <p>{{ cardapio.descricao }}</p>
+            <p><strong>{{ cardapio.preco_base | moeda if cardapio.preco_base is number else ('R$ ' ~ cardapio.preco_base) }}</strong> por pessoa</p>
+            <form method="post" action="{{ url_for('cliente.adicionar') }}">
+                <input type="hidden" name="slug_servico" value="{{ slug }}">
+                <input type="hidden" name="id_cardapio" value="{{ cardapio.id_cardapio }}">
+                <label for="qtd-{{ cardapio.id_cardapio }}">Número de convidados</label>
+                <input id="qtd-{{ cardapio.id_cardapio }}" name="qtd" type="number" min="10" max="500" required>
+                <button type="submit">Adicionar ao carrinho</button>
+            </form>
+        </article>
+        {% else %}
+        <p>Nenhum cardápio disponível para este serviço.</p>
+        {% endfor %}
+    </main>
+</body>
+</html>

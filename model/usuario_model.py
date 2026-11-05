@@ -42,20 +42,6 @@ class Endereco(db.Model):
     __tablename__ = "endereco"
 
     id_endereco = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario")) 
-    nome = db.Column(db.String(150), nullable=False)
-    logradouro = db.Column(db.String(150), nullable=False)
-    numero = db.Column(db.String(20), nullable=False)
-    complemento = db.Column(db.String(100), nullable=True)  # Opcional
-    bairro = db.Column(db.String(100), nullable=False)
-    cidade = db.Column(db.String(100), nullable=False)
-    cep = db.Column(db.String(9), nullable=False)
-
-# Tabela de endereços do usuário
-class Endereco(db.Model):
-    __tablename__ = "endereco"
-
-    id_endereco = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"))
     nome = db.Column(db.String(150), nullable=False)
     logradouro = db.Column(db.String(150), nullable=False)
@@ -334,7 +320,7 @@ def reativar_usuario (id_usuario: int):
 
 def adicionar_endereco(nome: str, logradouro: str, numero: str, complemento: str, bairro: str, cidade: str, cep: str) -> (Endereco | None):
     """Adiciona novo endereço para o cliente."""
-    endereco=Endereco(id_usuario=session.get("id"), nome=nome, logradouro=logradouro, numero=int(numero), complemento=complemento, bairro=bairro, cidade=cidade, cep=cep)
+    endereco=Endereco(id_usuario=session.get("id"), nome=nome, logradouro=logradouro, numero=str(numero), complemento=complemento, bairro=bairro, cidade=cidade, cep=cep)
     db.session.add(endereco)
 
     try:

@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "logs" %}
+{% block titulo %}Detalhe do log | Sabor &amp; Click{% endblock %}
+{% block conteudo_admin %}
+<header class="intro">
+    <h1>Detalhe do registro</h1>
+    <p><a href="{{ url_for('admin.pagina_logs') }}">← Voltar aos logs</a></p>
+</header>
+
+{% include "componentes/mensagens.html" %}
+
+<section class="card">
+    <div class="tabela">
+        <table>
+            <tbody>
+                <tr><th scope="row">ID</th><td>{{ log.id_atividade }}</td></tr>
+                <tr><th scope="row">Data</th><td>{{ log.realizado_em.strftime('%d/%m/%Y %H:%M') }}</td></tr>
+                <tr><th scope="row">Ação</th><td>{{ log.acao }}</td></tr>
+                <tr><th scope="row">Descrição</th><td>{{ log.descricao }}</td></tr>
+                <tr><th scope="row">Usuário</th><td>{{ log.id_usuario }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <form method="post" action="{{ url_for('admin.deletar_log_route', id_atividade=log.id_atividade) }}" onsubmit="return confirm('Excluir este registro?')">
+        <button type="submit">Excluir registro</button>
+    </form>
+</section>
+
+<footer>Sabor &amp; Click · 2026</footer>
+{% endblock %}

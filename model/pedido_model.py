@@ -1,11 +1,12 @@
 # Contém a tabela: Pedido
 from datetime import datetime
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from model.usuario_model import registrar_log
 
 from database import db
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DatabaseError, IntegrityError, OperationalError
 from sqlalchemy import extract
 
 
@@ -66,7 +67,7 @@ class PedidoBebida(db.Model):
 class bebidaCardapio(db.Model):
     __tablename__ = "bebida_cardapio"
 
-    id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_servico"), primary_key=True)
+    id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_bebida"), primary_key=True)
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
 
 class CardapioPedido(db.Model):
@@ -180,6 +181,7 @@ def criar_pedido(id_cliente: int, id_endereco: int , num_convidados: int, valor_
             p_c = CardapioPedido(
                 id_cardapio=cardapio["id_cardapio"],
                 id_pedido=novo_pedido.id_pedido,
+                id_servico=cardapio["id_servico"],
             )
             db.session.add(p_c)
 
@@ -187,17 +189,15 @@ def criar_pedido(id_cliente: int, id_endereco: int , num_convidados: int, valor_
         #verifica se o pedido tem bebida, se tiver adiciona
         if bebidas:
             for item in bebidas:
+                qtd = int(item["qtd"])
+                valor_unitario = Decimal(str(item["valor_unitario"]))
                 p_b = PedidoBebida(
                     id_pedido=novo_pedido.id_pedido,
                     id_bebida=item["id_bebida"],
-                    qtd=item["qtd"],
-                    valor_unitario=item["valor_unitario"],
+                    qtd=qtd,
+                    valor_total=valor_unitario * qtd,
                 )
                 db.session.add(p_b)
-
-        from triggers import criar_trigger_baixa_estoque
-        
-        criar_trigger_baixa_estoque()
 
         db.session.commit()
     except IntegrityError:
@@ -212,8 +212,39 @@ def buscar_pedido_por_id(id_pedido: int):
     return db.session.get(Pedido, id_pedido)
 
 def listar_pedidos_por_cliente(id_cliente: int) :
-    """Lista os pedidos realizados pelo clientre"""
+    """Lista os pedidos realizados pelo cliente."""
     return db.session.query(Pedido).filter_by(id_cliente=id_cliente).all()
+
+def listar_pedidos_pendentes() -> list[Pedido]:
+    """Lista os pedidos aguardando aceite por um chef.
+
+    Retorna os pedidos com status ``'aguardando'`` e sem chef responsável,
+    ordenados do mais antigo para o mais recente (ordem de chegada).
+
+    Returns:
+        list[Pedido]: pedidos pendentes de aceite. Lista vazia se não houver.
+    """
+    return db.session.execute(
+        db.select(Pedido)
+        .where(Pedido.status == "aguardando", Pedido.id_chefe.is_(None))
+        .order_by(Pedido.criado_em.asc()),
+    ).scalars().all()
+
+def listar_pedidos_do_chefe(id_chefe: int) -> list[Pedido]:
+    """Lista os pedidos sob responsabilidade de um chef.
+
+    Args:
+        id_chefe (int): identificador do chef responsável.
+
+    Returns:
+        list[Pedido]: pedidos atribuídos ao chef, dos mais recentes aos mais
+        antigos. Lista vazia se não houver.
+    """
+    return db.session.execute(
+        db.select(Pedido)
+        .where(Pedido.id_chefe == id_chefe)
+        .order_by(Pedido.criado_em.desc()),
+    ).scalars().all()
 
 def listar_pedidos_periodo(ano:int|str, mes:int|str, dia:int|str, status=None) -> list[Pedido] | None:
     """Retorna todos os pedidos concluidos até certo dia de mês e ano específicos.
@@ -236,13 +267,18 @@ def listar_pedidos_periodo(ano:int|str, mes:int|str, dia:int|str, status=None) -
     if not 1 <= mes <= 12 or not 1 <= dia <= 31:
         return None
 
+    filtros = [
+        extract("month", Pedido.data_evento) == mes,
+        extract("year", Pedido.data_evento) == ano,
+        extract("day", Pedido.data_evento) <= dia,
+    ]
+    # Só filtra por status quando um status foi informado; status=None significa
+    # "todos os status" (evita gerar status IS NULL, que nunca casa com nada).
+    if status is not None:
+        filtros.append(Pedido.status == status)
+
     return db.session.execute(
-        db.select(Pedido).where(
-            Pedido.status==status,
-            extract("month", Pedido.data_evento) == mes,
-            extract("year", Pedido.data_evento) == ano,
-            extract("day", Pedido.data_evento) <= dia,
-        ),
+        db.select(Pedido).where(*filtros),
     ).scalars().all()
 
 def listar_pedidos_entre_datas(ano:int|str, mes:int|str, dia:int|str, ano_final:int | str | None = None, mes_final:int | str | None = None, dia_final:int | str | None = None, status="concluido") -> list[Pedido] | None:
@@ -283,12 +319,15 @@ def listar_pedidos_entre_datas(ano:int|str, mes:int|str, dia:int|str, ano_final:
     if data_fim < data_inicio:
         return None
 
+    filtros = [
+        Pedido.data_evento >= data_inicio,
+        Pedido.data_evento <= data_fim,
+    ]
+    if status is not None:
+        filtros.append(Pedido.status == status)
+
     return db.session.execute(
-        db.select(Pedido).where(
-            Pedido.status == status,
-            Pedido.data_evento >= data_inicio,
-            Pedido.data_evento <= data_fim,
-        ),
+        db.select(Pedido).where(*filtros),
     ).scalars().all()
 
 def atualizar_pedido(
@@ -325,6 +364,90 @@ def atualizar_pedido(
         return None
 
 
+def aceitar_pedido_atomico(id_pedido: int, id_chefe: int, confirmado_em: datetime) -> bool:
+    """Atribui um pedido a um chef de forma atômica (resolve concorrência).
+
+    Executa um ``UPDATE`` condicional que só tem efeito quando o pedido ainda
+    está ``aguardando`` e sem chef responsável (``id_chefe IS NULL``). Dessa
+    forma, se dois chefs tentarem aceitar o mesmo pedido simultaneamente, apenas
+    o primeiro ``UPDATE`` afeta uma linha; o segundo não altera nada. A mudança
+    de ``status`` para ``'confirmado'`` é o gatilho da baixa de estoque, e como
+    a transição só ocorre uma vez, não há risco de baixa dupla.
+
+    Args:
+        id_pedido (int): identificador do pedido a ser aceito.
+        id_chefe (int): identificador do chef que está aceitando.
+        confirmado_em (datetime): momento da confirmação.
+
+    Returns:
+        bool: ``True`` se este chef assumiu o pedido; ``False`` se o pedido não
+        existe, já foi aceito por outro chef, ou se a baixa de estoque foi
+        abortada por falta de ingredientes (a transação é revertida).
+    """
+    resultado = db.session.execute(
+        db.update(Pedido)
+        .where(
+            Pedido.id_pedido == id_pedido,
+            Pedido.id_chefe.is_(None),
+            Pedido.status == "aguardando",
+        )
+        .values(
+            status="confirmado",
+            id_chefe=id_chefe,
+            confirmado_em=confirmado_em,
+        ),
+    )
+
+    if resultado.rowcount == 0:
+        db.session.rollback()
+        return False
+
+    try:
+        # O commit dispara a trigger de baixa de estoque; se o estoque for
+        # insuficiente, a trigger aborta e levanta um erro aqui.
+        db.session.commit()
+    except (IntegrityError, OperationalError, DatabaseError):
+        db.session.rollback()
+        return False
+
+    return True
+
+
+def atualizar_status_pelo_chefe(id_pedido: int, id_chefe: int, status: str) -> bool:
+    """Atualiza o status de um pedido, garantindo que o chef seja o responsável.
+
+    Só permite a alteração quando o pedido pertence ao chef informado
+    (``id_chefe`` igual ao responsável). Isso impede que um chef altere pedidos
+    de outro chef via chamadas diretas de URL.
+
+    Args:
+        id_pedido (int): identificador do pedido.
+        id_chefe (int): identificador do chef responsável que faz a alteração.
+        status (str): novo status, dentro dos valores válidos de ``status_pedido``.
+
+    Returns:
+        bool: ``True`` se o status foi atualizado; ``False`` se o pedido não
+        existe, o chef não é o responsável, ou o status é inválido.
+    """
+    status_validos = {"aguardando", "confirmado", "em preparo", "concluido", "cancelado"}
+    if status not in status_validos:
+        return False
+
+    pedido = db.session.get(Pedido, id_pedido)
+    if not pedido or pedido.id_chefe != id_chefe:
+        return False
+
+    pedido.status = status
+
+    try:
+        db.session.commit()
+        registrar_log("ATUALIZACAO PEDIDO", f"Status do pedido {id_pedido} alterado para '{status}'.")
+        return True
+    except IntegrityError:
+        db.session.rollback()
+        return False
+
+
 def deletar_pedido(id_pedido: int):
     """Deleta pedido"""
     pedido = db.session.get(Pedido, id_pedido)
@@ -340,20 +463,39 @@ def deletar_pedido(id_pedido: int):
 
 #PEDIDO_BEBIDA
 def adicionar_bebida_ao_pedido(id_pedido: int, id_bebida: int, qtd: int, valor_unitario: float) -> bool:
+    """Adiciona (ou incrementa) uma bebida em um pedido.
+
+    Quando a bebida já consta no pedido, soma a quantidade e recalcula o valor
+    total do item; caso contrário, cria uma nova linha em ``pedido_bebida``.
+
+    Args:
+        id_pedido (int): identificador do pedido.
+        id_bebida (int): identificador da bebida.
+        qtd (int): quantidade de unidades a adicionar.
+        valor_unitario (float): valor unitário da bebida.
+
+    Returns:
+        bool: ``True`` em caso de sucesso; ``False`` se o pedido ou a bebida
+        não existirem.
+    """
     pedido = db.session.get(Pedido, id_pedido)
     bebida = db.session.get(Bebida, id_bebida)
     if not pedido or not bebida:
         return False
 
+    qtd = int(qtd)
+    valor_unitario = Decimal(str(valor_unitario))
+
     item = db.session.get(PedidoBebida, (id_pedido, id_bebida))
     if item:
         item.qtd += qtd
+        item.valor_total = valor_unitario * item.qtd
     else:
         item = PedidoBebida(
             id_pedido=id_pedido,
             id_bebida=id_bebida,
             qtd=qtd,
-            valor_unitario=valor_unitario,
+            valor_total=valor_unitario * qtd,
         )
         db.session.add(item)
 
@@ -361,6 +503,15 @@ def adicionar_bebida_ao_pedido(id_pedido: int, id_bebida: int, qtd: int, valor_u
     return True
 
 def remover_bebida_do_pedido(id_pedido: int, id_bebida: int) -> bool:
+    """Remove uma bebida de um pedido.
+
+    Args:
+        id_pedido (int): identificador do pedido.
+        id_bebida (int): identificador da bebida a remover.
+
+    Returns:
+        bool: ``True`` se o item existia e foi removido; ``False`` caso contrário.
+    """
     item = db.session.get(PedidoBebida, (id_pedido, id_bebida))
     if not item:
         return False
@@ -371,13 +522,27 @@ def remover_bebida_do_pedido(id_pedido: int, id_bebida: int) -> bool:
 
 # CRUD CardapioPedido
 def criar_cardapio_pedido(id_cardapio: int, id_pedido: int, id_servico: int) -> (CardapioPedido | None):
-    """Relaciona um cardapio a um pedido."""
-    cardapio_pedido=CardapioPedido(id_cardapio, id_pedido, id_servico)
+    """Relaciona um cardápio a um pedido.
+
+    Args:
+        id_cardapio (int): identificador do cardápio.
+        id_pedido (int): identificador do pedido.
+        id_servico (int): identificador do serviço do cardápio no pedido.
+
+    Returns:
+        CardapioPedido | None: a associação criada, ou ``None`` em caso de erro
+        de integridade.
+    """
+    cardapio_pedido = CardapioPedido(
+        id_cardapio=id_cardapio,
+        id_pedido=id_pedido,
+        id_servico=id_servico,
+    )
 
     db.session.add(cardapio_pedido)
 
     try:
-        db.session.commit(cardapio_pedido)
+        db.session.commit()
         return cardapio_pedido
     except IntegrityError:
         db.session.rollback()
@@ -389,6 +554,19 @@ def buscar_cardapios_pedido(id_pedido: int):
         db.select(CardapioPedido).where(
     CardapioPedido.id_pedido == id_pedido,
         ),
+    ).scalars().all()
+
+def buscar_bebidas_pedido(id_pedido: int) -> list:
+    """Retorna as bebidas (linhas de ``pedido_bebida``) de um pedido.
+
+    Args:
+        id_pedido (int): identificador do pedido.
+
+    Returns:
+        list[PedidoBebida]: itens de bebida do pedido. Lista vazia se não houver.
+    """
+    return db.session.execute(
+        db.select(PedidoBebida).where(PedidoBebida.id_pedido == id_pedido),
     ).scalars().all()
 
 def deletar_cardapios_pedido(id_pedido: int) -> (bool):
