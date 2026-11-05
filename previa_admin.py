@@ -35,6 +35,11 @@ def indice():
 def pedidos():
     return render_template('previas/pedidos.html')
 
+@app.get('/cozinha')
+@app.get('/previas/cozinha.html')
+def cozinha():
+    return render_template('previas/cozinha.html')
+
 @app.get('/estoque')
 def estoque():
     return render_template('previas/estoque.html')
