@@ -35,6 +35,25 @@ class Pedido(Base):
         db.CheckConstraint("num_convidados > 0", name="ck_pedido_convidados"),
         db.CheckConstraint("valor_total >= 0", name="ck_pedido_valor"),
     )
+    
+    def __init__(self, id_cliente: int, id_endereco: int,
+                 data_evento, hora_inicio, hora_fim,
+                 num_convidados: int = 1, valor_total=0.00,
+                 observacao: str = None, id_chefe: int = None,
+                 status: str = "aguardando", confirmado_em=None, criado_em=None):
+        self.id_cliente = id_cliente
+        self.id_endereco = id_endereco
+        self.data_evento = data_evento
+        self.hora_inicio = hora_inicio
+        self.hora_fim = hora_fim
+        self.num_convidados = num_convidados
+        self.valor_total = valor_total
+        self.observacao = observacao
+        self.id_chefe = id_chefe
+        self.status = status
+        self.confirmado_em = confirmado_em
+        if criado_em is not None:
+            self.criado_em = criado_em
 
 class Bebida(Base):
     __tablename__ = "bebida"
@@ -47,6 +66,12 @@ class Bebida(Base):
     __table_args__ = (
         db.CheckConstraint("valor_unitario >= 0", name="ck_bebida_valor"),
     )
+    
+    def __init__(self, nome: str, descricao: str, valor_unitario):
+        self.nome = nome
+        self.descricao = descricao
+        self.valor_unitario = valor_unitario
+
 
 class PedidoBebida(Base):
     __tablename__ = "pedido_bebida"
@@ -61,6 +86,13 @@ class PedidoBebida(Base):
     __table_args__ = (
         db.CheckConstraint("qtd > 0", name="ck_pedido_bebida_qtd"),
     )
+    
+    def __init__(self, id_pedido: int, id_bebida: int, qtd: int, valor_total):
+        self.id_pedido = id_pedido
+        self.id_bebida = id_bebida
+        self.qtd = qtd
+        self.valor_total = valor_total
+    
 # Tabela de associação entre cardápio e bebida
 
 class BebidaCardapio(Base):
@@ -69,12 +101,21 @@ class BebidaCardapio(Base):
     id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_servico"), primary_key=True)
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
 
+    def __init__(self, id_bebida: int, id_cardapio: int):
+        self.id_bebida = id_bebida
+        self.id_cardapio = id_cardapio
+
 class CardapioPedido(Base):
     __tablename__ = "cardapio_pedido"
 
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
     id_pedido = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), primary_key=True)
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
+
+    def __init__(self, id_cardapio: int, id_pedido: int, id_servico: int):
+        self.id_cardapio = id_cardapio
+        self.id_pedido = id_pedido
+        self.id_servico = id_servico
 
 # ======================================================
 

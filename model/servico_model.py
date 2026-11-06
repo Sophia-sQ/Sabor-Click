@@ -12,6 +12,10 @@ class Bancada(Base):
     id_bancada = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(60), nullable=False)
     descricao = db.Column(db.Text, nullable=False)
+    
+    def __init__(self, nome: str, descricao: str):
+        self.nome = nome
+        self.descricao = descricao
 
 class Servico(Base):
     __tablename__ = "servico"
@@ -22,11 +26,13 @@ class Servico(Base):
     slug = db.Column(db.String(120), nullable=False, unique=True)
 
     # É executada cada vez que a classe é instanciada
-    def __init__(self, **kwargs): # **kwargs recebe um dicionario (os dados da propria instancia)
-        if kwargs.get("nome"):
-            kwargs["slug"] = kwargs.get("slug") or slugify(kwargs["nome"])
-
-        super().__init__(**kwargs)
+    def __init__(self, nome: str, descricao: str, slug: str = None, **kwargs):
+        self.nome = nome
+        self.descricao = descricao
+        self.slug = slug or slugify(nome)
+        # mantém compatibilidade com qualquer outro campo passado via kwargs
+        for chave, valor in kwargs.items():
+            setattr(self, chave, valor)
 
 # Tabela de associação entre bancada e o serviço
 class ServicoBancada(Base):
@@ -34,6 +40,10 @@ class ServicoBancada(Base):
 
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
     id_bancada = db.Column(db.Integer, db.ForeignKey("bancada.id_bancada"), primary_key=True)
+
+    def __init__(self, id_servico: int, id_bancada: int):
+        self.id_servico = id_servico
+        self.id_bancada = id_bancada
 
 class Cardapio(Base):
     __tablename__ = "cardapio"
@@ -46,6 +56,12 @@ class Cardapio(Base):
     __table_args__ = (
         db.CheckConstraint("preco_base >= 0", name="ck_cardapio_preco"),
     )
+    
+    def __init__(self, nome: str, descricao: str, preco_base):
+        self.nome = nome
+        self.descricao = descricao
+        self.preco_base = preco_base
+    
 # Tabela de associação entre cardápio e serviço, pois existem serviços com o mesmo cardápio
 
 class ServicoCardapio(Base):
@@ -54,7 +70,9 @@ class ServicoCardapio(Base):
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
 
-
+    def __init__(self, id_servico: int, id_cardapio: int):
+        self.id_servico = id_servico
+        self.id_cardapio = id_cardapio
 
 """==================CRUD BANCADA============="""
 

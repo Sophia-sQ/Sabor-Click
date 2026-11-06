@@ -15,6 +15,14 @@ class Prato(Base):
     tempo_preparo = db.Column(db.Integer, nullable=False)
     requer_pre_preparo = db.Column(db.Boolean, default=False, nullable=False)
 
+    def __init__(self, nome: str, descricao: str, tipo_prato: str,
+                 tempo_preparo: int, requer_pre_preparo: bool = False):
+        self.nome = nome
+        self.descricao = descricao
+        self.tipo_prato = tipo_prato
+        self.tempo_preparo = tempo_preparo
+        self.requer_pre_preparo = requer_pre_preparo
+
 class PratoCardapio(Base):
     __tablename__ = "prato_cardapio"
     id_prato = db.Column(db.Integer, db.ForeignKey("prato.id_prato"), primary_key=True)
@@ -23,6 +31,12 @@ class PratoCardapio(Base):
     qtd = db.Column(db.Integer, nullable=False)
     descricao = db.Column(db.Text, nullable=True)
 
+    def __init__(self, id_prato: int, id_cardapio: int, qtd: int,
+                 descricao: str = None):
+        self.id_prato = id_prato
+        self.id_cardapio = id_cardapio
+        self.qtd = qtd
+        self.descricao = descricao
 
 class Ingrediente(Base):
     __tablename__ = "ingrediente"
@@ -37,6 +51,11 @@ class Ingrediente(Base):
         db.CheckConstraint("qtd >= 0 AND qtd_min >= 0", name="ck_ingrediente_qtd"),
     )
 
+    def __init__(self, nome: str, unidade: str, qtd=0.0, qtd_min=0.0):
+        self.nome = nome
+        self.unidade = unidade
+        self.qtd = qtd
+        self.qtd_min = qtd_min
 
 class FichaTecnica(Base):
     __tablename__ = "ficha_tecnica"
@@ -50,6 +69,11 @@ class FichaTecnica(Base):
         db.CheckConstraint("qtd_necessaria > 0", name="ck_ficha_qtd"),
     )
 
+    def __init__(self, id_prato: int, id_ingrediente: int, qtd_necessaria):
+        self.id_prato = id_prato
+        self.id_ingrediente = id_ingrediente
+        self.qtd_necessaria = qtd_necessaria
+
 class FichaTecnica_bebida(Base):
     __tablename__ = "ficha_tecnica_bebida"
 
@@ -61,6 +85,10 @@ class FichaTecnica_bebida(Base):
         db.CheckConstraint("qtd_necessaria > 0", name="ck_ficha_bebida_qtd"),
     )
 
+    def __init__(self, id_bebida: int, id_ingrediente: int, qtd_necessaria: int):
+        self.id_bebida = id_bebida
+        self.id_ingrediente = id_ingrediente
+        self.qtd_necessaria = qtd_necessaria
 
 class Lote(Base):
     __tablename__ = "lote"
@@ -80,6 +108,15 @@ class Lote(Base):
     #   # UM dos campos seja NOT NULL
     #    db.CheckConstraint("(id_ingrediente IS NULL) <> (id_bebida IS NULL)", name="ck_lote_item"),
     #)
+
+    def __init__(self, num_lote: str, marca: str, data_recebimento,
+                 qtd_inicial, id_ingrediente: int = None, data_validade=None):
+        self.num_lote = num_lote
+        self.marca = marca
+        self.data_recebimento = data_recebimento
+        self.data_validade = data_validade
+        self.qtd_inicial = qtd_inicial
+        self.id_ingrediente = id_ingrediente
 
 """==================CRUD PRATO============="""
 
