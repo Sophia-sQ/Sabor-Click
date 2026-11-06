@@ -11,18 +11,17 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 def formatar_nome(nome_completo: str) -> str:
     """Ajusta a capitalização de um nome próprio mantendo conectivos em minúscula.
 
-    Converte a primeira letra de cada palavra para maiúscula (Title Case), 
-    mas ignora artigos, preposições e conjunções comuns no idioma português 
-    (ex: 'de', 'da', 'e'), mantendo-os em letras minúsculas, exceto se 
-    forem a primeira palavra do nome.
+    Converte a primeira letra de cada palavra para maiúscula (Title Case), mas
+    mantém artigos, preposições e conjunções comuns do português (ex.: 'de',
+    'da', 'e') em minúsculas, exceto quando são a primeira palavra do nome.
 
     Args:
-        nome_completo (str): O nome ou expressão que será formatado.
+        nome_completo (str): nome ou expressão a ser formatado.
 
     Returns:
-        str: O nome formatado com as devidas maiúsculas e minúsculas.
-
+        str: nome formatado com as devidas maiúsculas e minúsculas.
     """
+    
     # Lista de palavras que devem permanecer em minúscula no meio do nome
     conectivos = ["de", "da", "do", "das", "dos", "e", "em", "por", "com", "o", "a", "os", "as"]
 
@@ -44,8 +43,21 @@ def formatar_nome(nome_completo: str) -> str:
 
 
 #formatação monetária
-def moeda_para_centavos(valor):
-    """Pega um valor monetário e o transforma em centavos."""
+def moeda_para_centavos(valor) -> int:
+    """Converte um valor monetário (texto ou número) em centavos (inteiro).
+
+    Aceita formatos com 'R$', espaços, ponto de milhar e vírgula decimal.
+
+    Args:
+        valor: valor monetário a converter (ex.: "R$ 1.234,56").
+
+    Returns:
+        int: valor correspondente em centavos.
+
+    Raises:
+        ValueError: se o valor informado não for um número monetário válido.
+    """
+    
     texto = str(valor).strip().replace("R$", "").replace(" ", "")
     if "," in texto:
         texto = texto.replace(".", "").replace(",", ".")
@@ -54,20 +66,29 @@ def moeda_para_centavos(valor):
     except InvalidOperation as erro:
         raise ValueError("Valor monetário inválido") from erro
 
-def formatar_moeda(centavos):
-    """Pega um valor em centavos e retorna formatado como Real."""
+def formatar_moeda(centavos) -> str:
+    """Formata um valor em centavos como moeda brasileira (Real).
+
+    Args:
+        centavos: valor em centavos a ser formatado.
+
+    Returns:
+        str: valor formatado no padrão brasileiro (ex.: "R$ 1.234,56").
+    """
     valor = Decimal(int(centavos)) / 100
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 def calcular_periodo(meses_antes: int) -> int:
-    """Calcula o dia equivalente em um mês qualquer.
+    """Calcula o dia equivalente em um mês anterior ao atual.
+
+    Quando hoje é o último dia do mês, retorna o último dia do mês de
+    referência; caso contrário, retorna o dia de hoje.
 
     Args:
         meses_antes (int): quantos meses antes da data de hoje.
 
     Returns:
         int: dia equivalente naquele mês.
-
     """
     hoje = datetime.now(ZoneInfo("America/Sao_Paulo"))
 
@@ -83,19 +104,13 @@ def calcular_periodo(meses_antes: int) -> int:
     return dia
 
 def hoje() -> datetime:
-    """Retorna a data de hoje.
+    """Retorna a data e hora atuais no fuso de São Paulo."""
 
-    Returns:
-        datetime: data de hoje.
-    """
     return datetime.now(ZoneInfo("America/Sao_Paulo"))
 
 def mes_passado() -> datetime:
-    """Retorna mes e ano passado.
+    """Retorna a data e hora de um mês atrás, no fuso de São Paulo."""
 
-    Returns:
-        datetime: data de hoje.
-    """
     return datetime.now(ZoneInfo("America/Sao_Paulo")) - relativedelta(months=1)
 
 def semana_passada(num_semanas: int) -> tuple[date, date]:
@@ -104,15 +119,14 @@ def semana_passada(num_semanas: int) -> tuple[date, date]:
     Considera a semana de segunda-feira a domingo.
 
     Args:
-        num_semanas (int): Quantas semanas antes da atual.
-            1 representa a semana passada, 2 a retrasada, etc.
+        num_semanas (int): quantas semanas antes da atual (1 = semana passada,
+            2 = retrasada, etc.).
 
     Returns:
-        tuple[date, date]: Data inicial (segunda-feira) e
-        data final (domingo).
+        tuple[date, date]: data inicial (segunda-feira) e data final (domingo).
 
     Raises:
-        ValueError: Se num_semanas for menor que 1.
+        ValueError: se num_semanas for menor que 1.
     """
     if num_semanas < 1:
         raise ValueError("num_semanas deve ser maior ou igual a 1")
@@ -126,19 +140,14 @@ def semana_passada(num_semanas: int) -> tuple[date, date]:
     fim_semana_passada = inicio_semana_passada + timedelta(days=6)
     return (inicio_semana_passada, fim_semana_passada)
 
-def ultimos_30_dias():
-    """Calcula a data de exatamente 30 dias atrás.
-
-    Returns:
-        datetime: data de exatamente 30 dias atrás.
-
-    """
+def ultimos_30_dias() -> datetime:
+    """Retorna a data e hora de exatamente 30 dias atrás."""
     trita_dias_atras = hoje() - timedelta(days=30)
 
     return trita_dias_atras
 
-def para_data(dia: int, mes: int, ano: int) -> datetime:
-    """_summary_
+def para_data(dia: int, mes: int, ano: int) -> date:
+    """Monta um objeto de data a partir de dia, mês e ano.
 
     Args:
         dia (int): dia da data.
@@ -146,13 +155,14 @@ def para_data(dia: int, mes: int, ano: int) -> datetime:
         ano (int): ano da data.
 
     Returns:
-        datetime: data em formato YY/MM/DD.
-
+        date: data correspondente aos valores informados.
     """
     return datetime(ano, mes, dia).date()
 
-def string_para_data(data:str):
+def string_para_data(data: str) -> date:
+    """Converte uma string 'AAAA-MM-DD' em um objeto date."""
     return datetime.strptime(data, "%Y-%m-%d").date()
 
-def string_para_hora(hora:str):
+def string_para_hora(hora: str):
+    """Converte uma string 'HH:MM' em um objeto time."""
     return  datetime.strptime(hora, "%H:%M").time()

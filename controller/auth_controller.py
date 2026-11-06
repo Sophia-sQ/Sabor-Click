@@ -1,3 +1,5 @@
+"""Rotas de autenticação: login, verificação por token, logout e cadastro."""
+
 from re import fullmatch
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
@@ -15,10 +17,19 @@ auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/verificacao", methods=["GET", "POST"])
 def verificacao():
+    """Trata a verificação por token (delega a verificar_token)."""
     return verificar_token()
 
 @auth_bp.route("/login", methods=("GET", "POST"))
 def login():
+    """Processa o login por e-mail ou CPF e dispara o código de verificação.
+
+    No GET, exibe o formulário. No POST, valida as credenciais, localiza o
+    usuário, envia o código por e-mail e guarda o estado pendente na sessão.
+
+    Returns:
+        Response | str: redirecionamento ou template, conforme o fluxo.
+    """
     if request.method == "GET":
         return render_template("login.html")
 
@@ -67,6 +78,14 @@ def login():
 
 @auth_bp.route("/verificar-token", methods=["GET", "POST"])
 def verificar_token():
+    """Valida o código de verificação de seis dígitos e conclui o login.
+
+    No GET, exibe o formulário (se houver login pendente). No POST, valida o
+    código; em caso de sucesso, grava o usuário/cargo na sessão.
+
+    Returns:
+        Response | str: redirecionamento ou template, conforme o fluxo.
+    """
     email_pendente = session.get("email_pendente")
     id_pendente = session.get("usuario_pendente_id")
 
@@ -102,12 +121,21 @@ def verificar_token():
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
+    """Encerra a sessão do usuário e retorna à home."""
     session.clear()
     return render_template("home.html")
 
 
 @auth_bp.route("/cadastro", methods=["GET", "POST"])
 def cadastro():
+    """Cadastra um novo cliente a partir do formulário.
+
+    No GET, exibe o formulário. No POST, valida os campos e cria o usuário com
+    cargo CLIENTE.
+
+    Returns:
+        str: template de login (sucesso) ou de cadastro (erro de validação).
+    """
     if request.method == "GET":
         return render_template("cadastro.html")
 

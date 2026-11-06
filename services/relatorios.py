@@ -18,7 +18,7 @@ def _pedidos_30_dias(status=None) -> list:
     data_inicio=ultimos_30_dias()
     return listar_pedidos_entre_datas(data_inicio.year, data_inicio.month, data_inicio.day, status=status)
 
-def _pedidos_mensais(status='concluido') -> tuple[list, list]:
+def _pedidos_mensais(status: str = "concluido") -> tuple[list, list]:
     """Retorna os pedidos do mês atual e do mês passado no mesmo período.
 
     Args:
@@ -27,6 +27,7 @@ def _pedidos_mensais(status='concluido') -> tuple[list, list]:
     Returns:
         tuple[list, list]: (pedidos do mês atual, pedidos do mês passado).
     """
+
     
     data_hoje = hoje()
     data_mes_passado = mes_passado()
@@ -58,14 +59,13 @@ def _faturamento() -> tuple[int, int]:
 
 # =================================== RELATÓRIOS ======================================
 
-def pedidos_quantidade() -> tuple[int, float]:
+def pedidos_quantidade() -> tuple[int, float | None]:
     """Conta os pedidos do mês e compara com o mesmo período do mês anterior.
 
     Returns:
         tuple[int, float | None]: total de pedidos e variação percentual em
         relação ao período anterior (None quando não há base de comparação).
     """
-    
     pedidos=_pedidos_mensais()
     
     n_pedidos_atual=len(pedidos[0])
@@ -105,7 +105,6 @@ def pedidos_status() -> dict:
     Returns:
         dict: contagem de pedidos por status.
     """
-    
     status ={
         "aguardando": 0,
         "confirmado": 0, 
@@ -121,7 +120,7 @@ def pedidos_status() -> dict:
         
     return status
 
-def faturamento_periodo() -> tuple[int, float]:
+def faturamento_periodo() -> tuple[int, float | None]:
     """Soma o faturamento do mês e compara com o mesmo período do mês anterior.
 
     Returns:
