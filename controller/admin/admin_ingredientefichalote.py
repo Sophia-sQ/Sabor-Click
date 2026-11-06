@@ -1,4 +1,4 @@
-from admin import admin_bp, _retorno, _int_form, _decimal_form
+from . import admin_bp, _retorno, _int_form, _decimal_form
 
 from flask import request, flash
 from sqlalchemy.exc import SQLAlchemyError

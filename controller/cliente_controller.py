@@ -44,11 +44,9 @@ def pagina_inicial():
 
 # =========================== PEDIDO ===========================
 
-@cliente_bp.route("/carrinho/fazer_pedido", methods=["GET", "POST"])
+@cliente_bp.post("/carrinho/fazer_pedido")
 def fazer_pedido():
     """Registra o pedido do cliente e envia um email automático."""
-    if request.method=="GET":
-        return render_template("pagina de pedido")
 
     from utils import string_para_data, string_para_hora
 
@@ -76,9 +74,12 @@ def fazer_pedido():
 
     buscar_usuario_por_id(session.get("id")).email, "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****",
     "conteudo html ***adicionar modelo de pedido")
+    
+    flash("Pedido realizado com sucesso.", "success")
+    return redirect(url_for(request.endpoint))
 
 
-@cliente_bp.post("/cancelar_pedido")
+@cliente_bp.post("/cancelar_pedido/<int:id_pedido>")
 def cancelar_pedido(id_pedido: int):
     """Cancela um pedido escolhido pelo cliente."""
     if atualizar_pedido(id_pedido, status="cancelado"):

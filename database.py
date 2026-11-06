@@ -4,8 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase
 
-from seeds import *
-
 class Base(DeclarativeBase):
     """Classe base declarativa do SQLAlchemy para todos os modelos."""
     

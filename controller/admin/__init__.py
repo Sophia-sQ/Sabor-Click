@@ -19,5 +19,5 @@ def _bool_form(valor):
 
 # ============================== routes ==============================
 
-from admin import admin_servicos, admin_pratocardapio, admin_ingredientefichalote, admin_funcionarios, admin_bebidas, admin_lotes, admin_logatividade
+from . import admin_servicos, admin_pratocardapio, admin_ingredientefichalote, admin_funcionarios, admin_bebidas, admin_lote, admin_logs
 

@@ -1,4 +1,4 @@
-from admin import admin_bp, _retorno, _bool_form, _int_form
+from . import admin_bp, _retorno, _bool_form, _int_form
 
 from flask import request, flash
 
