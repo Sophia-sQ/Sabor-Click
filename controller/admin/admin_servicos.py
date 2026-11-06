@@ -52,7 +52,7 @@ def at_servico(id_servico: int):
 
     if not nome or not descricao:
        flash("Falha ao tentar deletar o serviço", "danger")
-       return _retorno()
+       _retorno()
 
 
     sucesso = atualizar_servico(
@@ -63,10 +63,10 @@ def at_servico(id_servico: int):
 
     if not sucesso:
        flash("Falha ao tentar atualizar o serviço", "danger")
-       return _retorno()
+       _retorno()
 
     flash("Serviço atualizado.", "success")
-    return _retorno()
+    _retorno()
 
 # ========================= DELETAR SERVIÇO =========================
 @admin_bp.post("/servicos/deletar_servico/<int:id_servico>")
@@ -80,8 +80,8 @@ def del_servico(id_servico: int):
 
     if not sucesso:
         flash("Falha ao tentar deletar o serviço", "danger")
-        return _retorno()
+        _retorno()
 
 
     flash("Serviço deletado.", "success")
-    return _retorno()
+    _retorno()
