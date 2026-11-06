@@ -1,8 +1,8 @@
-from datetime import datetime, timezone
-from database import db
+from datetime import datetime
+from database import db, Base
 from model.usuario_model import registrar_log
 
-class Prato(db.Model):
+class Prato(Base):
     __tablename__ = "prato"
 
     id_prato = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -15,7 +15,7 @@ class Prato(db.Model):
     tempo_preparo = db.Column(db.Integer, nullable=False)
     requer_pre_preparo = db.Column(db.Boolean, default=False, nullable=False)
 
-class PratoCardapio(db.Model):
+class PratoCardapio(Base):
     __tablename__ = "prato_cardapio"
     id_prato = db.Column(db.Integer, db.ForeignKey("prato.id_prato"), primary_key=True)
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
@@ -24,7 +24,7 @@ class PratoCardapio(db.Model):
     descricao = db.Column(db.Text, nullable=True)
 
 
-class Ingrediente(db.Model):
+class Ingrediente(Base):
     __tablename__ = "ingrediente"
 
     id_ingrediente = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -38,19 +38,19 @@ class Ingrediente(db.Model):
     )
 
 
-class FichaTecnica(db.Model):
+class FichaTecnica(Base):
     __tablename__ = "ficha_tecnica"
 
     id_prato = db.Column(db.Integer, db.ForeignKey("prato.id_prato"), primary_key=True)
     id_ingrediente = db.Column(db.Integer, db.ForeignKey("ingrediente.id_ingrediente"), primary_key=True)
 
-    qtd_necessaria = db.Column(db.Numeric(10, 3), nullable=False)
+    qtd_necessaria = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
         db.CheckConstraint("qtd_necessaria > 0", name="ck_ficha_qtd"),
     )
 
-class FichaTecnica_bebida(db.Model):
+class FichaTecnica_bebida(Base):
     __tablename__ = "ficha_tecnica_bebida"
 
     id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_bebida"), primary_key=True)
@@ -62,7 +62,7 @@ class FichaTecnica_bebida(db.Model):
     )
 
 
-class Lote(db.Model):
+class Lote(Base):
     __tablename__ = "lote"
 
     id_lote = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -185,7 +185,17 @@ def buscar_prato_cardapio(id_prato: int, id_cardapio: int):
 
 def listar_pratos_por_cardapio(id_cardapio: int):
     """Lista todos os pratos vinculados a um determinado cardápio"""
-    stmt = db.select(PratoCardapio).where(PratoCardapio.id_cardapio == id_cardapio)
+    from seeds import cardapios_bebidas
+    from servico_model import buscar_cardapio_por_id
+    from pedido_model import BebidaCardapio
+    
+    cardapios_bebidas = [tupla[0] for tupla in cardapios_bebidas]
+
+    if buscar_cardapio_por_id(id_cardapio) in cardapios_bebidas:
+        stmt = db.select(BebidaCardapio).where(BebidaCardapio.id_cardapio == id_cardapio)
+    else:
+        stmt = db.select(PratoCardapio).where(PratoCardapio.id_cardapio == id_cardapio)
+    
     itens = db.session.execute(stmt).scalars().all()
     if itens:
         return itens

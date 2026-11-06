@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from database import db
+from database import db, Base
 from sqlalchemy.exc import IntegrityError
 
 from flask import session
@@ -13,7 +13,7 @@ from security import gerar_hmac, criptografar
 from utils import hoje
 
 # Tabela Nível de permissão do usuário
-class NivelPermissao(db.Model):
+class NivelPermissao(Base):
     __tablename__ = "nivel_permissao"
 
     """Certificar que os id dos cargos estão de acordo com a Enum cargos em cargos.py"""
@@ -21,7 +21,7 @@ class NivelPermissao(db.Model):
     nome = db.Column(db.String(20), unique=True, nullable=False)  # Escolha: cliente, chefe, admin
 
 # Tabela do usuário
-class Usuario(db.Model):
+class Usuario(Base):
     __tablename__ = "usuario"
 
     id_usuario = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -38,7 +38,7 @@ class Usuario(db.Model):
     salario = db.Column(db.Integer, nullable=True, default=0)
     
 # Tabela de endereços do usuário
-class Endereco(db.Model):
+class Endereco(Base):
     __tablename__ = "endereco"
 
     id_endereco = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -51,22 +51,8 @@ class Endereco(db.Model):
     cidade = db.Column(db.String(100), nullable=False)
     cep = db.Column(db.String(9), nullable=False)
 
-# Tabela de endereços do usuário
-class Endereco(db.Model):
-    __tablename__ = "endereco"
-
-    id_endereco = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"))
-    nome = db.Column(db.String(150), nullable=False)
-    logradouro = db.Column(db.String(150), nullable=False)
-    numero = db.Column(db.String(20), nullable=False)
-    complemento = db.Column(db.String(100), nullable=True)  # Opcional
-    bairro = db.Column(db.String(100), nullable=False)
-    cidade = db.Column(db.String(100), nullable=False)
-    cep = db.Column(db.String(9), nullable=False)
-
 # Tabela das atividades realizadas pelo usuário dentro do site
-class LogAtividade(db.Model):
+class LogAtividade(Base):
     __tablename__ = "log_atividade"
 
     id_atividade = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -76,7 +62,7 @@ class LogAtividade(db.Model):
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
 
 # Tabelas de tokens
-class Token(db.Model):
+class Token(Base):
     __tablename__ = "token"
 
     id_token = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -218,11 +204,14 @@ def criar_usuario(cpf:str, nome:str, email:str, senha:str, id_permissao:int, sal
    registrar_log("CADASTRO", f"Novo usuário {cargo} {nome} cadastrado.")
    return novo_usuario.id_usuario
 
-def registrar_log(acao:str, descricao: str | None = None):
+def registrar_log(acao:str, descricao: str | None = None) -> bool:
     """Registra uma atividade."""
     log = LogAtividade(id_usuario=session.get("id"), acao=acao, descricao=descricao )
     db.session.add(log)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        return False
     return True
 
 def buscar_usuario_para_login(credencial:str, senha:str):

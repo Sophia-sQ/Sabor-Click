@@ -4,13 +4,13 @@ from zoneinfo import ZoneInfo
 
 from model.usuario_model import registrar_log
 
-from database import db
+from database import db, Base
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import extract
 
 
 # TABELAS
-class Pedido(db.Model):
+class Pedido(Base):
     __tablename__ = "pedido"
 
     id_pedido = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -36,7 +36,7 @@ class Pedido(db.Model):
         db.CheckConstraint("valor_total >= 0", name="ck_pedido_valor"),
     )
 
-class Bebida(db.Model):
+class Bebida(Base):
     __tablename__ = "bebida"
 
     id_bebida = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -48,7 +48,7 @@ class Bebida(db.Model):
         db.CheckConstraint("valor_unitario >= 0", name="ck_bebida_valor"),
     )
 
-class PedidoBebida(db.Model):
+class PedidoBebida(Base):
     __tablename__ = "pedido_bebida"
 
 
@@ -63,13 +63,13 @@ class PedidoBebida(db.Model):
     )
 # Tabela de associação entre cardápio e bebida
 
-class bebidaCardapio(db.Model):
+class BebidaCardapio(Base):
     __tablename__ = "bebida_cardapio"
 
     id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_servico"), primary_key=True)
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
 
-class CardapioPedido(db.Model):
+class CardapioPedido(Base):
     __tablename__ = "cardapio_pedido"
 
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
@@ -148,7 +148,7 @@ def deletar_bebida(id_bebida: int):
 
 def associar_bebida_cardapio(id_bebida: int, id_cardapio: int):
     """Associa uma bebida a um cardápio"""
-    novo_item = bebidaCardapio(id_bebida=id_bebida,id_cardapio=id_cardapio,
+    novo_item = BebidaCardapio(id_bebida=id_bebida,id_cardapio=id_cardapio,
     )
     db.session.add(novo_item)
     db.session.commit()
@@ -210,6 +210,14 @@ def criar_pedido(id_cliente: int, id_endereco: int , num_convidados: int, valor_
 def buscar_pedido_por_id(id_pedido: int):
     """Busca pedido."""
     return db.session.get(Pedido, id_pedido)
+
+def buscar_pedido_por_chefe(id_chefe:int, status: str):
+    """Busca pedido."""
+    return db.session.query(Pedido).filter_by(status=status, id_chefe=id_chefe).all()
+
+def listar_pedido_por_status(status: str):
+    """Busca pedido."""
+    return db.session.query(Pedido).filter_by(status=status).all()
 
 def listar_pedidos_por_cliente(id_cliente: int) :
     """Lista os pedidos realizados pelo clientre"""
@@ -368,6 +376,13 @@ def remover_bebida_do_pedido(id_pedido: int, id_bebida: int) -> bool:
     db.session.delete(item)
     db.session.commit()
     return True
+
+def listar_bebidas_do_pedido(id_pedido: int) -> PedidoBebida | None:
+    """Busca todas as bebidas separadas de um determinado pedido"""
+    itens = db.session.query(PedidoBebida).filter_by(id_pedido=id_pedido).all()
+    if itens:
+        return itens
+    return None
 
 # CRUD CardapioPedido
 def criar_cardapio_pedido(id_cardapio: int, id_pedido: int, id_servico: int) -> (CardapioPedido | None):

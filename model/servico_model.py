@@ -1,19 +1,19 @@
 # Contém as tabelas : Bancada, serviço e cardápio
 
-from database import db
+from database import db, Base
 from model.usuario_model import registrar_log
 from slugify import slugify
 
 
 
-class Bancada(db.Model):
+class Bancada(Base):
     __tablename__ = "bancada"
 
     id_bancada = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(60), nullable=False)
     descricao = db.Column(db.Text, nullable=False)
 
-class Servico(db.Model):
+class Servico(Base):
     __tablename__ = "servico"
 
     id_servico = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -29,13 +29,13 @@ class Servico(db.Model):
         super().__init__(**kwargs)
 
 # Tabela de associação entre bancada e o serviço
-class ServicoBancada(db.Model):
+class ServicoBancada(Base):
     __tablename__ = "servico_bancada"
 
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
     id_bancada = db.Column(db.Integer, db.ForeignKey("bancada.id_bancada"), primary_key=True)
 
-class Cardapio(db.Model):
+class Cardapio(Base):
     __tablename__ = "cardapio"
 
     id_cardapio = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -48,7 +48,7 @@ class Cardapio(db.Model):
     )
 # Tabela de associação entre cardápio e serviço, pois existem serviços com o mesmo cardápio
 
-class ServicoCardapio(db.Model):
+class ServicoCardapio(Base):
     __tablename__ = "servico_cardapio"
 
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
