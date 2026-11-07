@@ -5,15 +5,18 @@ from flask import render_template, flash, request
 from model.servico_model import atualizar_servico, deletar_servico, buscar_servicos
 from model.pedido_model import buscar_bebidas
 from model.ficha_model import buscar_pratos, buscar_ingredientes, buscar_lotes
+
 # ============================== Servicos =============================
 
 @admin_bp.get("/servicos")
 def pagina_servicos():
-    """Página de serviços com busca unificada.
+    """Renderiza a página de serviços com busca unificada.
 
-    O parâmetro de query `busca` filtra, por correspondência parcial, todas as
-    entidades exibidas nesta página: serviços, bebidas, pratos, ingredientes e
-    lotes. Sem `busca`, lista tudo.
+    O parâmetro de query `busca` filtra, por correspondência parcial, serviços,
+    bebidas, pratos, ingredientes e lotes. Sem `busca`, lista tudo.
+
+    Returns:
+        str: HTML da página de estoque renderizada.
     """
     busca = request.args.get("busca", "").strip()
 
@@ -37,6 +40,13 @@ def pagina_servicos():
 # ========================= ATUALIZAR SERVIÇO =========================
 @admin_bp.post("/servicos/atualizar_servico/<int:id_servico>")
 def at_servico(id_servico: int):
+    """Atualiza um serviço a partir dos dados do formulário.
+
+    Valida nome e descrição e sinaliza o resultado via flash.
+
+    Args:
+        id_servico (int): identificador do serviço a atualizar.
+    """
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
 
@@ -61,6 +71,11 @@ def at_servico(id_servico: int):
 # ========================= DELETAR SERVIÇO =========================
 @admin_bp.post("/servicos/deletar_servico/<int:id_servico>")
 def del_servico(id_servico: int):
+    """Exclui um serviço e sinaliza o resultado via flash.
+
+    Args:
+        id_servico (int): identificador do serviço a excluir.
+    """
     sucesso = deletar_servico(id_servico=id_servico,)
 
     if not sucesso:

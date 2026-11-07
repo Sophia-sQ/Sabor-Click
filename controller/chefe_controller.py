@@ -1,3 +1,4 @@
+"""Rotas do chefe: aceitar e atualizar o status de pedidos."""
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -22,6 +23,14 @@ def pedidos():
 
 @chefe_bp.route("/aceitar", methods=["POST"])
 def aceitar_pedido():
+    """Confirma um pedido, registra o log, garante a trigger e notifica o cliente.
+
+    Lê o id do pedido do corpo JSON, atualiza o status para 'confirmado',
+    registra a ação e envia e-mail de confirmação ao cliente.
+
+    Returns:
+        str: template da página de pedidos renderizado.
+    """
     dados=request.get_json(silent=True)
     pedido=buscar_pedido_por_id(dados["id"])
     data_confirma=datetime.now(ZoneInfo("America/Sao_Paulo"))
@@ -46,6 +55,15 @@ def aceitar_pedido():
 
 @chefe_bp.route("/atualizar", methods=["GET", "POST"])
 def atualizar_status():
+    """Atualiza o status de um pedido e notifica o cliente por e-mail.
+
+    No GET, exibe a página de pedidos. No POST, lê id e status do corpo JSON,
+    atualiza o pedido, registra o log e envia o e-mail.
+
+    Returns:
+        str: template da página de pedidos renderizado.
+    """
+    #TODO: adicionar tratamento para quando status nao se encaixa na enum
     if request.method == "GET":
         return render_template("pagina de pedidos.html")
 

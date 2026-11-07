@@ -142,7 +142,7 @@ def default(_erro) -> tuple[str, int]:
 
 
 ================================================================================
- utils.py
+ utils.py OK 
 ================================================================================
 
 def formatar_nome(nome_completo: str) -> str:
@@ -248,7 +248,7 @@ def string_para_hora(hora: str) -> time:
 
 
 ================================================================================
- menu_data.py
+ menu_data.py OK
 ================================================================================
 
 MÓDULO menu_data.py
@@ -432,7 +432,7 @@ def enviar_email_nao_responda(assunto: str, destinatario: str, conteudo: str, co
 
 
 ================================================================================
- services/relatorios.py
+ services/relatorios.py OK
 ================================================================================
 
 def _pedidos_30_dias(status=None) -> list:
@@ -509,7 +509,7 @@ def faturamento_semanal() -> dict:
 
 
 ================================================================================
- model/cargos.py
+ model/cargos.py OK
 ================================================================================
 
 class Cargo(IntEnum)
@@ -521,7 +521,7 @@ class Cargo(IntEnum)
 
 
 ================================================================================
- model/usuario_model.py
+ model/usuario_model.py OK
 ================================================================================
 
 MÓDULO usuario_model.py
@@ -779,7 +779,7 @@ def deletar_log(id_atividade: int) -> bool:
 
 
 ================================================================================
- model/pedido_model.py
+ model/pedido_model.py OK
 ================================================================================
 
 MÓDULO pedido_model.py
@@ -985,7 +985,7 @@ def deletar_cardapios_pedido(id_pedido: int) -> bool:
 
 
 ================================================================================
- model/servico_model.py
+ model/servico_model.py OK
 ================================================================================
 
 MÓDULO servico_model.py
@@ -1198,7 +1198,7 @@ def listar_cardapios_do_servico(id_servico: int) -> list | None:
 
 
 ================================================================================
- model/ficha_model.py
+ model/ficha_model.py OK
 ================================================================================
 
 MÓDULO ficha_model.py
@@ -1481,7 +1481,7 @@ def deletar_ficha_tecnica_bebida(id_bebida: int, id_ingrediente: int) -> bool:
 
 
 ================================================================================
- controller/admin/__init__.py
+ controller/admin/__init__.py OK
 ================================================================================
 
 MÓDULO controller/admin/__init__.py
@@ -1501,7 +1501,7 @@ def _bool_form(valor) -> bool:
 
 
 ================================================================================
- controller/admin/admin_servicos.py
+ controller/admin/admin_servicos.py OK
 ================================================================================
 
 def pagina_servicos():
@@ -1535,7 +1535,7 @@ def del_servico(id_servico: int):
 
 
 ================================================================================
- controller/admin/admin_pratocardapio.py
+ controller/admin/admin_pratocardapio.py OK
 ================================================================================
 
 def c_cardapio():
@@ -1625,7 +1625,7 @@ def deletar_prato_cardapio_route(id_prato, id_cardapio):
 
 
 ================================================================================
- controller/admin/admin_ingredientefichalote.py
+ controller/admin/admin_ingredientefichalote.py OK
 ================================================================================
 
 def criar_ingrediente_route():
@@ -1686,7 +1686,7 @@ def deletar_ficha_tecnica_route(id_prato, id_ingrediente):
 
 
 ================================================================================
- controller/admin/admin_bebidas.py
+ controller/admin/admin_bebidas.py OK
 ================================================================================
 
 def criar_bebida_route():
@@ -1747,7 +1747,7 @@ def deletar_ficha_tecnica_bebida_route(id_bebida, id_ingrediente):
 
 
 ================================================================================
- controller/admin/admin_lote.py
+ controller/admin/admin_lote.py OK
 ================================================================================
 
 def criar_lote_route():
@@ -1779,7 +1779,7 @@ def deletar_lote_route(id_lote):
 
 
 ================================================================================
- controller/admin/admin_funcionarios.py
+ controller/admin/admin_funcionarios.py OK
 ================================================================================
 
 def visao_geral():
@@ -1827,7 +1827,7 @@ def cadastro():
 
 
 ================================================================================
- controller/admin/admin_logs.py
+ controller/admin/admin_logs.py OK
 ================================================================================
 
 def _retorno_logs() -> Response:
@@ -1859,7 +1859,7 @@ def deletar_log_route(id_atividade):
 
 
 ================================================================================
- controller/auth_controller.py
+ controller/auth_controller.py OK
 ================================================================================
 
 MÓDULO auth_controller.py
@@ -1903,7 +1903,7 @@ def cadastro():
 
 
 ================================================================================
- controller/chefe_controller.py
+ controller/chefe_controller.py OK
 ================================================================================
 
 MÓDULO chefe_controller.py
@@ -1931,7 +1931,7 @@ def atualizar_status():
 
 
 ================================================================================
- controller/cliente_controller.py
+ controller/cliente_controller.py OK
 ================================================================================
 
 MÓDULO cliente_controller.py

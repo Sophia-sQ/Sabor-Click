@@ -18,6 +18,11 @@ from model.ficha_model import (
 
 @admin_bp.post("/servicos/ingredientes/criar")
 def criar_ingrediente_route():
+    """Cria um ingrediente a partir do formulário, validando as quantidades.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     nome = request.form.get("nome", "").strip()
     unidade = request.form.get("unidade", "").strip()
     qtd_texto = request.form.get("qtd", "0").strip()
@@ -51,6 +56,14 @@ def criar_ingrediente_route():
 
 @admin_bp.post("/servicos/ingredientes/atualizar/<int:id_ingrediente>")
 def atualizar_ingrediente_route(id_ingrediente):
+    """Atualiza um ingrediente a partir do formulário.
+
+    Args:
+        id_ingrediente (int): identificador do ingrediente.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     nome = request.form.get("nome", "").strip()
     unidade = request.form.get("unidade", "").strip()
     qtd_texto = request.form.get("qtd", "").strip()
@@ -80,6 +93,14 @@ def atualizar_ingrediente_route(id_ingrediente):
 
 @admin_bp.post("/servicos/ingredientes/deletar/<int:id_ingrediente>")
 def deletar_ingrediente_route(id_ingrediente):
+    """Exclui um ingrediente e sinaliza o resultado via flash.
+
+    Args:
+        id_ingrediente (int): identificador do ingrediente.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     try:
         sucesso = deletar_ingrediente(id_ingrediente)
     except SQLAlchemyError:
@@ -94,6 +115,11 @@ def deletar_ingrediente_route(id_ingrediente):
 
 @admin_bp.post("/servicos/ficha-tecnica/criar")
 def criar_ficha_tecnica_route():
+    """Adiciona um ingrediente à ficha técnica de um prato a partir do formulário.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     prato_texto = request.form.get("id_prato", "").strip()
     ingrediente_texto = request.form.get("id_ingrediente", "").strip()
     qtd_texto = request.form.get("qtd_necessaria", "").strip()
@@ -126,6 +152,15 @@ def criar_ficha_tecnica_route():
 
 @admin_bp.post("/servicos/ficha-tecnica/atualizar/<int:id_prato>/<int:id_ingrediente>")
 def atualizar_ficha_tecnica_route(id_prato, id_ingrediente):
+    """Atualiza a quantidade necessária de um item da ficha técnica do prato.
+
+    Args:
+        id_prato (int): identificador do prato.
+        id_ingrediente (int): identificador do ingrediente.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     qtd_texto = request.form.get("qtd_necessaria", "").strip()
     if not qtd_texto:
         flash("Informe a quantidade necessária.", "danger")
@@ -151,6 +186,15 @@ def atualizar_ficha_tecnica_route(id_prato, id_ingrediente):
 
 @admin_bp.post("/servicos/ficha-tecnica/deletar/<int:id_prato>/<int:id_ingrediente>")
 def deletar_ficha_tecnica_route(id_prato, id_ingrediente):
+    """Remove um ingrediente da ficha técnica de um prato.
+
+    Args:
+        id_prato (int): identificador do prato.
+        id_ingrediente (int): identificador do ingrediente.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     try:
         sucesso = deletar_ficha_tecnica(id_prato, id_ingrediente)
     except SQLAlchemyError:

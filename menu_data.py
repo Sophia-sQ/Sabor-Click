@@ -1,9 +1,9 @@
 """Dados estáticos dos cardápios de apresentação da home/menu.
 
-Baseado em docs/documentos/Cardapio.md. Define a estrutura `categorias`,
-uma lista de categorias (pratos quentes, salgados e bebidas), cada uma com
-seus itens.
-"""
+    Baseado em docs/documentos/Cardapio.md. Define a estrutura `categorias`,
+    uma lista de categorias (pratos quentes, salgados e bebidas), cada uma com
+    seus itens.
+    """
     
 categorias = [
     {'id': 'quentes', 'nome': 'Pratos quentes', 'resumo': 'Receitas que acolhem, sabores que ficam.', 'itens': [
