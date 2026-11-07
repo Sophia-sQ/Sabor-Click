@@ -18,7 +18,7 @@ from model.servico_model import (
 from model.ficha_model import Prato, Ingrediente, Lote
 from model.ficha_model import (
     buscar_prato_por_nome,
-    buscar_ingrediente_por_nome, buscar_ingrediente_por_id,
+    buscar_ingrediente_por_nome,
     buscar_lote_por_numero,
 )
 
@@ -1457,7 +1457,6 @@ def iniciar_ingredientes() -> list[Ingrediente]:
     
     return ingredientes
 
-#FIXME corrgir questão das bebidas em todos os lotes
 def iniciar_lotes() -> list[Lote]:
     """Inicializa todos os lotes padrão que não constam no banco no momento da inicialização.
     
