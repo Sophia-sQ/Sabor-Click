@@ -254,8 +254,8 @@ def buscar_prato_cardapio(id_prato: int, id_cardapio: int) -> PratoCardapio | No
 def listar_pratos_por_cardapio(id_cardapio: int) -> list[PratoCardapio] | None:
     """Lista os vínculos de prato de um cardápio; None se não houver."""
     from seeds import cardapios_bebidas
-    from servico_model import buscar_cardapio_por_id
-    from pedido_model import BebidaCardapio
+    from model.servico_model import buscar_cardapio_por_id
+    from model.pedido_model import BebidaCardapio
     
     cardapios_bebidas = [tupla[0] for tupla in cardapios_bebidas]
 

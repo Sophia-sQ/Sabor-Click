@@ -1522,7 +1522,7 @@ def iniciar_admin() -> Usuario:
             cpf_criptografado=security.criptografar("00000000000"),
             cpf_hmac=security.gerar_hmac(cpf="00000000000"),
             nome="Admin",
-            email_criptogradafo=security.criptografar(environ.get("ADMIN_EMAIL")),
+            email_criptografado=security.criptografar(environ.get("ADMIN_EMAIL")),
             email_hmac=security.gerar_hmac(environ.get("ADMIN_EMAIL")),
             senha_hash=generate_password_hash(environ.get("ADMIN_PASSWORD")),
             id_permissao=Cargo.ADMIN.value

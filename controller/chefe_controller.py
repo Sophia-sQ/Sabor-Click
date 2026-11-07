@@ -19,7 +19,7 @@ chefe_bp = Blueprint("chefe", __name__, url_prefix="/pedido")
 @chefe_bp.get('/cozinha')
 def pedidos():
     pedidos = listar_pedido_por_status("aguardando")
-    return render_template("cozinha.html", pedidos)
+    return render_template("cozinha.html", pedidos=pedidos)
 
 @chefe_bp.route("/aceitar", methods=["POST"])
 def aceitar_pedido():
@@ -31,6 +31,11 @@ def aceitar_pedido():
     Returns:
         str: template da página de pedidos renderizado.
     """
+    from model.cargos import Cargo
+    
+    if buscar_usuario_por_id(session['id']).id_permissao < Cargo.CHEFE.value:
+        return abort(403)
+        
     dados=request.get_json(silent=True)
     pedido=buscar_pedido_por_id(dados["id"])
     data_confirma=datetime.now(ZoneInfo("America/Sao_Paulo"))
