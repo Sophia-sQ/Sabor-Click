@@ -1,3 +1,5 @@
+"""Geração, envio e verificação de tokens de autenticação por e-mail."""
+
 import secrets
 import hashlib
 import hmac

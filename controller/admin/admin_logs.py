@@ -1,6 +1,8 @@
+"""Rotas administrativas de consulta e gerenciamento dos logs de atividade."""
+
 from . import admin_bp
 
-from flask import render_template, request, flash, redirect, url_for
+from flask import render_template, request, flash, redirect, url_for, Response
 from sqlalchemy.exc import SQLAlchemyError
 
 from model.usuario_model import listar_logs, buscar_log_por_id, deletar_log

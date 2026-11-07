@@ -1,3 +1,5 @@
+"""Validação de requisitos mínimos de segurança de senhas."""
+
 from re import match
 
 def validar_senha_forte(senha:str = None) -> bool:

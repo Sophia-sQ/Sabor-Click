@@ -1,3 +1,5 @@
+"""Funções utilitárias de formatação de nomes, valores monetários e datas."""
+
 from calendar import monthrange
 from datetime import date, datetime, timedelta, time
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation

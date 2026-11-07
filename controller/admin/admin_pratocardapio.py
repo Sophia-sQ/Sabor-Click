@@ -1,3 +1,5 @@
+"""Rotas administrativas de pratos, cardápios e suas associações."""
+
 from . import admin_bp, _retorno, _bool_form, _int_form
 
 from flask import request, flash
@@ -255,6 +257,8 @@ def criar_prato_cardapio_route():
 def atualizar_prato_cardapio_route(id_prato, id_cardapio):
     """Atualiza a associação prato-cardápio (quantidade/descrição).
 
+    Valida a quantidade recebida do formulário e sinaliza o resultado via flash.
+
     Args:
         id_prato (int): identificador do prato.
         id_cardapio (int): identificador do cardápio.
@@ -262,8 +266,7 @@ def atualizar_prato_cardapio_route(id_prato, id_cardapio):
     Returns:
         Response: redirecionamento para a página de serviços.
     """
-
-def atualizar_prato_cardapio_route(id_prato, id_cardapio):
+    
     qtd_texto = request.form.get("qtd", "").strip()
     descricao = request.form.get("descricao", "").strip()
 

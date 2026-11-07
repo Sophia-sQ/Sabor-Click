@@ -1,3 +1,5 @@
+"""Rotas administrativas de gerenciamento de funcionários."""
+
 from . import admin_bp
 
 from flask import request, url_for, Response, jsonify, render_template, flash, redirect

@@ -1,3 +1,5 @@
+"""Rotas administrativas de gerenciamento de lotes de ingredientes."""
+
 from . import admin_bp, _retorno, _int_form, _decimal_form
 
 from flask import request, flash

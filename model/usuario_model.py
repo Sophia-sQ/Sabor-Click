@@ -1,4 +1,5 @@
 """Modelos e operações de usuários, permissões, endereços, tokens e logs."""
+
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 

@@ -18,6 +18,12 @@ chefe_bp = Blueprint("chefe", __name__, url_prefix="/pedido")
 
 @chefe_bp.get('/cozinha')
 def pedidos():
+    """Exibe a fila da cozinha com os pedidos aguardando preparo.
+
+    Returns:
+        str: template "cozinha.html" renderizado com os pedidos aguardando.
+    """
+    
     pedidos = listar_pedido_por_status("aguardando")
     return render_template("cozinha.html", pedidos=pedidos)
 

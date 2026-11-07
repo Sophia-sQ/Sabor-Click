@@ -20,14 +20,7 @@ class Bancada(db.Model):
 
 class Servico(db.Model):
     """Serviço oferecido; gera o slug automaticamente a partir do nome."""
-
-    def __init__(self, **kwargs) -> None:
-        """Inicializa o serviço, derivando o slug do nome quando não informado.
-
-        Args:
-            **kwargs: atributos do serviço; se 'slug' não for passado, é gerado
-                a partir de 'nome'.
-        """
+        
     __tablename__ = "servico"
 
     id_servico = db.Column(db.Integer, primary_key=True, autoincrement=True)

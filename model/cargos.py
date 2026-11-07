@@ -1,3 +1,5 @@
+"""Enumeração dos níveis de permissão (cargos) dos usuários."""
+
 from enum import IntEnum
 
 class Cargo(IntEnum):

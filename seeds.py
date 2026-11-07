@@ -158,7 +158,7 @@ lista_pratos = [
     ("Arroz_branco", "Arroz cozido", "acompanhamento", 20, False),
     ("Couve_refogada", "Couve picada refogada", "acompanhamento", 10, False), # A colve comprada é picada ja,
     ("Farofa", "Farofa comprada", "acompanhamento", 0, False),
-    ("Vinagrete", "Vinagrete completo: Ceblo, tomate, pimentao,cebolinha,vinagre", "acompanhamento", 15, True) #Levar cortado as coisas, e temperar no local,
+    ("Vinagrete", "Vinagrete completo: Ceblo, tomate, pimentao,cebolinha,vinagre", "acompanhamento", 15, True), #Levar cortado as coisas, e temperar no local,
     ("Molho_de_pimenta", "Molho de pimenta pronto", "acompanhamento", 0, False),
     ("Sorvete", "Sorvete comprado de maracuja e limao", "sobremesa", 0, False),
     ("Salada_fresca", "Salada de folhas hidroponicas e tomate cereja", "entrada", 5, True), #Lavar antes,
@@ -368,51 +368,51 @@ ingredientes_temperos = [
 
 #nome, unidade, qtd, qtd min
 ingredientes_bebidas_sem_alcool = [
-        ('Suco_de_limao', 'mL', 15, 3)
-        ('Xarope_de_groselha_framboesa', 'mL', 9, 1)
-        ('Agua_com_gas', 'mL', 60, 15)
-        ('Xarope_simples_de_acucar', 'mL', 9, 1)
-        ('Suco_de_abacaxi', 'mL', 24, 6)
-        ('Xarope_de_maca_verde', 'mL', 6, 1)
-        ('Polpa_de_frutas_vermelhas', 'g', 15, 3)
-        ('Suco_de_laranja', 'mL', 30, 6)
-        ('Refrigerante_de_guarana', 'mL', 60, 15)
-        ('Cha_preto', 'ml', 3, 0)
-        ('Xarope_de_pessego', 'mL', 6, 1)
-        ('Xarope_de_grenadine', 'mL', 6, 1)
-        ('Agua_de_coco', 'mL', 24, 6)
-        ('Suco_de_maracuja', 'mL', 24, 6)
-        ('Xarope_de baunilha', 'mL', 6, 1)
-        ('Suco_de_melancia', 'mL', 15, 3)
-        ('Suco_de_gengibre', 'mL', 6, 1)
+        ('Suco_de_limao', 'mL', 15, 3),
+        ('Xarope_de_groselha_framboesa', 'mL', 9, 1),
+        ('Agua_com_gas', 'mL', 60, 15),
+        ('Xarope_simples_de_acucar', 'mL', 9, 1),
+        ('Suco_de_abacaxi', 'mL', 24, 6),
+        ('Xarope_de_maca_verde', 'mL', 6, 1),
+        ('Polpa_de_frutas_vermelhas', 'g', 15, 3),
+        ('Suco_de_laranja', 'mL', 30, 6),
+        ('Refrigerante_de_guarana', 'mL', 60, 15),
+        ('Cha_preto', 'ml', 3, 0),
+        ('Xarope_de_pessego', 'mL', 6, 1),
+        ('Xarope_de_grenadine', 'mL', 6, 1),
+        ('Agua_de_coco', 'mL', 24, 6),
+        ('Suco_de_maracuja', 'mL', 24, 6),
+        ('Xarope_de baunilha', 'mL', 6, 1),
+        ('Suco_de_melancia', 'mL', 15, 3),
+        ('Suco_de_gengibre', 'mL', 6, 1),
 ]
 
 #nome, unidade, qtd, qtd min
 ingredientes_bebidas_alcoolicas = [
-        ('Cachaca', 'mL', 15, 3)
-        ('Tequila', 'mL', 9, 1)
-        ('Cointreau_triple_sec', 'mL', 6, 1)
-        ('Gin', 'mL', 15, 3)
-        ('Campari', 'mL', 9, 1)
-        ('Vermute_tinto', 'mL', 9, 1)
-        ('Vodka', 'mL', 15, 3)
-        ('Ginger_beer', 'mL', 24, 6)
-        ('Suco_de_cranberry', 'mL', 15, 3)
-        ('Rum_branco', 'mL', 9, 1)
-        ('Rum_escuro', 'mL', 9, 1)
-        ('Xarope_de_amendoa_orgeat', 'mL', 6, 1)
-        ('Uisque_bourbon', 'mL', 9, 1)
-        ('Angostura_bitters', 'ml', 500.0, 100.0)
-        ('Uisque_de_centeio_rye', 'mL', 9, 1)
-        ('Cereja_marasquino', 'g', 6, 1)
+        ('Cachaca', 'mL', 15, 3),
+        ('Tequila', 'mL', 9, 1),
+        ('Cointreau_triple_sec', 'mL', 6, 1),
+        ('Gin', 'mL', 15, 3),
+        ('Campari', 'mL', 9, 1),
+        ('Vermute_tinto', 'mL', 9, 1),
+        ('Vodka', 'mL', 15, 3),
+        ('Ginger_beer', 'mL', 24, 6),
+        ('Suco_de_cranberry', 'mL', 15, 3),
+        ('Rum_branco', 'mL', 9, 1),
+        ('Rum_escuro', 'mL', 9, 1),
+        ('Xarope_de_amendoa_orgeat', 'mL', 6, 1),
+        ('Uisque_bourbon', 'mL', 9, 1),
+        ('Angostura_bitters', 'ml', 500.0, 100.0),
+        ('Uisque_de_centeio_rye', 'mL', 9, 1),
+        ('Cereja_marasquino', 'g', 6, 1),
 ]
 
 #nome, unidade, qtd, qtd min
 ingredientes_diversos = [
-        ('Onion_rings', 'g', 15, 3)
-        ('Brigadeiro', 'unidade', 100, 25)
-        ('Beijinho', 'unidade', 100, 25)
-        ('Bolo_comum_simples', 'g', 15, 3)
+        ('Onion_rings', 'g', 15, 3),
+        ('Brigadeiro', 'unidade', 100, 25),
+        ('Beijinho', 'unidade', 100, 25),
+        ('Bolo_comum_simples', 'g', 15, 3),
 ]
 
 # nome, unidade de medida, estoque atual, estoque minimo
@@ -1212,7 +1212,7 @@ ficha_bebidas = [
     ("Mojito Sem Álcool", "Suco_de_limao", 30),
     ("Mojito Sem Álcool", "Xarope_simples_de_acucar", 20),
     ("Mojito Sem Álcool", "Agua_com_gas", 150),
-     ("Mojito Sem Álcool", "Folha_de_hortela", 10)
+     ("Mojito Sem Álcool", "Folha_de_hortela", 10),
 
 
     # Piña Colada Zero
@@ -1512,6 +1512,15 @@ def iniciar_cargos() -> list[NivelPermissao]:
     return cargos
 
 def iniciar_admin() -> Usuario:
+    """Cria o usuário administrador padrão quando ainda não existe.
+
+    Lê as credenciais do admin das variáveis de ambiente (ADMIN_EMAIL,
+    ADMIN_PASSWORD), criptografando os dados sensíveis.
+
+    Returns:
+        Usuario: o administrador a ser inicializado; None se já existir um admin.
+    """
+    
     import security
     from os import environ
     from werkzeug.security import generate_password_hash

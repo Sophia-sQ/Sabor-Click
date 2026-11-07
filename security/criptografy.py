@@ -1,3 +1,5 @@
+"""Funções de criptografia simétrica (Fernet) de dados sensíveis."""
+
 from os import environ as env
 
 from cryptography.fernet import Fernet

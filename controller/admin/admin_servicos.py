@@ -1,3 +1,5 @@
+"""Rotas administrativas de gerenciamento de serviços e seu painel."""
+
 from . import admin_bp, _retorno
 
 from flask import render_template, flash, request
