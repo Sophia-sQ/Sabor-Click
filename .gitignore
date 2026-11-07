@@ -9,7 +9,8 @@ __pycache__/
 *$py.class 
 
 # instancias
-instaces/
+instances/
+instance/
 
 # Arquivos de build 
 build/ 
