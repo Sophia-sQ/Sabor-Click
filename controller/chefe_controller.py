@@ -112,7 +112,6 @@ def enviar_preparo():
     cada prato) e as bebidas do pedido (avulsas ou vindas do cardápio), cada
     uma com sua ficha técnica.
     """
-    from model.servico_model import Cardapio
     from model.ficha_model import buscar_ingrediente_por_id, buscar_prato_por_id
 
     pedido = buscar_pedido_por_chefe(session["id"])

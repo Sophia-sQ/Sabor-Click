@@ -367,8 +367,8 @@ def listar_pedidos_entre_datas(ano, mes, dia, ano_final=None, mes_final=None, di
 def listar_pedido_por_status(status: str = "aguardando") -> list[Pedido]:
     return db.session.query(Pedido).filter_by(status=status).all()
 
-def buscar_pedido_por_chefe(id_chefe: int) -> list[Pedido]:
-    return db.session.query(Pedido).filter_by(id_chefe=id_chefe).all()
+def buscar_pedido_por_chefe(id_chefe: int) -> Pedido:
+    return db.session.query(Pedido).filter_by(id_chefe=id_chefe)
     
 def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=None, observacao=None, num_convidados=None, valor_total=None) -> bool | None:
     """Atualiza dados cadastrais e de status de um pedido (campos None são ignorados).
