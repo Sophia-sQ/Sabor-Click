@@ -1,4 +1,4 @@
-from admin import admin_bp, _retorno
+from . import admin_bp, _retorno
 
 from flask import render_template, flash, request
 

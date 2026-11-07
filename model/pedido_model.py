@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 from model.usuario_model import registrar_log
 
-from database import db
+from database import db, Base
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import extract
 
@@ -50,6 +50,12 @@ class Bebida(db.Model):
     __table_args__ = (
         db.CheckConstraint("valor_unitario >= 0", name="ck_bebida_valor"),
     )
+    
+    def __init__(self, nome: str, descricao: str, valor_unitario):
+        self.nome = nome
+        self.descricao = descricao
+        self.valor_unitario = valor_unitario
+
 
 class PedidoBebida(db.Model):
     """Associação entre pedido e bebida, com quantidade e valor total."""
@@ -65,6 +71,13 @@ class PedidoBebida(db.Model):
     __table_args__ = (
         db.CheckConstraint("qtd > 0", name="ck_pedido_bebida_qtd"),
     )
+    
+    def __init__(self, id_pedido: int, id_bebida: int, qtd: int, valor_total):
+        self.id_pedido = id_pedido
+        self.id_bebida = id_bebida
+        self.qtd = qtd
+        self.valor_total = valor_total
+    
 # Tabela de associação entre cardápio e bebida
 
 class bebidaCardapio(db.Model):
@@ -81,6 +94,11 @@ class CardapioPedido(db.Model):
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
     id_pedido = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), primary_key=True)
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
+
+    def __init__(self, id_cardapio: int, id_pedido: int, id_servico: int):
+        self.id_cardapio = id_cardapio
+        self.id_pedido = id_pedido
+        self.id_servico = id_servico
 
 # ======================================================
 
@@ -443,6 +461,13 @@ def remover_bebida_do_pedido(id_pedido: int, id_bebida: int) -> bool:
     db.session.delete(item)
     db.session.commit()
     return True
+
+def listar_bebidas_do_pedido(id_pedido: int) -> PedidoBebida | None:
+    """Busca todas as bebidas separadas de um determinado pedido"""
+    itens = db.session.query(PedidoBebida).filter_by(id_pedido=id_pedido).all()
+    if itens:
+        return itens
+    return None
 
 # CRUD CardapioPedido
 def criar_cardapio_pedido(id_cardapio: int, id_pedido: int, id_servico: int) -> CardapioPedido | None:

@@ -1,4 +1,4 @@
-from admin import admin_bp
+from . import admin_bp
 
 from flask import render_template, request, flash, redirect, url_for
 from sqlalchemy.exc import SQLAlchemyError

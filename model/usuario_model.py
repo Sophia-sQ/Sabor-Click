@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from database import db
+from database import db, Base
 from sqlalchemy.exc import IntegrityError
 
 from flask import session
@@ -21,6 +21,10 @@ class NivelPermissao(db.Model):
     id_permissao = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(20), unique=True, nullable=False)  # Escolha: cliente, chefe, admin
 
+    def __init__(self, id_permissao: int, nome: str):
+        self.id_permissao = id_permissao
+        self.nome = nome
+
 # Tabela do usuário
 class Usuario(db.Model):
     """Usuário do sistema, com dados sensíveis criptografados e indexados por HMAC."""
@@ -38,6 +42,22 @@ class Usuario(db.Model):
     criado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False)
     id_permissao = db.Column(db.Integer, db.ForeignKey("nivel_permissao.id_permissao"), nullable=False)
     salario = db.Column(db.Integer, nullable=True, default=0)
+    
+    def __init__(self, cpf_criptografado: str, cpf_hmac: str, nome: str,
+                 email_criptografado: str, email_hmac: str, senha_hash: str,
+                 id_permissao: int, ativo: bool = True,
+                 criado_em=None, salario: int = 0):
+        self.cpf_criptografado = cpf_criptografado
+        self.cpf_hmac = cpf_hmac
+        self.nome = nome
+        self.email_criptografado = email_criptografado
+        self.email_hmac = email_hmac
+        self.senha_hash = senha_hash
+        self.id_permissao = id_permissao
+        self.ativo = ativo
+        if criado_em is not None:
+            self.criado_em = criado_em
+        self.salario = salario
     
 # Tabela de endereços do usuário
 class Endereco(db.Model):
@@ -65,6 +85,14 @@ class LogAtividade(db.Model):
     descricao = db.Column(db.Text, nullable=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
 
+    def __init__(self, acao: str, id_usuario: int,
+                 descricao: str = None, realizado_em=None):
+        self.acao = acao
+        self.id_usuario = id_usuario
+        self.descricao = descricao
+        if realizado_em is not None:
+            self.realizado_em = realizado_em
+
 # Tabelas de tokens
 class Token(db.Model):
     """Token de verificação (código de uso único) associado a um usuário."""
@@ -77,6 +105,15 @@ class Token(db.Model):
     tentativas = db.Column(db.Integer, nullable=False, default=0)
     id_usuario = db.Column(db.Integer,db.ForeignKey("usuario.id_usuario"),nullable=False)
     criado_em = db.Column(db.DateTime(timezone=True),default=hoje,nullable=False)
+
+    def __init__(self, codigo_hash: str, id_usuario: int,
+                 ativo: bool = True, tentativas: int = 0, criado_em=None):
+        self.codigo_hash = codigo_hash
+        self.id_usuario = id_usuario
+        self.ativo = ativo
+        self.tentativas = tentativas
+        if criado_em is not None:
+            self.criado_em = criado_em
 
 # funções de consulta
 def criar_token(hash: str, id_usuario: int) -> Token | None:
@@ -265,7 +302,10 @@ def registrar_log(acao: str, descricao: str | None = None) -> bool:
     """
     log = LogAtividade(id_usuario=session.get("id"), acao=acao, descricao=descricao )
     db.session.add(log)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        return False
     return True
 
 def buscar_usuario_para_login(credencial: str, senha: str) -> int | None:

@@ -1,4 +1,4 @@
-from admin import admin_bp
+from . import admin_bp
 
 from flask import request, url_for, Response, jsonify, render_template, flash, redirect
 

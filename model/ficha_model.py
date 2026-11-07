@@ -29,6 +29,12 @@ class PratoCardapio(db.Model):
     qtd = db.Column(db.Integer, nullable=False)
     descricao = db.Column(db.Text, nullable=True)
 
+    def __init__(self, id_prato: int, id_cardapio: int, qtd: int,
+                 descricao: str = None):
+        self.id_prato = id_prato
+        self.id_cardapio = id_cardapio
+        self.qtd = qtd
+        self.descricao = descricao
 
 
 
@@ -46,6 +52,11 @@ class Ingrediente(db.Model):
         db.CheckConstraint("qtd >= 0 AND qtd_min >= 0", name="ck_ingrediente_qtd"),
     )
 
+    def __init__(self, nome: str, unidade: str, qtd=0.0, qtd_min=0.0):
+        self.nome = nome
+        self.unidade = unidade
+        self.qtd = qtd
+        self.qtd_min = qtd_min
 
 
 
@@ -57,7 +68,7 @@ class FichaTecnica(db.Model):
     id_prato = db.Column(db.Integer, db.ForeignKey("prato.id_prato"), primary_key=True)
     id_ingrediente = db.Column(db.Integer, db.ForeignKey("ingrediente.id_ingrediente"), primary_key=True)
 
-    qtd_necessaria = db.Column(db.Numeric(10, 3), nullable=False)
+    qtd_necessaria = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
         db.CheckConstraint("qtd_necessaria > 0", name="ck_ficha_qtd"),
@@ -95,6 +106,15 @@ class Lote(db.Model):
     #   # UM dos campos seja NOT NULL
     #    db.CheckConstraint("(id_ingrediente IS NULL) <> (id_bebida IS NULL)", name="ck_lote_item"),
     #)
+
+    def __init__(self, num_lote: str, marca: str, data_recebimento,
+                 qtd_inicial, id_ingrediente: int = None, data_validade=None):
+        self.num_lote = num_lote
+        self.marca = marca
+        self.data_recebimento = data_recebimento
+        self.data_validade = data_validade
+        self.qtd_inicial = qtd_inicial
+        self.id_ingrediente = id_ingrediente
 
 """==================CRUD PRATO============="""
 def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, requer_pre_preparo: bool = False) -> int:
@@ -233,8 +253,17 @@ def buscar_prato_cardapio(id_prato: int, id_cardapio: int) -> PratoCardapio | No
 
 def listar_pratos_por_cardapio(id_cardapio: int) -> list[PratoCardapio] | None:
     """Lista os vínculos de prato de um cardápio; None se não houver."""
+    from seeds import cardapios_bebidas
+    from servico_model import buscar_cardapio_por_id
+    from pedido_model import BebidaCardapio
+    
+    cardapios_bebidas = [tupla[0] for tupla in cardapios_bebidas]
 
-    stmt = db.select(PratoCardapio).where(PratoCardapio.id_cardapio == id_cardapio)
+    if buscar_cardapio_por_id(id_cardapio) in cardapios_bebidas:
+        stmt = db.select(BebidaCardapio).where(BebidaCardapio.id_cardapio == id_cardapio)
+    else:
+        stmt = db.select(PratoCardapio).where(PratoCardapio.id_cardapio == id_cardapio)
+    
     itens = db.session.execute(stmt).scalars().all()
     if itens:
         return itens
