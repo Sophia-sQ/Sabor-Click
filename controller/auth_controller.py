@@ -20,19 +20,22 @@ def verificacao():
     """Trata a verificação por token (delega a verificar_token)."""
     return verificar_token()
 
-@auth_bp.route("/login", methods=("GET", "POST"))
+@auth_bp.get("/login")
 def login():
+    "Retorna o formulário de login."
+    return render_template("login.html")
+
+@auth_bp.post("/fazer_login")
+def fazer_login():
     """Processa o login por e-mail ou CPF e dispara o código de verificação.
 
-    No GET, exibe o formulário. No POST, valida as credenciais, localiza o
-    usuário, envia o código por e-mail e guarda o estado pendente na sessão.
+    Valida as credenciais, localiza o usuário, envia o código por e-mail e 
+    guarda o estado pendente na sessão.
 
     Returns:
         Response | str: redirecionamento ou template, conforme o fluxo.
     """
-    if request.method == "GET":
-        return render_template("login.html")
-
+    
     tipo_login = request.form.get("tipo_login", "")
     credencial = request.form.get("credencial", "").strip()
     senha = request.form.get("senha", "")
@@ -126,18 +129,15 @@ def logout():
     return render_template("home.html")
 
 
-@auth_bp.route("/cadastro", methods=["GET", "POST"])
-def cadastro():
+@auth_bp.post("/fazer-cadastro")
+def fazer_cadastro():
     """Cadastra um novo cliente a partir do formulário.
 
-    No GET, exibe o formulário. No POST, valida os campos e cria o usuário com
-    cargo CLIENTE.
+    Valida campos e cria o usuário com cargo CLIENTE.
 
     Returns:
         str: template de login (sucesso) ou de cadastro (erro de validação).
     """
-    if request.method == "GET":
-        return render_template("cadastro.html")
 
     nome = request.form.get("nome", "").strip()
     cpf = request.form.get("cpf", "").strip()
@@ -151,7 +151,12 @@ def cadastro():
     usuario = criar_usuario(cpf, nome, email, senha, Cargo.CLIENTE.value)
     if not usuario:
         flash("Falha no cadastro. Tente novamente.", "danger")
-        return render_template("cadastro.html")
+        return redirect(url_for("auth.cadastro"))
 
-    return render_template("login.html")
+    return redirect(url_for("auth.login"))
+
+@auth_bp.get("/cadastro")
+def cadastro():
+    "Retorna formulário de cadastro."
+    return render_template("cadastro.html")
 
