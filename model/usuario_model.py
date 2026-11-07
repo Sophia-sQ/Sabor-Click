@@ -286,7 +286,7 @@ def criar_usuario(cpf: str, nome: str, email: str, senha: str, id_permissao: int
         return None 
         
     cargo = db.session.get(NivelPermissao, id_permissao).nome 
-    registrar_log('CADASTRO', f'Novo usuário {cargo} {nome} cadastrado.') 
+    #registrar_log('CADASTRO', f'Novo usuário {cargo} {nome} cadastrado.') 
     
     return novo_usuario.id_usuario
 

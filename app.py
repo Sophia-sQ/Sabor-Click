@@ -52,7 +52,9 @@ def create_app() -> Flask:
             negado; None quando a requisição pode prosseguir.
         """
     
-        rotas_publicas = {"auth.login", "auth.cadastro", "auth.verificacao", "auth.verificar_token", "static", "cliente.pagina_inicial", "cliente.home", "cliente.menu"}
+        rotas_publicas = {"auth.login", "auth.cadastro", "auth.verificacao", "auth.verificar_token", 
+                          "static", "cliente.pagina_inicial", "cliente.home", "cliente.menu", "auth.fazer_login",
+                          "auth.fazer_cadastro"}
         if request.endpoint is None:
             return
         if request.endpoint not in rotas_publicas and "id" not in session:

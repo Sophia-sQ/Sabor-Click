@@ -89,8 +89,21 @@ def verificar_token():
     Returns:
         Response | str: redirecionamento ou template, conforme o fluxo.
     """
+    
     email_pendente = session.get("email_pendente")
     id_pendente = session.get("usuario_pendente_id")
+    
+    if request.method == "POST":
+        codigo = request.form.get("codigo", "").strip()
+        from utils import hoje
+        try:
+            resultado = validar_token(id_pendente, codigo)
+            print(">> valido?", resultado)
+        except Exception:
+            import traceback; traceback.print_exc()
+    
+        
+    
 
     if email_pendente is None or id_pendente is None:
         flash("Faça login para solicitar um código.", "warning")
@@ -115,7 +128,8 @@ def verificar_token():
             session["id"] = id_pendente
             session["cargo"] = usuario.id_permissao
             flash("E-mail verificado com sucesso!", "success")
-            return render_template("home.html")
+            
+            redirect(url_for("cliente.home"))
 
         erro = "Código inválido ou expirado. Tente novamente."
 
