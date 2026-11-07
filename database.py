@@ -20,7 +20,8 @@ def criar_admin() -> None:
     
     from seeds import iniciar_admin
     admin = iniciar_admin()
-    db.session.add(admin)
+    if admin is not None:
+        db.session.add(admin)
 
 # CRIAÇÃO DE CARGOS
 def criar_cargos() -> None:

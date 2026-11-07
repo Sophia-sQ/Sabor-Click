@@ -44,6 +44,10 @@ class ServicoBancada(db.Model):
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
     id_bancada = db.Column(db.Integer, db.ForeignKey("bancada.id_bancada"), primary_key=True)
 
+    def __init__(self, id_servico: int, id_bancada: int):
+        self.id_servico = id_servico
+        self.id_bancada = id_bancada
+
 class Cardapio(db.Model):
     """Cardápio com nome, descrição e preço-base."""
     __tablename__ = "cardapio"

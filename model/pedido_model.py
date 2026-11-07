@@ -127,7 +127,7 @@ def buscar_bebida_por_id(id_bebida: int) -> Bebida | None:
 def buscar_bebida_por_nome(nome_bebida: str) -> Bebida | None:
     """Busca uma bebida pelo nome exato. Retorna None se não existir."""
     bebida = db.session.execute(
-        db.session.select(Bebida).where(Bebida.nome == nome_bebida),
+        db.select(Bebida).where(Bebida.nome == nome_bebida),
     ).scalar_one_or_none()
 
     if bebida:
@@ -485,7 +485,7 @@ def remover_bebida_do_pedido(id_pedido: int, id_bebida: int) -> bool:
     db.session.commit()
     return True
 
-def listar_bebidas_do_pedido(id_pedido: int) -> PedidoBebida | None:
+def listar_bebidas_do_pedido(id_pedido: int) -> list[PedidoBebida]:
     """Busca todas as bebidas separadas de um determinado pedido"""
     itens = db.session.query(PedidoBebida).filter_by(id_pedido=id_pedido).all()
     if itens:

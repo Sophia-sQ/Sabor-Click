@@ -14,7 +14,7 @@ from flask import (
 from model.pedido_model import (
     atualizar_pedido,
     buscar_bebida_por_id,
-    buscar_bebidas_pedido,
+    listar_bebidas_do_pedido,
     buscar_cardapios_pedido,
     criar_pedido,
     listar_pedidos_por_cliente,
@@ -29,7 +29,6 @@ from model.usuario_model import (
     adicionar_endereco,
     atualizar_endereco,
     atualizar_usuario,
-    buscar_enderco_por_id,
     buscar_endereco_por_id,
     buscar_usuario_por_id,
     deletar_endereco,
@@ -384,9 +383,9 @@ def dados_perfil() -> Response:
         if (servico := buscar_servico_por_id(cardapio.id_servico))
     }
 
-    endereco = buscar_enderco_por_id(pedido.id_endereco)
+    endereco = buscar_endereco_por_id(pedido.id_endereco)
 
-    bebidas=buscar_bebidas_pedido(pedido.id_pedido) or []
+    bebidas=listar_bebidas_do_pedido(pedido.id_pedido) or []
 
     valor_total = 0
     for bebida in bebidas:

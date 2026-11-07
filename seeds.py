@@ -166,7 +166,7 @@ lista_pratos = [
     ("Salada_de_fruta_fresca_com_creme", "Salada de frutas com creme de leite e leite condensado", "sobremesa", 0, False),
     ("Bruschetta", "Bruscretta de pao italiano, tomate e manjericao", "entrada", 5, False),
     ("File_de_tilapia", "File de tilapia grelhado", "prato principal", 30, True), #Limpar o file de tilapia,
-    ("Molho_de_mateiga_com_alcaparras", "Molho de acompanhamento de manteiga e alcaparras", "Acomapanhamento", 10, False),
+    ("Molho_de_mateiga_com_alcaparras", "Molho de acompanhamento de manteiga e alcaparras", "acompanhamento", 10, False),
     ("Iorgute_Natural_com_morangos_e_mel", "Iorgute com pedacos de fruta e adocado com mel", "sobremesa", 5, False),
     ("Salada_ceaser", "Salada de alface, croutons e molho caesar", "entrada", 20, False),
     ("Stogonoff_de_file_mignon", "Strogonoff cremoso de filé mignon", "prato principal", 120, True),
@@ -1074,7 +1074,7 @@ lista_ficha_tecnica = [
     ("Pastel_de_queijo", "Pastel_de_queijo", 3.3),
 ]
 
-#prato, cardapio, quantidade (em g, descrição técnica)
+#prato, cardapio, quantidade (em g), descrição técnica
 lista_prato_cardapio = [
     # FEIJOADA COMPLETA
     ("Mandioca_frita", "Feijoada_completa", 77, "77 g por pessoa"),
@@ -1392,7 +1392,7 @@ def iniciar_pratos() -> list[Prato]:
 
     for nome, descricao, tipo_prato, tempo_preparo, requer_pre_preparo in lista_pratos:
         nome = formatar_nome(nome)
-        
+        tipo_prato = tipo_prato.lower()
         if buscar_prato_por_nome(nome):
             continue
         
@@ -1473,12 +1473,12 @@ def iniciar_lotes() -> list[Lote]:
             continue
         
         lote = Lote(
-            numero,
-            marca,
-            data_recebimento,
-            data_validade,
-            quantidade_inicial,
-            buscar_ingrediente_por_nome(nome_ingrediente).id
+            num_lote=numero,
+            marca=marca,
+            data_recebimento=data_recebimento,
+            data_validade=data_validade,
+            qtd_inicial=quantidade_inicial,
+            id_ingrediente=buscar_ingrediente_por_nome(nome_ingrediente).id_ingrediente
         )
         lotes.append(lote)
     
@@ -1494,24 +1494,29 @@ def iniciar_cargos() -> list[NivelPermissao]:
         list[NivelPermissao]: todos os objetos nivelPermissao a ser inicializados.
     """
 
-    cargos=[]
+    cargos = []
 
     for id_cargo, nome in lista_cargos:
         cargo = buscar_permissao_por_nome(nome)
-    
-        if cargo:
+
+        if cargo is None:
+            cargo = NivelPermissao(id_permissao=id_cargo, nome=nome.lower())
+        else:
             cargo_valido = (
                 cargo.id_permissao in Cargo._value2member_map_
                 and cargo.nome.upper() in Cargo.__members__
             )
-    
+            
             if not cargo_valido:
-                cargo=atualizar_permissao(id_cargo, nome.lower())
-        cargos.append(cargo)
-        
+                atualizado = atualizar_permissao(id_cargo, nome.lower())
+                if atualizado is not None:
+                    cargo = atualizado
+
+        if cargo is not None:
+            cargos.append(cargo)
     return cargos
 
-def iniciar_admin() -> Usuario:
+def iniciar_admin() -> Usuario | None:
     """Cria o usuário administrador padrão quando ainda não existe.
 
     Lê as credenciais do admin das variáveis de ambiente (ADMIN_EMAIL,
@@ -1524,18 +1529,21 @@ def iniciar_admin() -> Usuario:
     import security
     from os import environ
     from werkzeug.security import generate_password_hash
+
     admin_existente = Usuario.query.filter_by(id_permissao=Cargo.ADMIN.value).first()
 
-    if not admin_existente:
-        return Usuario(
-            cpf_criptografado=security.criptografar("00000000000"),
-            cpf_hmac=security.gerar_hmac(cpf="00000000000"),
-            nome="Admin",
-            email_criptografado=security.criptografar(environ.get("ADMIN_EMAIL")),
-            email_hmac=security.gerar_hmac(environ.get("ADMIN_EMAIL")),
-            senha_hash=generate_password_hash(environ.get("ADMIN_PASSWORD")),
-            id_permissao=Cargo.ADMIN.value
-        )      
+    if admin_existente:
+        return None
+
+    return Usuario(
+        cpf_criptografado=security.criptografar("00000000000"),
+        cpf_hmac=security.gerar_hmac(cpf="00000000000"),
+        nome="Admin",
+        email_criptografado=security.criptografar(environ.get("ADMIN_EMAIL")),
+        email_hmac=security.gerar_hmac(environ.get("ADMIN_EMAIL")),
+        senha_hash=generate_password_hash(environ.get("ADMIN_PASSWORD")),
+        id_permissao=Cargo.ADMIN.value,
+    )
 
 # ================================== Inicialização FICHA TECNICA ================================== 
 
@@ -1619,7 +1627,7 @@ def iniciar_servico_bancada() -> list[ServicoBancada]:
 
     for nome_servico, nome_bancada in lista_servicos_bancadas:
         nome_servico = formatar_nome(nome_servico)
-        nome_bancada = nome_bancada(nome_bancada)
+        nome_bancada = formatar_nome(nome_bancada)
         
         servico = buscar_servico_por_nome(nome_servico)
         bancada = buscar_bancada_por_nome(nome_bancada)
@@ -1636,7 +1644,6 @@ def iniciar_servico_bancada() -> list[ServicoBancada]:
         associacao = ServicoBancada(
             servico.id_servico,
             bancada.id_bancada
-            
         )
 
         associacao_servico_bancada.append(associacao)
@@ -1681,7 +1688,7 @@ def iniciar_prato_cardapio() -> list[PratoCardapio]:
 
     associacao_prato_cardapio = []
 
-    for nome_prato, nome_cardapio in lista_prato_cardapio:
+    for nome_prato, nome_cardapio, qtd, descricao in lista_prato_cardapio:
         nome_prato = formatar_nome(nome_prato)
         nome_cardapio = formatar_nome(nome_cardapio)
         
@@ -1699,8 +1706,9 @@ def iniciar_prato_cardapio() -> list[PratoCardapio]:
 
         associacao = PratoCardapio(
             prato.id_prato,
-            cardapio.id_cardapio
-            
+            cardapio.id_cardapio,
+            qtd,
+            descricao
         )
 
         associacao_prato_cardapio.append(associacao)

@@ -130,8 +130,7 @@ def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, 
     Returns:
         int: id do prato criado.
     """
-    novo_prato = Prato(nome=nome,descricao=descricao,tipo_prato=tipo_prato,tempo_preparo=tempo_preparo,requer_pre_preparo=requer_pre_preparo,
-    )
+    novo_prato = Prato(nome=nome,descricao=descricao,tipo_prato=tipo_prato,tempo_preparo=tempo_preparo,requer_pre_preparo=requer_pre_preparo,)
     db.session.add(novo_prato)
     db.session.commit()
     registrar_log("CRIACAO PRATO", f"Usuário criou o prato {novo_prato.nome}")
@@ -148,7 +147,7 @@ def buscar_prato_por_id(id_prato: int) -> Prato | None:
 def buscar_prato_por_nome(nome_prato: str) -> Prato | None:
     """Busca um prato pelo nome exato. Retorna None se não existir."""
     prato = db.session.execute(
-        db.session.select(Prato).where(Prato.nome == nome_prato),
+        db.select(Prato).where(Prato.nome == nome_prato),
     ).scalar_one_or_none()
 
     if prato:
@@ -337,7 +336,7 @@ def buscar_ingrediente_por_id(id_ingrediente: int) -> Ingrediente | None:
 def buscar_ingrediente_por_nome(nome_ingrediente: str) -> Ingrediente | None:
     """Busca um ingrediente pelo nome exato. Retorna None se não existir."""
     ingrediente = db.session.execute(
-        db.session.select(Ingrediente).where(Ingrediente.nome == nome_ingrediente),
+        db.select(Ingrediente).where(Ingrediente.nome == nome_ingrediente),
     ).scalar_one_or_none()
 
     if ingrediente:
@@ -538,7 +537,7 @@ def buscar_lote_por_id(id_lote: int) -> Lote | None:
 def buscar_lote_por_numero(num_lote: str) -> Lote | None:
     """Busca um lote pelo número. Retorna None se não existir."""
     lote = db.session.execute(
-        db.session.select(Lote).where(Lote.num_lote == num_lote),
+        db.select(Lote).where(Lote.num_lote == num_lote),
     ).scalar_one_or_none()
 
     if lote:

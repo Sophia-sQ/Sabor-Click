@@ -221,7 +221,7 @@ def buscar_permissao_por_nome(nome_permissao: str) -> NivelPermissao | None:
         NivelPermissao | None: a permissão encontrada ou None.
     """
     permissao = db.session.execute(
-        db.session.select(NivelPermissao).where(NivelPermissao.nome == nome_permissao.lower()),
+        db.select(NivelPermissao).where(NivelPermissao.nome == nome_permissao.lower()),
     ).scalar_one_or_none()
 
     if permissao:
@@ -477,7 +477,7 @@ def adicionar_endereco(nome: str, logradouro: str, numero: str, complemento: str
     registrar_log("NOVO ENDERECO", f"Novo endereco no id {endereco.id_endereco} criado.")
     return endereco
 
-def buscar_enderco_por_usuario(id_usuario: int) -> list[Endereco] | None:
+def buscar_endereco_por_usuario(id_usuario: int) -> list[Endereco] | None:
     """Busca todos os endereços de um usuário.
 
     Args:
@@ -496,15 +496,6 @@ def buscar_enderco_por_usuario(id_usuario: int) -> list[Endereco] | None:
         return None
 
     return enderecos
-
-def buscar_endereco_por_id(id_endereco: int) -> Endereco | None:
-    """Busca um endereço pelo id. Retorna None se não existir."""
-    endereco=db.session.get(Endereco, id_endereco)
-
-    if not endereco:
-        return None
-
-    return endereco
 
 def listar_enderecos_do_usuario(id_usuario: int) -> list[Endereco]:
     """Lista os endereços de um usuário (lista vazia se não houver)."""
