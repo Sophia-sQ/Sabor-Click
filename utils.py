@@ -1,5 +1,5 @@
 from calendar import monthrange
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from zoneinfo import ZoneInfo
 
@@ -7,8 +7,21 @@ from dateutil.relativedelta import relativedelta
 
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
-#nomes
+# ==================== FUNÇÕES DE FORMATAÇÃO DE NOMES ====================
 def formatar_nome(nome_completo: str) -> str:
+    """Ajusta a formatação de um nome removendo '_' e normlizando capitalização.
+
+    Args:
+        nome_completo (str): nome ou expressão a ser formatado.
+
+    Returns:
+        str: nome formatado.
+    """
+
+    nome_formatado = nome_completo.strip().replace("_", " ").lower()
+    return nome_formatado
+
+def formatar_nome_proprio(nome_completo: str) -> str:
     """Ajusta a capitalização de um nome próprio mantendo conectivos em minúscula.
 
     Converte a primeira letra de cada palavra para maiúscula (Title Case), mas
@@ -41,8 +54,7 @@ def formatar_nome(nome_completo: str) -> str:
     # Junta as palavras novamente em uma única string
     return " ".join(nome_formatado)
 
-
-#formatação monetária
+# ==================== FUNÇÕES DE FORMATAÇÃO MONETÁRIA ====================
 def moeda_para_centavos(valor) -> int:
     """Converte um valor monetário (texto ou número) em centavos (inteiro).
 
@@ -78,6 +90,7 @@ def formatar_moeda(centavos) -> str:
     valor = Decimal(int(centavos)) / 100
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+# ==================== FUNÇÕES DE DATA E HORA ====================
 def calcular_periodo(meses_antes: int) -> int:
     """Calcula o dia equivalente em um mês anterior ao atual.
 
@@ -163,6 +176,6 @@ def string_para_data(data: str) -> date:
     """Converte uma string 'AAAA-MM-DD' em um objeto date."""
     return datetime.strptime(data, "%Y-%m-%d").date()
 
-def string_para_hora(hora: str):
+def string_para_hora(hora: str) -> time:
     """Converte uma string 'HH:MM' em um objeto time."""
     return  datetime.strptime(hora, "%H:%M").time()
