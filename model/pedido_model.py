@@ -80,11 +80,11 @@ class PedidoBebida(db.Model):
     
 # Tabela de associação entre cardápio e bebida
 
-class bebidaCardapio(db.Model):
+class BebidaCardapio(db.Model):
     """Associação entre bebida e cardápio."""
     __tablename__ = "bebida_cardapio"
 
-    id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_servico"), primary_key=True)
+    id_bebida = db.Column(db.Integer, db.ForeignKey("bebida.id_bebida"), primary_key=True)
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
 
 class CardapioPedido(db.Model):
@@ -203,7 +203,7 @@ def associar_bebida_cardapio(id_bebida: int, id_cardapio: int) -> tuple[int, int
     Returns:
         tuple[int, int]: par (id_bebida, id_cardapio) associado.
     """
-    novo_item = bebidaCardapio(id_bebida=id_bebida,id_cardapio=id_cardapio,
+    novo_item = BebidaCardapio(id_bebida=id_bebida,id_cardapio=id_cardapio,
     )
     db.session.add(novo_item)
     db.session.commit()
@@ -364,6 +364,12 @@ def listar_pedidos_entre_datas(ano, mes, dia, ano_final=None, mes_final=None, di
         ),
     ).scalars().all()
 
+def listar_pedido_por_status(status: str = "aguardando") -> list[Pedido]:
+    return db.session.query(Pedido).filter_by(status==status).all()
+
+def buscar_pedido_por_chefe(id_chefe: int) -> list[Pedido]:
+    return db.session.query(Pedido).filter_by(id_chefe==id_chefe).all()
+    
 def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=None, observacao=None, num_convidados=None, valor_total=None) -> bool | None:
     """Atualiza dados cadastrais e de status de um pedido (campos None são ignorados).
 
@@ -403,7 +409,6 @@ def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=N
         return True
     except IntegrityError:
         return None
-
 
 def deletar_pedido(id_pedido: int) -> bool:
     """Remove um pedido pelo id. Retorna False se não existir."""
