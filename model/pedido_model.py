@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from model.usuario_model import registrar_log
 
 from database import db, Base
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import  SQLAlchemyError
 from sqlalchemy import extract
 
 
@@ -275,7 +275,7 @@ def criar_pedido(id_cliente: int, id_endereco: int, num_convidados: int, valor_t
         criar_trigger_baixa_estoque()
 
         db.session.commit()
-    except IntegrityError:
+    except SQLAlchemyError:
         db.session.rollback()
         return None
 
@@ -425,7 +425,7 @@ def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=N
         db.session.commit()
         registrar_log("ATUALIZACAO PEDIDO", f"Dados do pedido {id_pedido} atualizados.")
         return True
-    except IntegrityError:
+    except SQLAlchemyError:
         return None
 
 def deletar_pedido(id_pedido: int) -> bool:
@@ -513,7 +513,7 @@ def criar_cardapio_pedido(id_cardapio: int, id_pedido: int, id_servico: int) -> 
     try:
         db.session.commit(cardapio_pedido)
         return cardapio_pedido
-    except IntegrityError:
+    except SQLAlchemyError:
         db.session.rollback()
         return None
 
@@ -544,6 +544,6 @@ def deletar_cardapios_pedido(id_pedido: int) -> bool:
         db.session.commit()
         return True
 
-    except IntegrityError:
+    except SQLAlchemyError:
         db.session.rollback()
         return False

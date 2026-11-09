@@ -46,7 +46,7 @@ def enviar_token(email_criptografado: str, id_usuario: int) -> None:
         hashlib.sha256
     ).hexdigest()
 
-    registro = criar_token(codigo_hash, id_usuario)
+    registro = criar_token(codhash=codigo_hash, id_usuario=id_usuario)
 
     if registro is None:
         raise RuntimeError("Não foi possível registrar o token.")

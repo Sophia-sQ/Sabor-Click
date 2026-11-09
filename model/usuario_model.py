@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from database import db, Base
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import  SQLAlchemyError
 
 from flask import session
 from werkzeug.security import check_password_hash,generate_password_hash
@@ -117,7 +117,7 @@ class Token(db.Model):
             self.criado_em = criado_em
 
 # funções de consulta
-def criar_token(hash: str, id_usuario: int) -> Token | None:
+def criar_token(codhash: str, id_usuario: int) -> Token | None:
     """Cria e persiste um token de verificação para um usuário.
 
     Args:
@@ -127,12 +127,12 @@ def criar_token(hash: str, id_usuario: int) -> Token | None:
     Returns:
         Token | None: o token criado; None em caso de violação de integridade.
     """
-    token=Token(codigo_hash=hash, id_usuario=id_usuario)
+    token=Token(codigo_hash=codhash, id_usuario=id_usuario)
     db.session.add(token)
 
     try:
         db.session.commit()
-    except IntegrityError:
+    except SQLAlchemyError:
         db.session.rollback()
         return None
     return token
@@ -205,7 +205,7 @@ def criar_cargo(id_permissao: int, nome: str) -> NivelPermissao | None:
 
     try:
         db.session.commit()
-    except IntegrityError:
+    except SQLAlchemyError:
         db.session.rollback()
         return None
     registrar_log("NOVO CARGO", f"Novo cargo {nome} criado.")
@@ -281,7 +281,7 @@ def criar_usuario(cpf: str, nome: str, email: str, senha: str, id_permissao: int
     
     try: 
         db.session.commit() 
-    except IntegrityError: 
+    except SQLAlchemyError: 
         db.session.rollback() 
         return None 
         
@@ -305,7 +305,7 @@ def registrar_log(acao: str, descricao: str | None = None) -> bool:
     db.session.add(log)
     try:
         db.session.commit()
-    except IntegrityError:
+    except SQLAlchemyError:
         return False
     return True
 
@@ -471,7 +471,7 @@ def adicionar_endereco(nome: str, logradouro: str, numero: str, complemento: str
 
     try:
         db.session.commit()
-    except IntegrityError:
+    except SQLAlchemyError:
         db.session.rollback()
         return None
     registrar_log("NOVO ENDERECO", f"Novo endereco no id {endereco.id_endereco} criado.")
