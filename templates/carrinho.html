@@ -14,27 +14,40 @@
 </head>
 <body class="pagina-carrinho">
     <header class="navbar">
-        <a class="marca" href="/"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
+        <a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
         <nav aria-label="Navegação principal">
-            <a href="/">Início</a><a href="/#sobre">Sobre</a><a href="/#servicos">Serviços</a>
-            <div class="acoes-usuario"><a class="icone-acao carrinho-ativo" href="/carrinho" aria-label="Carrinho" aria-current="page"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a><a class="icone-acao perfil" href="{{ perfil_url|default(url_for('auth.login')) }}" aria-label="Meu perfil"><img src="{{ url_for('static', filename='images/icone-perfil.svg') }}" width="20" height="20" alt=""></a></div>
+            <a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.home') }}#sobre">Sobre</a><a href="{{ url_for('cliente.home') }}#servicos">Serviços</a>
+            <div class="acoes-usuario"><a class="icone-acao carrinho-ativo" href="{{ url_for('cliente.mostrar_carrinho') }}" aria-label="Carrinho" aria-current="page"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a><a class="icone-acao perfil" href="{{ perfil_url|default(url_for('auth.login')) }}" aria-label="Meu perfil"><img src="{{ url_for('static', filename='images/icone-perfil.svg') }}" width="20" height="20" alt=""></a></div>
         </nav>
     </header>
     {% set itens = itens_carrinho|default([]) %}
-    {% set total = itens|sum(attribute='subtotal') %}
-    {% macro moeda(valor) %}R$ {{ '{:,.2f}'.format(valor).replace(',', '_').replace('.', ',').replace('_', '.') }}{% endmacro %}
+    {% set total = total_centavos|default(0) %}
     <main class="carrinho-conteudo">
         <header class="carrinho-cabecalho"><h1>Seu carrinho</h1><p>Revise os serviços escolhidos antes de finalizar.</p></header>
         <div class="carrinho-colunas">
             <section class="itens-carrinho" aria-label="Serviços escolhidos">
                 {% for item in itens %}
                 <article class="item-carrinho">
-                    <img class="item-imagem" src="{{ url_for('static', filename='images/' ~ item.imagem) }}" alt="{{ item.nome }}" width="180" height="140">
-                    <div class="item-informacoes"><p class="item-numero">SERVIÇO {{ item.numero }}</p><h2>{{ item.nome }}</h2><p>{{ item.descricao }}</p></div>
-                    <div class="item-subtotal"><p>Subtotal</p><strong>{{ moeda(item.subtotal) }}</strong></div>
+                    {% if item.imagem %}
+                    <img class="item-imagem" src="{{ url_for('static', filename=item.imagem, v=item.versao) }}" alt="{{ item.nome }}" width="180" height="140" loading="lazy" decoding="async">
+                    {% else %}
+                    <div class="item-imagem item-imagem-vazia" aria-hidden="true"></div>
+                    {% endif %}
+                    <div class="item-informacoes">
+                        <p class="item-numero">SERVIÇO {{ item.numero }}</p>
+                        <h2>{{ item.nome }}</h2>
+                        <p>{{ item.descricao }}</p>
+                        <p class="item-convidados">{{ item.qtd }} convidado(s) · {{ ((item.subtotal // item.qtd) if item.qtd else 0) | moeda }} / pessoa</p>
+                    </div>
+                    <div class="item-subtotal">
+                        <p>Subtotal</p><strong>{{ item.subtotal | moeda }}</strong>
+                        <form method="post" action="{{ url_for('cliente.remover', id_cardapio=item.id_cardapio) }}">
+                            <button type="submit" class="remover-item" aria-label="Remover {{ item.nome }} do carrinho">Remover</button>
+                        </form>
+                    </div>
                 </article>
                 {% else %}
-                <div class="carrinho-vazio"><h2>Seu carrinho está vazio</h2><p>Conheça nossos serviços para planejar seu evento.</p><a class="botao" href="/#servicos">Conhecer serviços</a></div>
+                <div class="carrinho-vazio"><h2>Seu carrinho está vazio</h2><p>Conheça nossos serviços para planejar seu evento.</p><a class="botao" href="{{ url_for('cliente.home') }}#servicos">Conhecer serviços</a></div>
                 {% endfor %}
                 {% if itens %}
                 <section class="endereco-evento" aria-label="Endereço do evento">
@@ -45,7 +58,7 @@
             </section>
             <aside class="resumo-compra" aria-labelledby="titulo-resumo">
                 <h2 id="titulo-resumo">Resumo da compra</h2>
-                <dl><div class="resumo-subtotal"><dt>Subtotal</dt><dd>{{ moeda(total) }}</dd></div><div class="resumo-total"><dt>Total</dt><dd>{{ moeda(total) }}</dd></div></dl>
+                <dl><div class="resumo-subtotal"><dt>Subtotal</dt><dd>{{ total | moeda }}</dd></div><div class="resumo-total"><dt>Total</dt><dd>{{ total | moeda }}</dd></div></dl>
                 {% if checkout_url and itens %}<a class="finalizar-compra" href="{{ checkout_url }}">Finalizar compra</a>{% else %}<button class="finalizar-compra" id="finalizar-compra" type="button" {% if not itens %}disabled{% endif %}>Finalizar compra</button>{% endif %}
                 <p class="aviso-carrinho" id="aviso-carrinho" role="status" hidden></p>
             </aside>

@@ -2,6 +2,7 @@
     
 from flask import (
     Blueprint,
+    Response,
     current_app,
     flash,
     jsonify,
@@ -10,7 +11,6 @@ from flask import (
     request,
     session,
     url_for,
-    Response,
 )
 
 from model.pedido_model import (
@@ -39,6 +39,31 @@ from model.usuario_model import (
 from services import enviar_email_nao_responda
 
 cliente_bp = Blueprint("cliente", __name__, url_prefix="/home")
+
+# Mapa nome do prato -> slug usada em docs/imagens-menu.json
+# Mapa id_cardapio (ordem fixa dos seeds) -> (slug da imagem em docs/imagens-menu.json,
+# chave do preço em docs/precos-menu.json). Usa o id porque Cardapio.nome é gravado
+# normalizado (minúsculo/sem acento) e não casa com as chaves dos JSON.
+_CARDAPIO_POR_ID = {
+    1:  ("feijoada", "Feijoada completa"),
+    2:  ("bobo-camarao", "Bobó de camarão"),
+    3:  ("tilapia", "Tilápia com alcaparras"),
+    4:  ("strogonoff", "Strogonoff de filé-mignon"),
+    5:  ("nhoque", "Nhoque ao molho"),
+    6:  ("risoto", "Risoto de cogumelos"),
+    7:  ("escondidinho", "Escondidinho de carne-seca"),
+    8:  ("ravioli", "Ravioli de queijo"),
+    9:  ("salgados-completo", "Salgados completo"),
+    10: ("salgados-reduzido", "Salgados reduzido"),
+    11: ("hamburguer", "Hambúrguer tradicional"),
+    12: ("smash", "Hambúrguer smash"),
+    13: ("bacon", "Hambúrguer mega bacon"),
+    14: ("mexicano", "Mexicano"),
+    15: ("boteco", "Boteco brasileiro"),
+    16: ("sem-alcool", "Sem álcool"),
+    17: ("com-alcool", "Com álcool"),
+    18: ("misto", "Misto"),
+}
 
 @cliente_bp.get("")
 def pagina_inicial():
@@ -82,7 +107,7 @@ def fazer_pedido():
     registrar_log("REALIZOU PEDIDO",
     "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****")
 
-    enviar_email_nao_responda(f"Pedido Realizado às {"""data de criação da entidade pedido"""}",
+    enviar_email_nao_responda("Pedido Realizado",
 
     buscar_usuario_por_id(session.get("id")).email, "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****",
     "conteudo html ***adicionar modelo de pedido")
@@ -231,10 +256,48 @@ def mostrar_servico(slug):
     Returns:
         str: template do serviço com a lista de cardápios.
     """
-    servico=buscar_servico_por_slug(slug)
-    cardapios=listar_cardapios_do_servico(servico.id_servico)
+    servico = buscar_servico_por_slug(slug)
+    if servico is None:
+        flash("Serviço não encontrado.", "danger")
+        return redirect(url_for("cliente.home_servico"))
 
-    return render_template("servico.html", cardapios=cardapios)
+    import json
+    from pathlib import Path
+
+    base = Path(current_app.root_path)
+    with open(base / "docs" / "precos-menu.json", encoding="utf-8") as arq:
+        precos = json.load(arq).get("precos", {})
+    with open(base / "docs" / "imagens-menu.json", encoding="utf-8") as arq:
+        imagens = json.load(arq)
+
+    associacoes = listar_cardapios_do_servico(servico.id_servico) or []
+
+    cardapios = []
+    for associacao in associacoes:
+        cardapio = buscar_cardapio_por_id(associacao.id_cardapio)
+        if cardapio is None:
+            continue
+
+        slug_img, nome_preco = _CARDAPIO_POR_ID.get(cardapio.id_cardapio, (None, None))
+
+        preco_pessoa = precos.get(nome_preco)
+        if preco_pessoa is None:
+            preco_pessoa = int(round(float(cardapio.preco_base) * 100))
+
+        dados_img = imagens.get(slug_img, {}) if slug_img else {}
+        arquivo = dados_img.get("arquivo")
+        imagem_rel = arquivo[len("static/"):] if arquivo and arquivo.startswith("static/") else arquivo
+
+        cardapios.append({
+            "id_cardapio": cardapio.id_cardapio,
+            "nome": cardapio.nome,
+            "descricao": cardapio.descricao,
+            "preco": preco_pessoa,
+            "imagem": imagem_rel,
+            "versao": dados_img.get("versao"),
+        })
+
+    return render_template("servico.html", servico=servico, cardapios=cardapios)
 
 # ================== CARRINHO DE COMPRAS ==================
 def _carrinho() -> list:
@@ -262,29 +325,6 @@ def mostrar_carrinho():
     with open(base / "docs" / "imagens-menu.json", encoding="utf-8") as arq:
         imagens = json.load(arq)
 
-    # Mapa nome do prato -> slug usada em imagens-menu.json
-    # (as slugs do JSON não são deriváveis por slugify do nome completo)
-    nome_para_slug = {
-        "Feijoada completa": "feijoada",
-        "Bobó de camarão": "bobo-camarao",
-        "Tilápia com alcaparras": "tilapia",
-        "Strogonoff de filé-mignon": "strogonoff",
-        "Nhoque ao molho": "nhoque",
-        "Risoto de cogumelos": "risoto",
-        "Escondidinho de carne-seca": "escondidinho",
-        "Ravioli de queijo": "ravioli",
-        "Salgados completo": "salgados-completo",
-        "Salgados reduzido": "salgados-reduzido",
-        "Hambúrguer tradicional": "hamburguer",
-        "Hambúrguer smash": "smash",
-        "Hambúrguer mega bacon": "bacon",
-        "Mexicano": "mexicano",
-        "Boteco brasileiro": "boteco",
-        "Sem álcool": "sem-alcool",
-        "Com álcool": "com-alcool",
-        "Misto": "misto",
-    }
-
     carrinho = session.get("carrinho", [])
     itens_carrinho = []
     total_centavos = 0
@@ -294,20 +334,19 @@ def mostrar_carrinho():
         if cardapio is None:
             continue
 
-        nome = cardapio.nome
         qtd = item.get("qtd", 0)
+        slug_img, nome_preco = _CARDAPIO_POR_ID.get(cardapio.id_cardapio, (None, None))
 
-        # preço por pessoa (centavos): JSON por nome; fallback para preco_base do banco
-        preco_pessoa = precos.get(nome)
+        # preço por pessoa (centavos): JSON por id->nome; fallback para preco_base do banco
+        preco_pessoa = precos.get(nome_preco)
         if preco_pessoa is None:
             preco_pessoa = int(round(float(cardapio.preco_base) * 100))
 
         subtotal_centavos = preco_pessoa * qtd
         total_centavos += subtotal_centavos
 
-        # imagem: nome -> slug -> entrada do JSON (campo "arquivo" já vem a partir de static/)
-        slug = nome_para_slug.get(nome)
-        dados_img = imagens.get(slug, {}) if slug else {}
+        # imagem: id -> slug -> entrada do JSON (campo "arquivo" já vem a partir de static/)
+        dados_img = imagens.get(slug_img, {}) if slug_img else {}
         arquivo = dados_img.get("arquivo")  # ex.: "static/images/menu/feijoada.jpg"
         # o template usa url_for('static', filename=...), então removemos o prefixo "static/"
         imagem_rel = arquivo[len("static/"):] if arquivo and arquivo.startswith("static/") else arquivo
@@ -317,7 +356,7 @@ def mostrar_carrinho():
             "id_cardapio": item.get("id_cardapio"),
             "id_servico": item.get("id_servico"),
             "numero": numero,
-            "nome": nome,
+            "nome": cardapio.nome,
             "descricao": cardapio.descricao,
             "imagem": imagem_rel,   # ex.: "images/menu/feijoada.jpg" (ou None)
             "versao": versao,
@@ -346,9 +385,10 @@ def adicionar():
     qtd_convidados = request.form.get("qtd", type=int)
 
 
-    if not slug_servico or id_cardapio is None or (qtd_convidados < 10 or qtd_convidados > 500):
+    if (not slug_servico or id_cardapio is None or qtd_convidados is None
+            or qtd_convidados < 10 or qtd_convidados > 500):
         flash("Valor(es) inválido(s).", "danger")
-        return redirect(url_for("cliente.mostrar_servico"), slug=slug_servico)
+        return redirect(url_for("cliente.mostrar_servico", slug=slug_servico))
 
     servico = buscar_servico_por_slug(slug_servico)
 
@@ -356,12 +396,11 @@ def adicionar():
 
     if servico is None or cardapio is None:
         flash("Serviço ou cardápio inválidos.", "danger")
-        return redirect(url_for("cliente.mostrar_servico"), slug=slug_servico)
+        return redirect(url_for("cliente.mostrar_servico", slug=slug_servico))
 
     novo = {"id_servico": servico.id_servico,
             "id_cardapio": id_cardapio,
             "qtd": qtd_convidados,
-            "subtotal": cardapio.preco_base * qtd_convidados,
            }
 
     carrinho = _carrinho()
@@ -373,13 +412,23 @@ def adicionar():
     )
 
     if existente:
-        existente["qtd"]=qtd_convidados
+        existente["qtd"] = qtd_convidados
     else:
+        # Regra: não permitir dois cardápios do mesmo serviço no carrinho.
+        outro_do_servico = next((
+            item for item in carrinho
+            if item["id_servico"] == servico.id_servico
+            and item["id_cardapio"] != id_cardapio
+            ), None,
+        )
+        if outro_do_servico:
+            flash("Já existe um cardápio deste serviço no carrinho.", "danger")
+            return redirect(url_for("cliente.mostrar_servico", slug=slug_servico))
         carrinho.append(novo)
 
     session["carrinho"] = carrinho
     flash("Produto adicionado ao carrinho.", "success")
-    return redirect(url_for("cliente.mostrar_servico"), slug=slug_servico)
+    return redirect(url_for("cliente.mostrar_servico", slug=slug_servico))
 
 @cliente_bp.post("/carrinho/remover/<int:id_cardapio>/")
 def remover(id_cardapio):
