@@ -1,3 +1,5 @@
+"""Rotas do cliente: pedidos, endereços, serviços, carrinho e perfil."""
+    
 from flask import (
     Blueprint,
     flash,
@@ -12,7 +14,7 @@ from flask import (
 from model.pedido_model import (
     atualizar_pedido,
     buscar_bebida_por_id,
-    buscar_bebidas_pedido,
+    listar_bebidas_do_pedido,
     buscar_cardapios_pedido,
     criar_pedido,
     listar_pedidos_por_cliente,
@@ -28,7 +30,6 @@ from model.usuario_model import (
     adicionar_endereco,
     atualizar_endereco,
     atualizar_usuario,
-    buscar_enderco_por_id,
     buscar_endereco_por_id,
     buscar_usuario_por_id,
     deletar_endereco,
@@ -40,14 +41,21 @@ cliente_bp = Blueprint("cliente", __name__, url_prefix="/home")
 
 @cliente_bp.get("")
 def pagina_inicial():
-    """Redireciona para a home page."""
+    """Renderiza a home page."""
     return render_template("home.html")
 
 # =========================== PEDIDO ===========================
 
-@cliente_bp.route("/carrinho/fazer_pedido", methods=["GET", "POST"])
+@cliente_bp.post("/carrinho/fazer_pedido")
 def fazer_pedido():
-    """Registra o pedido do cliente e envia um email automático."""
+    """Registra o pedido do cliente e dispara um e-mail de confirmação.
+
+    No GET, exibe a página de pedido. No POST, lê os dados do formulário/JSON
+    (endereço, bebidas, datas, observação), cria o pedido e registra o log.
+
+    Returns:
+        str | None: template no GET; None após o processamento do POST.
+    """
     if request.method=="GET":
         return render_template("pagina de pedido")
 
@@ -77,11 +85,22 @@ def fazer_pedido():
 
     buscar_usuario_por_id(session.get("id")).email, "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****",
     "conteudo html ***adicionar modelo de pedido")
+    
+    flash("Pedido realizado com sucesso.", "success")
+    return redirect(url_for(request.endpoint))
 
 
-@cliente_bp.post("/cancelar_pedido")
+@cliente_bp.post("/cancelar_pedido/<int:id_pedido>")
 def cancelar_pedido(id_pedido: int):
-    """Cancela um pedido escolhido pelo cliente."""
+    """Cancela um pedido do cliente e registra a ação.
+
+    Args:
+        id_pedido (int): identificador do pedido a cancelar.
+
+    Returns:
+        Response | None: redirecionamento em caso de falha; None em caso de
+        sucesso.
+    """
     if atualizar_pedido(id_pedido, status="cancelado"):
         registrar_log("CANCELOU PEDIDO", "Cancelou o pedido.")
     else:
@@ -106,13 +125,18 @@ def bebidas_avulsas():
 
 @cliente_bp.get("/endereco")
 def endereco():
-    """Mostra a página com todos os endereços cadastrados pelo usuário."""
-    
+    """Redireciona para a âncora de endereços na página de perfil."""
     return redirect(url_for("cliente.perfil") + "#enderecos")
 
 @cliente_bp.post("/adicionar_endereco")
 def novo_endereco():
-    """Adiciona novo endereço ao cliente logado."""
+    """Adiciona um novo endereço ao cliente logado a partir do formulário.
+
+    Valida o CEP e sinaliza o resultado via flash.
+
+    Returns:
+        Response: redirecionamento para a página de endereços.
+    """
     nome=request.form.get("nome").strip()
     logadouro=request.form.get("logadouro").strip()
     numero=request.form.get("num").strip()
@@ -134,7 +158,16 @@ def novo_endereco():
 
 @cliente_bp.post("/endereco/atualizar/<int:id_endereco>")
 def editar_endereco(id_endereco):
-    """Atualiza um endereço do usuário logado."""
+    """Atualiza um endereço do usuário logado a partir do formulário.
+
+    Garante que o endereço pertence ao usuário antes de atualizar.
+
+    Args:
+        id_endereco (int): identificador do endereço.
+
+    Returns:
+        Response: redirecionamento para a página de endereços.
+    """
     endereco = buscar_endereco_por_id(id_endereco)
 
     # garante que o endereço existe e pertence ao usuário logado
@@ -164,7 +197,16 @@ def editar_endereco(id_endereco):
 
 @cliente_bp.post("/endereco/deletar/<int:id_endereco>")
 def remover_endereco(id_endereco):
-    """Deleta um endereço do usuário logado."""
+    """Remove um endereço do usuário logado.
+
+    Garante que o endereço pertence ao usuário antes de remover.
+
+    Args:
+        id_endereco (int): identificador do endereço.
+
+    Returns:
+        Response: redirecionamento para a página de endereços.
+    """
     endereco = buscar_endereco_por_id(id_endereco)
 
     # garante que o endereço existe e pertence ao usuário logado
@@ -183,18 +225,22 @@ def remover_endereco(id_endereco):
 
 @cliente_bp.get("/servico")
 def home_servico():
-    """Leve o usuário para a ancora dos servicos na home page."""
+    """Redireciona para a âncora de serviços na home page."""
     # garante que não vai existir um /servico 404
 
     return redirect(url_for("cliente.home") + "#servicos") 
 
 @cliente_bp.get("/servico/<string:slug>")
 def mostrar_servico(slug):
-    """Rota dinamica para mostrar todos os cardápios disponiveis para um servico.
-    
-    Retorna o template mais os cardapios para serem acessados com o Jinja2.
-    
-    cardapios é uma lista de objetos do SQLAlchemy.
+    """Exibe os cardápios disponíveis para um serviço (rota dinâmica).
+
+    Busca o serviço pelo slug e lista seus cardápios para renderização no Jinja2.
+
+    Args:
+        slug (str): slug do serviço.
+
+    Returns:
+        str: template do serviço com a lista de cardápios.
     """
     servico=buscar_servico_por_slug(slug)
     cardapios=listar_cardapios_do_servico(servico.id_servico)
@@ -203,7 +249,7 @@ def mostrar_servico(slug):
 
 # ================== CARRINHO DE COMPRAS ==================
 def _carrinho() -> list:
-    """Pega o carrinho da sessão, caso ele não exista, cria o carrinho."""
+    """Retorna o carrinho da sessão, criando-o (lista vazia) se não existir."""
     return session.setdefault("carrinho", [])
 
 @cliente_bp.get("/carrinho")
@@ -214,7 +260,14 @@ def mostrar_carrinho():
 
 @cliente_bp.post("/carrinho/adicionar")
 def adicionar():
-    """Adiciona um novo cardapio ao carrinho."""
+    """Adiciona (ou atualiza a quantidade de) um cardápio no carrinho.
+
+    Valida o serviço, o cardápio e o número de convidados (entre 10 e 500).
+
+    Returns:
+        Response: redirecionamento para a página do serviço.
+    """
+
     slug_servico = request.form.get("slug_servico")
     id_cardapio = request.form.get("id_cardapio", type=int)
     qtd_convidados = request.form.get("qtd", type=int)
@@ -257,6 +310,14 @@ def adicionar():
 
 @cliente_bp.post("/carrinho/remover/<int:id_cardapio>/")
 def remover(id_cardapio):
+    """Remove um item do carrinho pelo id do cardápio.
+
+    Args:
+        id_cardapio (int): identificador do cardápio a remover.
+
+    Returns:
+        Response: redirecionamento para a página do carrinho.
+    """
     carrinho = _carrinho()
 
     posicao = next(
@@ -281,6 +342,14 @@ def remover(id_cardapio):
 
 @cliente_bp.get("/perfil")
 def perfil():
+    """Exibe a página de perfil com dados do usuário e seus endereços.
+
+    Descriptografa e-mail e CPF para exibição.
+
+    Returns:
+        Response | str: redirecionamento ao login se não houver usuário; caso
+        contrário, o template de perfil renderizado.
+    """
     from security import descriptografar
     from model.usuario_model import listar_enderecos_do_usuario
 
@@ -296,7 +365,15 @@ def perfil():
     return render_template("perfil.html", pessoa=pessoa, enderecos=enderecos)
 
 @cliente_bp.get("/perfil/dados")
-def dados_perfil():
+def dados_perfil() -> Response:
+    """Retorna, em JSON, os dados do perfil, do pedido ativo e seus detalhes.
+
+    Inclui usuário (com e-mail/CPF descriptografados), pedido ativo, serviços e
+    cardápios, bebidas e endereço, com valores monetários formatados.
+
+    Returns:
+        Response: JSON com 'usuario', 'pedido', 'servicos', 'bebidas' e 'endereco'.
+    """
     from security import descriptografar
     from utils import formatar_moeda
 
@@ -320,9 +397,9 @@ def dados_perfil():
         if (servico := buscar_servico_por_id(cardapio.id_servico))
     }
 
-    endereco = buscar_enderco_por_id(pedido.id_endereco)
+    endereco = buscar_endereco_por_id(pedido.id_endereco)
 
-    bebidas=buscar_bebidas_pedido(pedido.id_pedido) or []
+    bebidas=listar_bebidas_do_pedido(pedido.id_pedido) or []
 
     valor_total = 0
     for bebida in bebidas:
@@ -371,7 +448,13 @@ def dados_perfil():
 
 @cliente_bp.post("/perfil/atualizar")
 def atualizar_perfil():
-    """Atualiza os dados cadastrais (nome, email, cpf, senha) do usuário logado."""
+    """Atualiza os dados cadastrais (nome, e-mail, CPF, senha) do usuário logado.
+
+    Valida a sessão, o CPF e a força da senha quando informados.
+
+    Returns:
+        Response: redirecionamento ao login (sessão expirada) ou ao perfil.
+    """
     from security import validar_senha_forte
 
     id_usuario = session.get("id")
@@ -413,9 +496,11 @@ def atualizar_perfil():
 
 
 def home():
+    """Renderiza a home page."""
     return render_template("home.html")
 
 
 def menu():
+    """Renderiza a página de menu com as categorias de cardápio."""
     from menu_data import categorias
     return render_template("menu.html", categorias=categorias)

@@ -1,4 +1,6 @@
-from admin import admin_bp
+"""Rotas administrativas de gerenciamento de funcionários."""
+
+from . import admin_bp
 
 from flask import request, url_for, Response, jsonify, render_template, flash, redirect
 
@@ -12,7 +14,8 @@ from security import validar_senha_forte
 @admin_bp.get("")
 @admin_bp.get("/visao-geral")
 def visao_geral():
-    return render_template("TODO: visao geral painel administrativo")
+    """Renderiza a página de visão geral do painel administrativo."""
+    return render_template("") # TODO: visao geral painel administrativo
 
 # xxxxxxxxxxxxxxxxxxxxxxxxxx RELATÓRIOS DO MÊS xxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -20,21 +23,16 @@ def visao_geral():
 def gerar_relatorios_mensais() -> Response:
     """Gera um relatório com indicadores mensais e semanais de pedidos.
 
-    Reúne informações sobre a quantidade de pedidos, faturamento mensal,
-    ticket médio, serviços mais solicitados, faturamento das últimas seis
-    semanas e distribuição dos pedidos por status.
+    Reúne quantidade de pedidos, faturamento mensal, ticket médio, serviços mais
+    solicitados, faturamento das últimas seis semanas e distribuição por status.
 
     Returns:
-        Response: Resposta JSON contendo:
-            - pedidos_quantidade (dict): total de pedidos no mês atual
-              e variação percentual em relação ao período anterior.
-            - faturamento_mensal (dict): faturamento do mês atual e
-              variação percentual em relação ao período anterior.
-            - ticket_medio (dict): ticket médio atual e variação
-              percentual em relação ao período anterior.
+        Response: resposta JSON contendo:
+            - pedidos_quantidade (dict): total do mês e variação percentual.
+            - faturamento_mensal (dict): faturamento do mês e variação percentual.
+            - ticket_medio (dict): ticket médio atual e variação percentual.
             - pedidos_tipo (dict): quantidade de pedidos por serviço.
-            - faturamento_semanal (dict): faturamento de cada uma das
-              últimas seis semanas completas.
+            - faturamento_semanal (dict): faturamento das últimas seis semanas.
             - pedidos_status (dict): quantidade de pedidos por status.
     """
     
@@ -69,11 +67,17 @@ def gerar_relatorios_mensais() -> Response:
 
 @admin_bp.get('/funcionarios')
 def funcionarios():
+    """Renderiza a lista de funcionários, com filtro opcional por nome (query 'busca')."""
     busca = request.args.get("busca", "")
     return render_template('paginas funcionaris', funcionarios=listar(busca), busca=busca) #TODO: pagina de funcionarios
 
 @admin_bp.get("/funcionarios/relatorio")
-def dados_funcionarios():
+def dados_funcionarios() -> Response:
+    """Retorna, em JSON, o total de funcionários e a soma dos salários.
+
+    Returns:
+        Response: JSON com 'total_funcionarios' e 'total_pagamento'.
+    """
     funcionarios = listar()
     total_funcionarios=len(funcionarios)
     
@@ -87,12 +91,20 @@ def dados_funcionarios():
 # xxxxxxxxxxxxxxxxxxxxxxxxxxx cadastro xxxxxxxxxxxxxxxxxxxxxxxxxxx
 @admin_bp.get("/cadastrar-funcionario")
 def cadastrar_funcionario():
-    return render_template("casadtro do admin") #TODO
+    """Renderiza o formulário de cadastro de funcionário."""
+    return redirect(url_for('admin.cadastrar_funcionario'))
 
 @admin_bp.post("/cadastrar-funcionario/cadastro")
 def cadastro():
-    "adiciona um novo usuario funcionário."
+    """Cadastra um novo funcionário (cargo CHEFE) a partir do formulário.
 
+    Valida e-mail, CPF e senha, confere a confirmação de senha e sinaliza o
+    resultado via flash.
+
+    Returns:
+        Response | str: redirecionamento em caso de erro de validação; template
+        renderizado em caso de sucesso.
+    """
     nome=request.form.get("nome", "").strip()
     cpf=request.form.get("cpf", "").strip()
     email=request.form.get("email", "").strip()

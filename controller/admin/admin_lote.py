@@ -1,4 +1,6 @@
-from admin import admin_bp, _retorno, _int_form, _decimal_form
+"""Rotas administrativas de gerenciamento de lotes de ingredientes."""
+
+from . import admin_bp, _retorno, _int_form, _decimal_form
 
 from flask import request, flash
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,6 +15,11 @@ from model.ficha_model import criar_lote, buscar_lote_por_id, listar_lotes, atua
 
 @admin_bp.post("/servicos/lotes/criar")
 def criar_lote_route():
+    """Cria um lote a partir do formulário, validando datas e quantidade.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     num_lote = request.form.get("num_lote", "").strip()
     marca = request.form.get("marca", "").strip()
     recebimento_texto = request.form.get("data_recebimento", "").strip()
@@ -59,6 +66,14 @@ def criar_lote_route():
 
 @admin_bp.post("/servicos/lotes/atualizar/<int:id_lote>")
 def atualizar_lote_route(id_lote):
+    """Atualiza um lote a partir do formulário.
+
+    Args:
+        id_lote (int): identificador do lote.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     num_lote = request.form.get("num_lote", "").strip()
     marca = request.form.get("marca", "").strip()
     recebimento_texto = request.form.get("data_recebimento", "").strip()
@@ -101,6 +116,14 @@ def atualizar_lote_route(id_lote):
 
 @admin_bp.post("/servicos/lotes/deletar/<int:id_lote>")
 def deletar_lote_route(id_lote):
+    """Exclui um lote e sinaliza o resultado via flash.
+
+    Args:
+        id_lote (int): identificador do lote.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     try:
         sucesso = deletar_lote(id_lote)
     except SQLAlchemyError:

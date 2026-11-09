@@ -4,8 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase
 
-from seeds import *
-
 class Base(DeclarativeBase):
     """Classe base declarativa do SQLAlchemy para todos os modelos."""
     
@@ -22,7 +20,8 @@ def criar_admin() -> None:
     
     from seeds import iniciar_admin
     admin = iniciar_admin()
-    db.session.add(admin)
+    if admin is not None:
+        db.session.add(admin)
 
 # CRIAÇÃO DE CARGOS
 def criar_cargos() -> None:
@@ -55,7 +54,8 @@ def criar_estoque() -> None:
         iniciar_ficha_tecnica_bebida,
         iniciar_servico_bancada,
         iniciar_servico_cardapio,
-        iniciar_prato_cardapio
+        iniciar_prato_cardapio,
+        iniciar_bebida_cardapio
     )
     # CRIAÇÃO DE SERVICOS
     servicos = iniciar_servicos()
@@ -100,8 +100,9 @@ def criar_estoque() -> None:
     # Inicializa a associacao de pratocardapio
     prato_cardapio= iniciar_prato_cardapio()
     db.session.add_all(prato_cardapio)
-
-
+    
+    bebida_cardapio= iniciar_bebida_cardapio()
+    db.session.add_all(bebida_cardapio)
 
     # Inicializa o banco
 

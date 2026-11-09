@@ -1,4 +1,6 @@
-from admin import admin_bp, _retorno, _bool_form, _int_form
+"""Rotas administrativas de pratos, cardápios e suas associações."""
+
+from . import admin_bp, _retorno, _bool_form, _int_form
 
 from flask import request, flash
 
@@ -16,6 +18,13 @@ from model.ficha_model import (
 # ========================= CRIAR CARDÁPIO =========================
 @admin_bp.post("/servicos/criar_cardapio")
 def c_cardapio():
+    """Cria um cardápio a partir dos dados do formulário.
+
+    Valida nome, descrição e preço-base e sinaliza o resultado via flash.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     preco_texto = request.form.get("preco_base", "").strip()
@@ -42,6 +51,14 @@ def c_cardapio():
 # ========================= ATUALIZAR CARDÁPIO =========================
 @admin_bp.post("/servicos/atualizar_cardapio/<int:id_cardapio>")
 def at_cardapio(id_cardapio):
+    """Atualiza um cardápio a partir dos dados do formulário.
+
+    Args:
+        id_cardapio (int): identificador do cardápio a atualizar.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     preco_texto = request.form.get("preco_base", "").strip()
@@ -72,6 +89,14 @@ def at_cardapio(id_cardapio):
 # ========================= DELETAR CARDÁPIO =========================
 @admin_bp.route("/deletar_cardapio/<int:id_cardapio>", methods=("POST",))
 def del_cardapio(id_cardapio):
+    """Exclui um cardápio e sinaliza o resultado via flash.
+
+    Args:
+        id_cardapio (int): identificador do cardápio a excluir.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     sucesso = deletar_cardapio(id_cardapio=id_cardapio)
 
     if not sucesso:
@@ -84,6 +109,11 @@ def del_cardapio(id_cardapio):
 
 @admin_bp.post("/servicos/pratos/criar")
 def criar_prato_route():
+    """Cria um prato a partir do formulário, validando tipo e tempo de preparo.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     tipo_prato = request.form.get("tipo_prato", "").strip()
@@ -120,6 +150,14 @@ def criar_prato_route():
 
 @admin_bp.post("/servicos/pratos/atualizar/<int:id_prato>")
 def atualizar_prato_route(id_prato):
+    """Atualiza um prato a partir do formulário, validando tipo e tempo.
+
+    Args:
+        id_prato (int): identificador do prato a atualizar.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     tipo_prato = request.form.get("tipo_prato", "").strip()
@@ -161,6 +199,14 @@ def atualizar_prato_route(id_prato):
 
 @admin_bp.post("/servicos/pratos/deletar/<int:id_prato>")
 def deletar_prato_route(id_prato):
+    """Exclui um prato e sinaliza o resultado via flash.
+
+    Args:
+        id_prato (int): identificador do prato a excluir.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     try:
         sucesso = deletar_prato(id_prato)
     except SQLAlchemyError:
@@ -176,6 +222,11 @@ def deletar_prato_route(id_prato):
 
 @admin_bp.post("/servicos/prato-cardapio/criar")
 def criar_prato_cardapio_route():
+    """Associa um prato a um cardápio a partir do formulário.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     prato_texto = request.form.get("id_prato", "").strip()
     cardapio_texto = request.form.get("id_cardapio", "").strip()
     qtd_texto = request.form.get("qtd", "").strip()
@@ -203,8 +254,19 @@ def criar_prato_cardapio_route():
     return _retorno()
 
 # essas rotas com 2 ids, ou você pega eles com a função de buscar por nome ou faz um card pronto já com os ids
-@admin_bp.post("/servicos/prato-cardapio/atualizar/<int:id_prato>/<int:id_cardapio>")
 def atualizar_prato_cardapio_route(id_prato, id_cardapio):
+    """Atualiza a associação prato-cardápio (quantidade/descrição).
+
+    Valida a quantidade recebida do formulário e sinaliza o resultado via flash.
+
+    Args:
+        id_prato (int): identificador do prato.
+        id_cardapio (int): identificador do cardápio.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
+    
     qtd_texto = request.form.get("qtd", "").strip()
     descricao = request.form.get("descricao", "").strip()
 
@@ -236,6 +298,15 @@ def atualizar_prato_cardapio_route(id_prato, id_cardapio):
 
 @admin_bp.post("/servicos/prato-cardapio/deletar/<int:id_prato>/<int:id_cardapio>")
 def deletar_prato_cardapio_route(id_prato, id_cardapio):
+    """Remove a associação entre um prato e um cardápio.
+
+    Args:
+        id_prato (int): identificador do prato.
+        id_cardapio (int): identificador do cardápio.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     try:
         sucesso = deletar_prato_cardapio(id_prato, id_cardapio)
     except SQLAlchemyError:

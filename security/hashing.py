@@ -1,3 +1,5 @@
+"""Geração de HMAC determinístico para busca de dados sensíveis."""
+
 from os import environ as env
 
 import hmac

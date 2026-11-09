@@ -1,4 +1,6 @@
-from admin import admin_bp, _retorno, _int_form, _decimal_form
+"""Rotas administrativas de gerenciamento de bebidas."""
+
+from . import admin_bp, _retorno, _int_form, _decimal_form
 
 from flask import request, flash
 from sqlalchemy.exc import SQLAlchemyError
@@ -19,6 +21,11 @@ from model.ficha_model import (
 
 @admin_bp.post("/servicos/bebidas/criar")
 def criar_bebida_route():
+    """Cria uma bebida a partir do formulário, validando o valor unitário.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     valor_texto = request.form.get("valor_unitario", "").strip()
@@ -47,6 +54,14 @@ def criar_bebida_route():
 
 @admin_bp.post("/servicos/bebidas/atualizar/<int:id_bebida>")
 def atualizar_bebida_route(id_bebida):
+    """Atualiza uma bebida a partir do formulário.
+
+    Args:
+        id_bebida (int): identificador da bebida.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     valor_texto = request.form.get("valor_unitario", "").strip()
@@ -76,6 +91,14 @@ def atualizar_bebida_route(id_bebida):
 
 @admin_bp.post("/servicos/bebidas/deletar/<int:id_bebida>")
 def deletar_bebida_route(id_bebida):
+    """Exclui uma bebida e sinaliza o resultado via flash.
+
+    Args:
+        id_bebida (int): identificador da bebida.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     try:
         sucesso = deletar_bebida(id_bebida)
     except SQLAlchemyError:
@@ -92,6 +115,11 @@ def deletar_bebida_route(id_bebida):
 
 @admin_bp.post("/servicos/ficha-tecnica-bebida/criar")
 def criar_ficha_tecnica_bebida_route():
+    """Adiciona um ingrediente à ficha técnica de uma bebida a partir do formulário.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     bebida_texto = request.form.get("id_bebida", "").strip()
     ingrediente_texto = request.form.get("id_ingrediente", "").strip()
     qtd_texto = request.form.get("qtd_necessaria", "").strip()
@@ -122,6 +150,15 @@ def criar_ficha_tecnica_bebida_route():
 
 @admin_bp.post("/servicos/ficha-tecnica-bebida/atualizar/<int:id_bebida>/<int:id_ingrediente>")
 def atualizar_ficha_tecnica_bebida_route(id_bebida, id_ingrediente):
+    """Atualiza a quantidade necessária de um item da ficha técnica da bebida.
+
+    Args:
+        id_bebida (int): identificador da bebida.
+        id_ingrediente (int): identificador do ingrediente.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     qtd_texto = request.form.get("qtd_necessaria", "").strip()
     if not qtd_texto:
         flash("Informe a quantidade necessária.", "danger")
@@ -148,6 +185,15 @@ def atualizar_ficha_tecnica_bebida_route(id_bebida, id_ingrediente):
 
 @admin_bp.post("/servicos/ficha-tecnica-bebida/deletar/<int:id_bebida>/<int:id_ingrediente>")
 def deletar_ficha_tecnica_bebida_route(id_bebida, id_ingrediente):
+    """Remove um ingrediente da ficha técnica de uma bebida.
+
+    Args:
+        id_bebida (int): identificador da bebida.
+        id_ingrediente (int): identificador do ingrediente.
+
+    Returns:
+        Response: redirecionamento para a página de serviços.
+    """
     try:
         sucesso = deletar_ficha_tecnica_bebida(id_bebida, id_ingrediente)
     except SQLAlchemyError:
