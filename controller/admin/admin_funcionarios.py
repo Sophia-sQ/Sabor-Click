@@ -15,7 +15,7 @@ from security import validar_senha_forte
 @admin_bp.get("/visao-geral")
 def visao_geral():
     """Renderiza a página de visão geral do painel administrativo."""
-    return render_template("") # TODO: visao geral painel administrativo
+    return render_template("previas/funcionarios.html") # TODO: visao geral painel administrativo
 
 # xxxxxxxxxxxxxxxxxxxxxxxxxx RELATÓRIOS DO MÊS xxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -69,7 +69,7 @@ def gerar_relatorios_mensais() -> Response:
 def funcionarios():
     """Renderiza a lista de funcionários, com filtro opcional por nome (query 'busca')."""
     busca = request.args.get("busca", "")
-    return render_template('paginas funcionaris', funcionarios=listar(busca), busca=busca) #TODO: pagina de funcionarios
+    return render_template('funcionarios.html', funcionarios=listar(busca), busca=busca)
 
 @admin_bp.get("/funcionarios/relatorio")
 def dados_funcionarios() -> Response:

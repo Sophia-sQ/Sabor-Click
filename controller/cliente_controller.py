@@ -2,6 +2,7 @@
     
 from flask import (
     Blueprint,
+    current_app,
     flash,
     jsonify,
     redirect,
@@ -9,6 +10,7 @@ from flask import (
     request,
     session,
     url_for,
+    Response,
 )
 
 from model.pedido_model import (
@@ -241,8 +243,93 @@ def _carrinho() -> list:
 
 @cliente_bp.get("/carrinho")
 def mostrar_carrinho():
-    """Exibe a página do carrinho."""
-    return render_template("carrinho.html")
+    """Exibe a página do carrinho com os itens da sessão enriquecidos.
+
+    Cruza cada item de session['carrinho'] (via id_cardapio -> nome do cardápio)
+    com os preços de docs/precos-menu.json (por nome) e com as imagens de
+    docs/imagens-menu.json (por slug da imagem). O subtotal é o preço por pessoa
+    (centavos) multiplicado pela quantidade de convidados.
+
+    Returns:
+        str: template do carrinho com 'itens_carrinho' e 'total_centavos'.
+    """
+    import json
+    from pathlib import Path
+
+    base = Path(current_app.root_path)
+    with open(base / "docs" / "precos-menu.json", encoding="utf-8") as arq:
+        precos = json.load(arq).get("precos", {})
+    with open(base / "docs" / "imagens-menu.json", encoding="utf-8") as arq:
+        imagens = json.load(arq)
+
+    # Mapa nome do prato -> slug usada em imagens-menu.json
+    # (as slugs do JSON não são deriváveis por slugify do nome completo)
+    nome_para_slug = {
+        "Feijoada completa": "feijoada",
+        "Bobó de camarão": "bobo-camarao",
+        "Tilápia com alcaparras": "tilapia",
+        "Strogonoff de filé-mignon": "strogonoff",
+        "Nhoque ao molho": "nhoque",
+        "Risoto de cogumelos": "risoto",
+        "Escondidinho de carne-seca": "escondidinho",
+        "Ravioli de queijo": "ravioli",
+        "Salgados completo": "salgados-completo",
+        "Salgados reduzido": "salgados-reduzido",
+        "Hambúrguer tradicional": "hamburguer",
+        "Hambúrguer smash": "smash",
+        "Hambúrguer mega bacon": "bacon",
+        "Mexicano": "mexicano",
+        "Boteco brasileiro": "boteco",
+        "Sem álcool": "sem-alcool",
+        "Com álcool": "com-alcool",
+        "Misto": "misto",
+    }
+
+    carrinho = session.get("carrinho", [])
+    itens_carrinho = []
+    total_centavos = 0
+
+    for numero, item in enumerate(carrinho, start=1):
+        cardapio = buscar_cardapio_por_id(item.get("id_cardapio"))
+        if cardapio is None:
+            continue
+
+        nome = cardapio.nome
+        qtd = item.get("qtd", 0)
+
+        # preço por pessoa (centavos): JSON por nome; fallback para preco_base do banco
+        preco_pessoa = precos.get(nome)
+        if preco_pessoa is None:
+            preco_pessoa = int(round(float(cardapio.preco_base) * 100))
+
+        subtotal_centavos = preco_pessoa * qtd
+        total_centavos += subtotal_centavos
+
+        # imagem: nome -> slug -> entrada do JSON (campo "arquivo" já vem a partir de static/)
+        slug = nome_para_slug.get(nome)
+        dados_img = imagens.get(slug, {}) if slug else {}
+        arquivo = dados_img.get("arquivo")  # ex.: "static/images/menu/feijoada.jpg"
+        # o template usa url_for('static', filename=...), então removemos o prefixo "static/"
+        imagem_rel = arquivo[len("static/"):] if arquivo and arquivo.startswith("static/") else arquivo
+        versao = dados_img.get("versao")
+
+        itens_carrinho.append({
+            "id_cardapio": item.get("id_cardapio"),
+            "id_servico": item.get("id_servico"),
+            "numero": numero,
+            "nome": nome,
+            "descricao": cardapio.descricao,
+            "imagem": imagem_rel,   # ex.: "images/menu/feijoada.jpg" (ou None)
+            "versao": versao,
+            "qtd": qtd,
+            "subtotal": subtotal_centavos,  # centavos
+        })
+
+    return render_template(
+        "carrinho.html",
+        itens_carrinho=itens_carrinho,
+        total_centavos=total_centavos,
+    )
 
 @cliente_bp.post("/carrinho/adicionar")
 def adicionar():
@@ -274,7 +361,7 @@ def adicionar():
     novo = {"id_servico": servico.id_servico,
             "id_cardapio": id_cardapio,
             "qtd": qtd_convidados,
-            "subtotal": """TODO: função de calcular os precos""",
+            "subtotal": cardapio.preco_base * qtd_convidados,
            }
 
     carrinho = _carrinho()

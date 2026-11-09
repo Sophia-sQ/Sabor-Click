@@ -39,6 +39,8 @@ def create_app() -> Flask:
     app.add_url_rule("/menu", endpoint="cliente.menu", view_func=menu)
     
     app.jinja_env.filters["moeda"] = formatar_moeda
+    from slugify import slugify
+    app.jinja_env.filters["slugify"] = slugify
 
     @app.before_request
     def exigir_login():
@@ -111,4 +113,4 @@ def create_app() -> Flask:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True) # FIXME: apagar ao final do desenvolvimento
+    app.run()
