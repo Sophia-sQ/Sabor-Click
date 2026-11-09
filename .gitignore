@@ -17,8 +17,10 @@ instance/
 
 # Arquivos de build 
 build/ 
+_build/ 
 dist/ 
-*.egg-info/ 
+*.egg-info/
+
 
 # IDEs e editores 
 .vscode/ 
