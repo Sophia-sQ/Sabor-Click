@@ -55,7 +55,10 @@ def create_app() -> Flask:
     
         rotas_publicas = {"auth.login", "auth.cadastro", "auth.verificacao", "auth.verificar_token", 
                           "static", "cliente.pagina_inicial", "cliente.home", "cliente.menu", "auth.fazer_login",
-                          "auth.fazer_cadastro"}
+                          "auth.fazer_cadastro",
+                          # fluxo de navegação do cliente: serviços e carrinho são públicos
+                          "cliente.home_servico", "cliente.mostrar_servico",
+                          "cliente.mostrar_carrinho", "cliente.adicionar", "cliente.remover"}
         if request.endpoint is None:
             return
         if request.endpoint not in rotas_publicas and "id" not in session:
@@ -88,11 +91,6 @@ def create_app() -> Flask:
     def erro_lado_cliente(_erro):
         """Renderiza a página de erro 400 (requisição inválida)."""
         return render_template("400.html"), 400
-    
-    @app.get("/teste-erro")
-    def teste_erro():
-        abort(418)  # 418 não tem handler dedicado -> cai no erro_generico.html
-
 
     @app.errorhandler(404)  # url nao encontrada
     def pagina_nao_encontrada(_erro):
