@@ -1,10 +1,66 @@
-# Sabor-Click
+# Sabor e Click
+O Sabor e Click é um projeto acadêmico, realizado por Rafaella, Kleber, Sophia e Thiago.
+Ele consiste em um sistema de aluguel de diferentes serviços culinários, na qual cada serviço possui seus próprios cardápios com entrada, prato principal, acompanhamento e sobremesa. Ele não só é um sistema para utilização do cliente, mas também chefs e o admin possuem suas próprias páginas para observar os pedidos e relatórios da empresa.
 
-**• Link do Trello** - https://trello.com/b/2qxrdz5L/progetointegradorsaborclick
+### 🔧 Instalação
 
-O Trello foi utilizado para planejamento e organização de reuniões, datas de entrega e documentação.
+A seguir será mostrado passo a passo de como rodar o projeto e os pré-requisitos necessário
 
-**• Link do Figma** - https://www.figma.com/design/7o15YHrqoEyVt0fIMhiGMJ/Design-Sabor-e-Click---213---RafaellaSophiaKleberThiago?m=auto&t=B0lvBDOYay3vXJT4-6
+#### LINUX
+```
+Baixe o arquivo
+Extraia a pasta
+Abra a pasta pelo terminal
+
+Ative o ambiente virtual:
+python -m venv venv
+python source/bin/activate
+
+Instale pré-requisitos
+pip install python
+pip install -r requirements.txt
+pip install flask
+
+```
+#### WINDOWS
+```
+Baixe o arquivo
+Extraia a pasta
+Abra a pasta pelo terminal
+
+Ative o ambiente virtual:
+python -m venv venv
+python venv\Scripts\Activate
+
+Instale pré-requisitos
+pip install python
+pip install -r requirements.txt
+pip install flask
+
+```
+#### Rode o sistema: 
+
+```
+python app.py
+```
+## 🛠️ Construído com
 
 
-https://docs.google.com/document/d/1cVMiDBiatQqDnoG0CRSp7mL8QaY-Ge9wr7ezPgsCEFE/edit?usp=sharing
+- [Flask](https://flask.palletsprojects.com/?utm_source=chatgpt.com) - O framework web usado
+- [Python](https://www.python.org/?utm_source=chatgpt.com) - A linguagem de programação usada
+- [HTML](https://developer.mozilla.org/pt-BR/docs/Web/HTML?utm_source=chatgpt.com) - Usado para estruturar as páginas
+- [CSS](https://developer.mozilla.org/pt-BR/docs/Web/CSS?utm_source=chatgpt.com) - Usado para estilizar as páginas
+- [JavaScript](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript?utm_source=chatgpt.com) - Usado para adicionar interatividade
+
+## ✒️ Autores
+
+* **Sophia Sales**  - [github](https://github.com/Sophia-sQ)
+* **Rafaella de Souza** - [github](https://github.com/Rafa-Santanna)
+* **Kleber da Silva**  - [github](https://github.com/kleber288)
+* **Thiago Vinícius**  - [github](https://github.com/Th1ago-V)
+
+## 📄 Licença
+
+Todos direitos reservados
+
+
