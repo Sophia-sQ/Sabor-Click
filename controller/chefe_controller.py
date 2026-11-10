@@ -50,7 +50,7 @@ def aceitar_pedido():
     
     if em_andamento:
         flash("Finalize o pedido atual antes de aceitar outro", "danger")
-        return redirect(url_for("""TODO:pagina do pedido"""))
+        return redirect(url_for("chefe.pedidos"))
     atualizar_pedido(pedido.id_pedido, "confirmado", data_confirma, session.get("id"))
     chefe=buscar_usuario_por_id(session.get("id"))
     registrar_log("ACEITOU PEDIDO.", f"Em {data_confirma}, o chefe {chefe.nome} aceitou o pedido {pedido.id_pedido}.")
@@ -74,7 +74,6 @@ def atualizar_status():
     Returns:
         str: template da página de pedidos renderizado.
     """
-    #TODO: adicionar tratamento para quando status nao se encaixa na enum
     if request.method == "GET":
         return render_template("pagina de pedidos.html")
 

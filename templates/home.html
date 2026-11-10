@@ -42,13 +42,13 @@
         <section class="servicos" id="servicos" aria-labelledby="titulo-servicos">
             <div class="servicos-intro"><p class="rotulo">NOSSOS SERVIÇOS</p><h2 id="titulo-servicos">Escolha como quer celebrar.</h2><p>Soluções flexíveis para receber seus convidados com praticidade, beleza e muito sabor.</p></div>
             <div class="servicos-grade">
-                {% for numero, nome, imagem, descricao in [
-                    ('01', 'Buffet para eventos', 'home-buffet-hd.jpg', 'Cardápio, equipe, montagem e finalização para festas sociais ou encontros corporativos.'),
-                    ('02', 'Chef em casa', 'home-chef-hd.jpg', 'Uma experiência intimista: o chef prepara, serve e organiza tudo na sua própria cozinha.'),
-                    ('03', 'Salgados para eventos', 'home-salgados-hd.jpg', 'Coxinhas, quibes e outros salgados para todos os tipos de evento.'),
-                    ('04', 'Bebidas', 'home-bebidas-hd.jpg', 'Seleção de bebidas, sucos e coquetéis para brindar cada momento do seu evento.')
+                {% for numero, nome, imagem, descricao, slug in [
+                    ('01', 'Buffet para eventos', 'home-buffet-hd.jpg', 'Cardápio, equipe, montagem e finalização para festas sociais ou encontros corporativos.', 'buffet'),
+                    ('02', 'Chef em casa', 'home-chef-hd.jpg', 'Uma experiência intimista: o chef prepara, serve e organiza tudo na sua própria cozinha.', 'chef-em-casa'),
+                    ('03', 'Salgados para eventos', 'home-salgados-hd.jpg', 'Coxinhas, quibes e outros salgados para todos os tipos de evento.', 'mesa-de-salgados'),
+                    ('04', 'Bebidas', 'home-bebidas-hd.jpg', 'Seleção de bebidas, sucos e coquetéis para brindar cada momento do seu evento.', 'bar')
                 ] %}
-                <article class="servico"><img src="{{ url_for('static', filename='images/' ~ imagem) }}" alt="" loading="lazy"><div><h3>{{ numero }} &nbsp;{{ nome }}</h3><p>{{ descricao }}</p></div></article>
+                <a class="servico" href="{{ url_for('cliente.menu') if servicos_na_previa else url_for('cliente.mostrar_servico', slug=slug) }}"><img src="{{ url_for('static', filename='images/' ~ imagem) }}" alt="" loading="lazy"><div><h3>{{ numero }} &nbsp;{{ nome }}</h3><p>{{ descricao }}</p></div></a>
                 {% endfor %}
             </div>
             <div class="menu-acao"><a class="botao botao-menu" href="{{ url_for('cliente.menu') }}">Conhecer o menu</a></div>

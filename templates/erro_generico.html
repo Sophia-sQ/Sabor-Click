@@ -1,0 +1,8 @@
+{% extends "erro.html" %}
+{% block titulo %}Erro {{ codigo }}{% endblock %}
+{% block codigo_acessivel %}{{ codigo }}{% endblock %}
+{% block codigo %}{{ codigo }}{% endblock %}
+{% block mensagem %}{{ mensagem|default("Algo não saiu como esperado") }}{% endblock %}
+{% block descricao %}{{ descricao|default("Não foi possível concluir sua solicitação. Tente novamente em alguns instantes.") }}{% endblock %}
+{% block acao %}<a class="acao-erro" href="{{ url_for('cliente.home') }}">Voltar ao início</a>{% endblock %}
+{% block ajuda %}Se o problema persistir, entre em contato com o suporte informando o código {{ codigo }}.{% endblock %}

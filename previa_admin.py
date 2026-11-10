@@ -9,7 +9,7 @@ registrar(app)
 
 @app.get('/', endpoint='cliente.home')
 def home():
-    return render_template('home.html')
+    return render_template('home.html', servicos_na_previa=True)
 
 @app.get('/admin')
 def admin():

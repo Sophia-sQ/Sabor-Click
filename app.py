@@ -2,6 +2,7 @@
     de template, hooks de requisição e handlers de erro."""
 
 from flask import Flask, abort, redirect, render_template, request, session, url_for
+from werkzeug.exceptions import HTTPException
 
 from config import config_dict, mail  # importa configurações gerais da aplicação
 from database import init_app as init_database
@@ -54,7 +55,10 @@ def create_app() -> Flask:
     
         rotas_publicas = {"auth.login", "auth.cadastro", "auth.verificacao", "auth.verificar_token", 
                           "static", "cliente.pagina_inicial", "cliente.home", "cliente.menu", "auth.fazer_login",
-                          "auth.fazer_cadastro"}
+                          "auth.fazer_cadastro",
+                          # fluxo de navegação do cliente: serviços e carrinho são públicos
+                          "cliente.home_servico", "cliente.mostrar_servico",
+                          "cliente.mostrar_carrinho", "cliente.adicionar", "cliente.remover"}
         if request.endpoint is None:
             return
         if request.endpoint not in rotas_publicas and "id" not in session:
@@ -98,9 +102,30 @@ def create_app() -> Flask:
         """Renderiza a página de erro 403 (acesso proibido)."""
         return render_template("403.html"), 403
 
-    @app.errorhandler(Exception)  # pagina de erro padrão
-    def default(_erro):
-        """Renderiza a página de erro 500 (erro interno padrão)."""
+    @app.errorhandler(HTTPException)  # qualquer outro erro HTTP (405, 401, 502, ...)
+    def erro_http(erro):
+        """Renderiza uma página genérica preservando o código HTTP do erro.
+
+        Respeita o código real da exceção (erro.code) em vez de forçar 500,
+        reaproveitando os dados padrão do Werkzeug (code/description).
+
+        Args:
+            erro (HTTPException): exceção HTTP levantada pela aplicação.
+
+        Returns:
+            tuple: (HTML renderizado, código HTTP original do erro).
+        """
+        codigo_http = erro.code or 500
+        return render_template(
+            "erro_generico.html",
+            codigo=codigo_http,
+            mensagem=erro.name,
+            descricao=erro.description,
+        ), codigo_http
+
+    @app.errorhandler(Exception)  # erros não-HTTP (bugs inesperados) -> 500
+    def erro_inesperado(_erro):
+        """Renderiza a página 500 apenas para falhas realmente inesperadas."""
         return render_template("500.html"), 500
 
     init_database(app)
@@ -111,4 +136,4 @@ def create_app() -> Flask:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True) # FIXME: apagar ao final do desenvolvimento
+    app.run()
