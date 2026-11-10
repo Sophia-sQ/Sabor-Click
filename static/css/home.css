@@ -9,6 +9,10 @@ h1, h2, .marca { font-family: "Cormorant Garamond", serif; font-weight: 600; }
 .marca { display: inline-flex; align-items: center; gap: 12px; font-size: 28px; white-space: nowrap; }
 .navbar nav { display: flex; align-items: center; gap: 30px; font-size: 15px; font-weight: 500; color: #462f23; }
 .navbar [aria-current] { font-weight: 600; }
+.acoes-usuario { display: flex; gap: 10px; }
+.icone-acao { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid rgb(169 79 46 / 65%); border-radius: 20px; }
+.icone-carrinho { background: #a94f2e; border-color: transparent; border-radius: 12px; }
+.icone-carrinho img { filter: brightness(0) invert(1); }
 .botao { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 12px; border: 1px solid var(--destaque); border-radius: 8px; background: var(--destaque); color: #fff; font: 16px/16px "Inter", sans-serif; }
 .botao:hover { background: #8c4025; border-color: #8c4025; }
 .botao-neutro { background: #fff8ed; color: #312118; border-color: #c49c73; }

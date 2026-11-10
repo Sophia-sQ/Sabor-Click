@@ -17,7 +17,8 @@ def admin():
 
 @app.get('/menu', endpoint='cliente.menu')
 def menu():
-    return render_template('menu.html', categorias=menu_publico(), adicionais_menu=listar('cardapio'))
+    return render_template('menu.html', categorias=menu_publico(), adicionais_menu=listar('cardapio'),
+                           carrinho_url=url_for('menu_admin_retorno'), perfil_url=url_for('auth.login'))
 
 @app.get('/bebidas')
 def bebidas():
