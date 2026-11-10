@@ -18,6 +18,7 @@ document.querySelector('.menu-filtros').addEventListener('reset', () => { catego
 const modal = document.querySelector('#menu-detalhe');
 const dinheiro = centavos => (centavos / 100).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 const detalheQuantidade = document.querySelector('#detalhe-pessoas');
+const formularioCarrinho = document.querySelector('#adicionar-do-menu');
 let pratoSelecionado = null;
 function quantidadeValida(campo) {
   return campo.validity.valid && Number.isInteger(campo.valueAsNumber) && campo.valueAsNumber >= 10 && campo.valueAsNumber <= 500;
@@ -57,6 +58,10 @@ document.querySelectorAll('.ver-menu').forEach(botao => botao.addEventListener('
   if (campo && !quantidadeValida(campo)) { campo.reportValidity(); return; }
   document.querySelector('#detalhe-orcamento').hidden = !campo;
   document.querySelector('#detalhe-sem-preco').hidden = Boolean(campo);
+  if (formularioCarrinho) {
+    formularioCarrinho.hidden = !campo;
+    formularioCarrinho.elements.namedItem('nome').value = botao.dataset.nome;
+  }
   if (campo) {
     document.querySelector('#detalhe-preco').textContent = dinheiro(Number(pratoSelecionado.dataset.precoCentavos));
     detalheQuantidade.value = campo.value;

@@ -1,6 +1,7 @@
 """Inicialização do SQLAlchemy e carga inicial (seeds) do banco de dados."""
 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase
 
@@ -47,6 +48,7 @@ def criar_estoque() -> None:
         iniciar_servicos,
         iniciar_bancadas,
         iniciar_cardapios,
+        iniciar_bebidas,
         iniciar_pratos,
         iniciar_ingredientes,
         iniciar_lotes,
@@ -68,6 +70,8 @@ def criar_estoque() -> None:
     # CRIAÇÃO DE CARDAPIO
     cardapios = iniciar_cardapios()
     db.session.add_all(cardapios)
+
+    db.session.add_all(iniciar_bebidas())
 
     # CRIAÇÃO DE PRATOS
     pratos = iniciar_pratos()
@@ -121,6 +125,19 @@ def init_app(app) -> None:
     # Cria automaticamente todas as tabelas no arquivo do banco se elas não existirem
     with app.app_context():
         db.create_all()
+        # Atualiza bancos criados antes dos campos usados no checkout.
+        for tabela, coluna, tipo in (
+            ("endereco", "uf", "VARCHAR(2)"),
+            ("cardapio_pedido", "qtd", "INTEGER"),
+        ):
+            if coluna in {campo["name"] for campo in inspect(db.engine).get_columns(tabela)}:
+                continue
+            try:
+                with db.engine.begin() as conexao:
+                    conexao.execute(text(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {tipo}"))
+            except SQLAlchemyError:
+                if coluna not in {campo["name"] for campo in inspect(db.engine).get_columns(tabela)}:
+                    raise
         criar_cargos()
         criar_admin()
         criar_estoque()
@@ -129,3 +146,6 @@ def init_app(app) -> None:
         except SQLAlchemyError:
             db.session.rollback()
 
+        if db.engine.dialect.name == "sqlite":
+            from triggers import criar_trigger_baixa_estoque
+            criar_trigger_baixa_estoque()

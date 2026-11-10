@@ -72,7 +72,10 @@ def fazer_login():
         flash("Não foi possível enviar o código.", "danger")
         return redirect(url_for("auth.login"))
 
+    carrinho = session.get("carrinho", []) if "id" not in session else []
     session.clear()
+    if carrinho:
+        session["carrinho"] = carrinho
     session["usuario_pendente_id"] = id_usuario
     session["email_pendente"] = usuario.email_criptografado
     flash("Código enviado. Verifique seu e-mail.", "info")
@@ -112,11 +115,14 @@ def verificar_token():
                 flash("Usuário não encontrado.", "danger")
                 return redirect(url_for("auth.login"))
 
+            carrinho = session.get("carrinho", [])
             session.clear()
+            if carrinho:
+                session["carrinho"] = carrinho
             session["id"] = id_pendente
             session["cargo"] = usuario.id_permissao
             flash("E-mail verificado com sucesso!", "success")
-            return redirect(url_for("cliente.home"))
+            return redirect(url_for("cliente.mostrar_carrinho" if carrinho else "cliente.home"))
 
         erro = "Código inválido ou expirado. Tente novamente."
 

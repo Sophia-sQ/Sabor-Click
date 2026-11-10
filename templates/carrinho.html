@@ -27,6 +27,9 @@
     {% macro moeda(valor) %}R$ {{ '{:,.2f}'.format(valor).replace(',', '_').replace('.', ',').replace('_', '.') }}{% endmacro %}
     <main class="carrinho-conteudo">
         <header class="carrinho-cabecalho"><h1>Seu carrinho</h1><p>Revise os serviços escolhidos antes de finalizar.</p></header>
+        {% for mensagem in get_flashed_messages(category_filter=['danger']) %}
+        <p class="aviso-carrinho" role="status">{{ mensagem }}</p>
+        {% endfor %}
         <div class="carrinho-colunas">
             <section class="itens-carrinho" aria-label="Serviços escolhidos">
                 {% for item in itens %}
@@ -58,12 +61,10 @@
                 <div class="carrinho-vazio" id="carrinho-vazio"><h2>Seu carrinho está vazio</h2><p>Conheça nossos serviços para planejar seu evento.</p><a class="botao" href="{{ url_for('cliente.home') }}#servicos">Conhecer serviços</a></div>
                 {% endfor %}
                 <div id="bebidas-no-carrinho"></div>
-                {% if itens %}
-                <section class="endereco-evento" aria-label="Endereço do evento">
+                <section class="endereco-evento" id="endereco-evento" aria-label="Endereço do evento">
                     <div class="endereco-informacoes"><span class="localizacao"><img src="{{ url_for('static', filename='images/icone-localizacao.svg') }}" width="20" height="20" alt=""></span><div><h2>ENDEREÇO DO EVENTO</h2><p class="endereco-linha" id="endereco-linha">{{ endereco_linha|default('Escolha o endereço do evento') }}</p><p class="endereco-cidade" id="endereco-cidade">{{ endereco_cidade|default('') }}</p></div></div>
-                    <button class="escolher-endereco" type="button" id="escolher-endereco">Escolher endereço</button>
+                    <button class="escolher-endereco" type="button" id="escolher-endereco" {% if login_url %}data-login="{{ login_url }}"{% endif %}>Escolher endereço</button>
                 </section>
-                {% endif %}
             </section>
             <aside class="resumo-compra" aria-labelledby="titulo-resumo">
                 <h2 id="titulo-resumo">Resumo da compra</h2>
@@ -84,13 +85,25 @@
         <button type="button" id="continuar-sem-bebidas">Continuar sem bebidas</button>
     </dialog>
     <dialog class="dialogo-endereco" id="dialogo-endereco" aria-labelledby="titulo-endereco">
-        <form id="formulario-endereco">
-            <h2 id="titulo-endereco">Endereço do evento</h2>
+        <h2 id="titulo-endereco">Endereço do evento</h2>
+        {% if enderecos_cadastrados %}
+        <form id="formulario-endereco-cadastrado" action="{{ salvar_endereco_url }}" method="post">
+            <label for="endereco-cadastrado">Endereços cadastrados</label>
+            <select id="endereco-cadastrado" name="id_endereco" required>
+                <option value="">Selecione um endereço</option>
+                {% for salvo in enderecos_cadastrados %}
+                <option value="{{ salvo.id_endereco }}">{{ salvo.nome }} · {{ salvo.logradouro }}, {{ salvo.numero }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="escolher-endereco">Usar endereço cadastrado</button>
+        </form>
+        {% endif %}
+        <form id="formulario-endereco" action="{{ salvar_endereco_url|default('/carrinho/endereco') }}" method="post">
             <p class="ajuda-endereco">* Campos obrigatórios</p>
             <label for="endereco-cep">CEP *</label>
             <input id="endereco-cep" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9" pattern="[0-9]{5}-?[0-9]{3}" aria-describedby="status-cep" required>
             <p class="ajuda-endereco" id="status-cep" role="status">Digite o CEP para preencher o endereço.</p>
-            <label for="novo-endereco">Rua *</label><input id="novo-endereco" name="rua" autocomplete="address-line1" required maxlength="160">
+            <label for="novo-endereco">Rua *</label><input id="novo-endereco" name="rua" autocomplete="address-line1" required maxlength="150">
             <div class="endereco-campos">
                 <div><label for="endereco-numero">Número *</label><input id="endereco-numero" name="numero" placeholder="123 ou s/n" required maxlength="20"></div>
                 <div><label for="endereco-complemento">Complemento (opcional)</label><input id="endereco-complemento" name="complemento" autocomplete="address-line2" maxlength="80"></div>
@@ -100,9 +113,11 @@
                 <div><label for="nova-cidade">Cidade *</label><input id="nova-cidade" name="cidade" autocomplete="address-level2" required maxlength="100"></div>
                 <div><label for="endereco-uf">Estado (UF) *</label><input id="endereco-uf" name="uf" autocomplete="address-level1" required minlength="2" maxlength="2" pattern="[A-Za-z]{2}" placeholder="SP"></div>
             </div>
-            <p class="ajuda-endereco">Confira os dados e informe o número. O endereço será atualizado apenas nesta prévia.</p>
+            <p class="ajuda-endereco">Confira os dados. Este endereço será usado no checkout.</p>
             <div class="dialogo-acoes"><button type="button" id="cancelar-endereco">Cancelar</button><button type="submit" class="escolher-endereco">Usar endereço</button></div>
         </form>
+        <p class="ajuda-endereco" id="erro-endereco" role="alert" hidden></p>
     </dialog>
+    <script id="endereco-evento-dados" type="application/json">{{ endereco_evento|default({})|tojson }}</script>
 </body>
 </html>

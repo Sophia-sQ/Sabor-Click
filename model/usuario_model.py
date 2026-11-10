@@ -74,6 +74,7 @@ class Endereco(db.Model):
     bairro = db.Column(db.String(100), nullable=False)
     cidade = db.Column(db.String(100), nullable=False)
     cep = db.Column(db.String(9), nullable=False)
+    uf = db.Column(db.String(2), nullable=True)
 
 # Tabela das atividades realizadas pelo usuário dentro do site
 class LogAtividade(db.Model):
@@ -451,7 +452,7 @@ def reativar_usuario(id_usuario: int) -> bool:
 
     return True
 
-def adicionar_endereco(nome: str, logradouro: str, numero: str, complemento: str, bairro: str, cidade: str, cep: str) -> Endereco | None:
+def adicionar_endereco(nome: str, logradouro: str, numero: str, complemento: str, bairro: str, cidade: str, cep: str, uf: str | None = None) -> Endereco | None:
     """Adiciona um novo endereço ao usuário logado.
 
     Args:
@@ -466,7 +467,7 @@ def adicionar_endereco(nome: str, logradouro: str, numero: str, complemento: str
     Returns:
         Endereco | None: endereço criado; None em caso de violação de integridade.
     """
-    endereco=Endereco(id_usuario=session.get("id"), nome=nome, logradouro=logradouro, numero=int(numero), complemento=complemento, bairro=bairro, cidade=cidade, cep=cep)
+    endereco=Endereco(id_usuario=session.get("id"), nome=nome, logradouro=logradouro, numero=str(numero), complemento=complemento, bairro=bairro, cidade=cidade, cep=cep, uf=uf)
     db.session.add(endereco)
 
     try:

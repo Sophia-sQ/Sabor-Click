@@ -46,7 +46,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid #a94f2e; outline-
 .endereco-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .dialogo-endereco h2 { font-size: 34px; margin-bottom: 20px; }
 .dialogo-endereco label { display: block; margin: 16px 0 8px; font-size: 14px; }
-.dialogo-endereco input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #c49c73; border-radius: 8px; font: inherit; }
+.dialogo-endereco input, .dialogo-endereco select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #c49c73; border-radius: 8px; font: inherit; }
+#formulario-endereco-cadastrado button { margin: 12px 0; }
 .ajuda-endereco { margin-top: 14px; color: var(--secundario); font-size: 13px; }
 .dialogo-acoes { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
 #cancelar-endereco { padding: 10px 20px; border: 1px solid #c49c73; border-radius: 22px; background: transparent; color: var(--texto); }

@@ -209,14 +209,14 @@ lista_pratos = [
 #Nome, descrição, preco base (0 quando em cardapio) 
 lista_bebida = [
     #BEBIDAS DE ESCOLHA SEM SER DO BAR 
-    ('Agua_com_gas','Agua_com_gas', 700),
-    ('Suco_de_abacaxi','Suco_de_abacaxi', 1500),
-    ('Refrigerante_de_guarana','Refrigerante_de_guarana', 1000),
-    ('Cha_preto','Cha_preto',700),
-    ('Agua_de_coco','Agua_de_coco', 1200),
-    ('Suco_de_melancia','Suco_de_melancia',1500),
-    ('Gin','Gin', 1700),
-    ('Uisque_de_centeio_rye','Uisque_de_centeio_rye',2000),
+    ('Agua_com_gas','Agua_com_gas', 7),
+    ('Suco_de_abacaxi','Suco_de_abacaxi', 15),
+    ('Refrigerante_de_guarana','Refrigerante_de_guarana', 10),
+    ('Cha_preto','Cha_preto',7),
+    ('Agua_de_coco','Agua_de_coco', 12),
+    ('Suco_de_melancia','Suco_de_melancia',15),
+    ('Gin','Gin', 17),
+    ('Uisque_de_centeio_rye','Uisque_de_centeio_rye',20),
     #SEM ALCOOL - BAR
     ("Pink Lemonade", "Bebida sem álcool feita com suco de limão-siciliano, xarope de groselha ou framboesa, água com gás, gelo e suco de limão-tahiti.", 0),
     ("Mojito Sem Álcool", "Bebida sem álcool preparada com folhas de hortelã, xarope simples de açúcar, água com gás e gelo.", 0),
@@ -1610,9 +1610,9 @@ def iniciar_ficha_tecnica_bebida() -> list[FichaTecnica_bebida]:
             continue
 
         ficha = FichaTecnica_bebida(
-            bebida.id_bebida,
-            ingrediente.id_ingrediente,
-            qtd_necessaria
+            id_bebida=bebida.id_bebida,
+            id_ingrediente=ingrediente.id_ingrediente,
+            qtd_necessaria=qtd_necessaria
         )
 
         fichas_tecnicas_bebidas.append(ficha)
@@ -1738,8 +1738,8 @@ def iniciar_bebida_cardapio() -> list[BebidaCardapio]:
             continue
 
         associacao = BebidaCardapio(
-            bebida.id_bebida,
-            cardapio.id_cardapio
+            id_bebida=bebida.id_bebida,
+            id_cardapio=cardapio.id_cardapio
             
         )
 

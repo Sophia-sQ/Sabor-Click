@@ -7,15 +7,29 @@ const campoCidade = document.getElementById('nova-cidade');
 const cep = document.getElementById('endereco-cep');
 const bairro = document.getElementById('endereco-bairro');
 const uf = document.getElementById('endereco-uf');
-const numero = document.getElementById('endereco-numero');
-const complemento = document.getElementById('endereco-complemento');
 const statusCep = document.getElementById('status-cep');
+const formularioCadastrado = document.getElementById('formulario-endereco-cadastrado');
 let consulta;
+const dadosEndereco = JSON.parse(document.getElementById('endereco-evento-dados').textContent);
+const erroEndereco = document.getElementById('erro-endereco');
+let enderecoSalvo = Object.keys(dadosEndereco).length > 0;
+for (const [nome, valor] of Object.entries(dadosEndereco)) {
+  const campo = formulario.elements.namedItem(nome);
+  if (campo) campo.value = valor;
+}
 
-document.getElementById('escolher-endereco')?.addEventListener('click', () => {
+function abrirEndereco() {
+  const login = document.getElementById('escolher-endereco')?.dataset.login;
+  if (login) {
+    window.location.assign(login);
+    return;
+  }
+  erroEndereco.hidden = true;
   dialogo.showModal();
-  cep.focus();
-});
+  (formularioCadastrado?.elements.namedItem('id_endereco') || cep).focus();
+}
+document.getElementById('escolher-endereco')?.addEventListener('click', abrirEndereco);
+if (location.hash === '#endereco-evento') abrirEndereco();
 
 cep.addEventListener('input', async () => {
   consulta?.abort();
@@ -51,14 +65,44 @@ cep.addEventListener('input', async () => {
 
 dialogo.addEventListener('close', () => consulta?.abort());
 document.getElementById('cancelar-endereco').addEventListener('click', () => dialogo.close());
-formulario.addEventListener('submit', (evento) => {
+async function salvarEndereco(evento) {
   evento.preventDefault();
-  if (!formulario.reportValidity()) return;
+  const formularioEnviado = evento.currentTarget;
+  if (!formularioEnviado.reportValidity()) return;
   consulta?.abort();
-  endereco.textContent = `${campoEndereco.value.trim()}, ${numero.value.trim()}${complemento.value.trim() ? ' · ' + complemento.value.trim() : ''} • ${bairro.value.trim()}`;
-  cidade.textContent = `${campoCidade.value.trim()} - ${uf.value.trim().toUpperCase()} • CEP ${cep.value}`;
-  dialogo.close();
-});
+  const dadosEnviados = Object.fromEntries(new FormData(formularioEnviado));
+  if (dadosEnviados.id_endereco) dadosEnviados.id_endereco = Number(dadosEnviados.id_endereco);
+  const botoes = dialogo.querySelectorAll('[type="submit"]');
+  botoes.forEach(botao => botao.disabled = true);
+  erroEndereco.hidden = true;
+  try {
+    const resposta = await fetch(formularioEnviado.action, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(dadosEnviados),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (resposta.redirected || !resposta.headers.get('content-type')?.includes('application/json')) {
+      throw new Error('Sua sessão expirou. Entre na sua conta e tente novamente.');
+    }
+    const dados = await resposta.json();
+    if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível salvar o endereço.');
+    endereco.textContent = dados.endereco_linha;
+    cidade.textContent = dados.endereco_cidade;
+    for (const [nome, valor] of Object.entries(dados.endereco_evento)) {
+      formulario.elements.namedItem(nome).value = valor;
+    }
+    enderecoSalvo = true;
+    dialogo.close();
+  } catch (erro) {
+    erroEndereco.textContent = erro.message || 'Não foi possível salvar. Tente novamente.';
+    erroEndereco.hidden = false;
+  } finally {
+    botoes.forEach(botao => botao.disabled = false);
+  }
+}
+formulario.addEventListener('submit', salvarEndereco);
+formularioCadastrado?.addEventListener('submit', salvarEndereco);
 
 const finalizar = document.getElementById('finalizar-compra');
 const sugestao = document.getElementById('sugestao-bebidas');
@@ -66,6 +110,10 @@ const catalogoCarrinho = window.SaborBebidas;
 const avisoCarrinho = document.getElementById('aviso-carrinho');
 function continuarCompra() {
   sugestao.close();
+  if (!enderecoSalvo) {
+    abrirEndereco();
+    return;
+  }
   const bebidas = catalogoCarrinho.ler();
   const pendentes = catalogoCarrinho.catalogo.some(b => bebidas[b.id] && b.preco === null);
   if (pendentes) {
