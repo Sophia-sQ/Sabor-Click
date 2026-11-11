@@ -14,6 +14,12 @@ ARQUIVO = RAIZ / 'instance' / 'catalogo-previa.json'
 UPLOADS = RAIZ / 'static' / 'images' / 'catalogo'
 LOCK = RLock()
 ENV = Environment(loader=FileSystemLoader(str(RAIZ / 'templates')))
+SERVICOS_CATALOGO = {
+    'buffet': ('Buffet para eventos', 'quentes'),
+    'chef-em-casa': ('Chef em casa', 'quentes'),
+    'mesa-de-salgados': ('Salgados para eventos', 'salgados'),
+    'bar': ('Bebidas', 'bebidas'),
+}
 
 def ler():
     dados = json.loads(ARQUIVO.read_text(encoding='utf-8')) if ARQUIVO.exists() else {}
@@ -46,7 +52,13 @@ def base(tipo):
 
 def listar(tipo):
     dados = ler()
-    return [dict(i, **dados['alteracoes'][tipo].get(i['id'], {})) for i in base(tipo)+dados[tipo] if i['id'] not in dados['removidos'][tipo]]
+    itens = [dict(i, **dados['alteracoes'][tipo].get(i['id'], {})) for i in base(tipo)+dados[tipo] if i['id'] not in dados['removidos'][tipo]]
+    if tipo == 'cardapio':
+        for item in itens:
+            item.setdefault('servicos', [
+                slug for slug, (_, categoria) in SERVICOS_CATALOGO.items() if categoria == item['categoria']
+            ])
+    return itens
 
 def bebidas_publicas():
     return listar('bebidas')
@@ -105,6 +117,7 @@ def registrar(app):
         if identificador and not atual:
             abort(404)
         erro = None
+        servicos = request.form.getlist('servicos')
         if request.method=='POST':
             origem=request.headers.get('Origin')
             if origem and origem.rstrip('/')!=request.host_url.rstrip('/'):
@@ -131,6 +144,10 @@ def registrar(app):
                 if not nome or len(nome)>100 or not descricao or len(descricao)>1000 or categoria not in dict(opcoes):
                     raise ValueError('Preencha nome, categoria e descrição.')
                 registro=dict(id=atual['id'] if atual else 'local-'+uuid4().hex,nome=nome,descricao=descricao,categoria=categoria,preco=float(preco.quantize(Decimal('.01'))))
+                if tipo == 'cardapio':
+                    if not servicos or any(slug not in SERVICOS_CATALOGO for slug in servicos):
+                        raise ValueError('Selecione pelo menos um serviço para o cardápio.')
+                    registro['servicos'] = list(dict.fromkeys(servicos))
                 if tipo=='bebidas':
                     try:
                         volume=int(request.form.get('volume_ml','0'))
@@ -156,4 +173,5 @@ def registrar(app):
         valores=dict(atual or {})
         if request.method=='POST':
             valores.update(request.form)
-        return render_template('previas/catalogo_admin.html',tipo=tipo,itens=itens,opcoes=opcoes,erro=erro,atual=atual,valores=valores,salvo=request.args.get('salvo'),gerenciar=request.args.get('gerenciar')=='1')
+            valores['servicos'] = [slug for slug in servicos if slug in SERVICOS_CATALOGO]
+        return render_template('previas/catalogo_admin.html',tipo=tipo,itens=itens,opcoes=opcoes,erro=erro,atual=atual,valores=valores,servicos_catalogo=SERVICOS_CATALOGO,salvo=request.args.get('salvo'),gerenciar=request.args.get('gerenciar')=='1')
