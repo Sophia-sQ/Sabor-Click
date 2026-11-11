@@ -15,7 +15,19 @@
     <nav aria-label="Navegação principal"><a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.menu') }}">Menu</a><a class="icone-acao carrinho" href="{{ url_for('cliente.mostrar_carrinho') }}" aria-label="Carrinho"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a></nav>
 </header>
 <main>
-<section class="menu-intro"><div class="menu-intro-texto"><p class="rotulo">SERVIÇO</p><h1>{{ servico.nome }}</h1><p class="introducao">{{ servico.descricao }}</p></div></section>
+{% from 'componentes/fotos_servicos.html' import fotos_servicos %}
+<section class="menu-intro">
+    {% if servico.slug in fotos_servicos %}
+    <figure class="menu-intro-foto">
+        <img src="{{ url_for('static', filename='images/' ~ fotos_servicos[servico.slug]) }}" alt="">
+    </figure>
+    {% endif %}
+    <div class="menu-intro-texto">
+        <p class="rotulo">SERVIÇO</p>
+        <h1>{{ servico.nome }}</h1>
+        <p class="introducao">{{ servico.descricao }}</p>
+    </div>
+</section>
 <section class="menu-catalogo" aria-label="Cardápios do serviço">
 <datalist id="sugestoes-convidados">{% for quantidade in [10,20,30,40,50,75,100,150,200,300,400,500] %}<option value="{{ quantidade }}"></option>{% endfor %}</datalist>
 <div class="pratos-grade">
@@ -23,7 +35,7 @@
 <article class="prato" data-categoria="{{ servico.slug }}" data-busca="{{ cardapio.nome }} {{ cardapio.descricao }}">
     <div class="prato-visual">
         {% if cardapio.imagem %}
-        <img class="prato-imagem" src="{{ url_for('static', filename=cardapio.imagem, v=cardapio.versao) }}" alt="Fotografia ilustrativa de {{ cardapio.nome }}" width="960" height="640" loading="lazy" decoding="async">
+        <img class="prato-imagem" src="{{ cardapio.imagem if cardapio.imagem.startswith(('https://', 'http://')) else url_for('static', filename=cardapio.imagem, v=cardapio.versao) }}" alt="Fotografia ilustrativa de {{ cardapio.nome }}" width="960" height="640" loading="lazy" decoding="async">
         {% endif %}
         <span class="prato-selo">{{ servico.nome }}</span>
     </div>

@@ -25,8 +25,9 @@ def criar_trigger_baixa_estoque() -> None:
 
         # 1. Calcula o consumo total de cada ingrediente por pedido.
         # Inclui pratos e bebidas e soma ingredientes repetidos.
+        conexao.execute(text("DROP VIEW IF EXISTS consumo_ingrediente_pedido"))
         conexao.execute(text("""
-            CREATE VIEW IF NOT EXISTS consumo_ingrediente_pedido AS
+            CREATE VIEW consumo_ingrediente_pedido AS
             SELECT
                 consumos.id_pedido,
                 consumos.id_ingrediente,

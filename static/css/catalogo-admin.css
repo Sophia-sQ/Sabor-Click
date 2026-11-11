@@ -1,0 +1,42 @@
+.catalogo-cabecalho{display:flex;justify-content:space-between;align-items:center;gap:24px}.catalogo-cabecalho .rotulo{margin:0 0 12px}.ver-catalogo{border-radius:99px;white-space:nowrap}.cadastro-catalogo{background:#eee5d7;border:1px solid #e4d6c3;border-radius:24px;padding:32px;max-width:1100px;width:100%;margin:auto}.titulo-cadastro{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:24px}.titulo-cadastro .rotulo{font-size:9px;margin:0 0 10px}.titulo-cadastro h2{font-size:28px;margin:0}.titulo-cadastro>a{font-size:12px;color:#82472f}.formulario-catalogo{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,1fr);gap:32px;align-items:start}.campos-catalogo{display:grid;grid-template-columns:1fr 1fr;gap:22px 18px;min-width:0}.campo-largo{grid-column:1/-1}.cadastro-catalogo label,.catalogo-lista label{display:block;font-size:12px;margin-bottom:8px}.cadastro-catalogo input,.cadastro-catalogo select,.cadastro-catalogo textarea,.catalogo-lista input{font-size:13px;background:#fffcf7;border-color:#d2bfa4}.imagem-catalogo{min-width:0;margin:0;padding:20px;border-color:#d5c2a8;border-radius:16px}.imagem-catalogo legend{padding:0 8px;font-size:13px}.previa-imagem{aspect-ratio:16/10;display:grid;place-items:center;background:#f8f1e5;border:1px dashed #cbb596;border-radius:12px;overflow:hidden;margin:0 0 18px}.previa-imagem img{width:100%;height:100%;object-fit:cover}.previa-imagem>span{text-align:center;font-size:11px;color:#927661;padding:18px}.previa-imagem b{display:block;font:32px Georgia;margin-bottom:8px}.imagem-catalogo input[type=file]{width:100%;font-size:11px;padding:10px}.imagem-catalogo input::file-selector-button{background:#eee5d7;border:0;padding:7px;border-radius:6px;color:#715b4b;cursor:pointer}.imagem-catalogo small{font-size:10px;margin:7px 0}.divisor-imagem{display:flex;align-items:center;gap:12px;color:#927661;font-size:10px;margin:16px 0}.divisor-imagem:before,.divisor-imagem:after{content:'';height:1px;background:#d8c7b1;flex:1}#status-imagem{font-size:11px;color:#963c29;min-height:1em;margin:8px 0 0}.acoes-cadastro{grid-column:1/-1;display:flex;align-items:center;gap:20px;border-top:1px solid #d8c7b1;padding-top:22px}.acoes-cadastro button{cursor:pointer;background:#82472f;border-radius:99px;min-width:220px}.acoes-cadastro a{font-size:12px;color:#715b4b}.gerenciar-catalogo{margin:26px auto 0;width:100%;max-width:1100px;border:1px solid #e4d6c3;border-radius:20px;background:#fffcf7;overflow:hidden}.gerenciar-catalogo>summary{list-style:none;display:flex;gap:12px;align-items:center;padding:22px 28px;font-size:14px;font-weight:500;cursor:pointer}.gerenciar-catalogo>summary::-webkit-details-marker{display:none}.gerenciar-catalogo summary>span{background:#eee5d7;font-size:11px;padding:3px 9px;border-radius:99px}.gerenciar-catalogo summary>b{margin-left:auto;font-size:17px}.catalogo-lista{padding:0 28px 28px}.catalogo-lista>header{margin:0 0 20px}.catalogo-lista header input{max-width:500px}.itens-catalogo{display:grid;gap:12px}.item-catalogo{display:flex;gap:16px;align-items:center;padding:18px 0;border-top:1px solid #e4d6c3}.item-catalogo>img{width:72px;height:72px;object-fit:cover;border-radius:12px;flex-shrink:0}.item-catalogo>div:nth-child(2){flex:1;min-width:0}.categoria-item{font-size:10px;color:#a16d4d}.item-catalogo h3{font:600 15px system-ui;margin:4px 0 8px}.item-catalogo p{font-size:12px;color:#715b4b;line-height:1.6;margin:0}.item-catalogo small{font-size:10px;margin-top:5px}.item-preco{font-size:13px;color:#82472f;white-space:nowrap}.acoes-item{display:flex;flex-direction:column;gap:8px;margin-left:6px}.acoes-item a,.acoes-item button{font:500 11px system-ui;border:1px solid #d2bfa4;border-radius:99px;padding:9px 15px;min-height:36px;text-align:center;text-decoration:none;background:transparent;color:#82472f;cursor:pointer}.acoes-item button{color:#963c29;border-color:transparent}.acoes-item a:hover,.acoes-item button:hover{background:#eee5d7}.catalogo-sucesso,.catalogo-erro{padding:14px 18px;border-radius:12px;font-size:13px;margin:0 0 24px}.catalogo-sucesso{background:#e4ebdd;color:#36502f}.catalogo-erro{background:#f3dfd4;color:#873c23}.dialogo-remocao{max-width:440px;width:calc(100% - 36px);border:1px solid #e4d6c3;border-radius:22px;padding:28px;color:#312118;background:#fffaf2}.dialogo-remocao::backdrop{background:#31211866;backdrop-filter:blur(3px)}.dialogo-remocao p{font-size:14px;line-height:1.7}.dialogo-remocao form>div{display:flex;gap:12px;justify-content:flex-end;margin-top:24px}.dialogo-remocao button{cursor:pointer;background:#82472f}.dialogo-remocao #cancelar-remocao{background:#eee5d7;color:#715b4b}@media(max-width:1150px){.formulario-catalogo{grid-template-columns:1fr;gap:24px}.imagem-catalogo{display:block;max-width:100%}.previa-imagem{max-height:240px;aspect-ratio:auto;height:220px}.acoes-cadastro{grid-column:auto}}@media(max-width:700px){.catalogo-cabecalho{align-items:flex-start;flex-direction:column}.cadastro-catalogo{padding:22px}.campos-catalogo{grid-template-columns:1fr}.campo-largo{grid-column:auto}.titulo-cadastro{align-items:flex-start}.titulo-cadastro h2{font-size:25px}.acoes-cadastro{flex-wrap:wrap}.acoes-cadastro button{width:100%;min-width:0}.gerenciar-catalogo>summary{padding:20px;font-size:12px}.catalogo-lista{padding:0 20px 20px}.item-catalogo{flex-wrap:wrap;gap:12px}.item-catalogo>img{width:58px;height:58px}.item-catalogo>div:nth-child(2){flex-basis:calc(100% - 75px)}.item-preco{margin-left:70px}.acoes-item{flex-direction:row;margin-left:auto}.imagem-catalogo{padding:14px}.dialogo-remocao{padding:22px}}
+
+.servicos-catalogo {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.servicos-catalogo legend {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.opcoes-servicos {
+    display: grid;
+    margin-top: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+    gap: 8px;
+}
+
+.servicos-catalogo .opcoes-servicos label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid #d2bfa4;
+    border-radius: 10px;
+    background: #fffcf7;
+    cursor: pointer;
+}
+
+.servicos-catalogo input[type="checkbox"] {
+    appearance: auto;
+    width: 16px;
+    height: 16px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    accent-color: #82472f;
+}

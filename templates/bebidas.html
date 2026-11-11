@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Bebidas à parte | Sabor & Click{% endblock %}
+{% block estilos %}
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bebidas.css') }}">
+{% endblock %}
+{% block conteudo %}
+<header class="navbar"><a class="marca" href="/"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" alt="" width="38" height="38">Sabor &amp; Click</a><nav aria-label="Navegação principal"><a href="{{ carrinho_url }}">Voltar ao carrinho</a></nav></header>
+<main class="bebidas-conteudo">
+<section class="bebidas-intro"><div><p class="rotulo">PARA ACOMPANHAR SEU PEDIDO</p><h1>Um brinde à sua escolha.</h1><p>Escolha suas bebidas à parte e adicione a quantidade que desejar ao carrinho.</p></div></section>
+<form class="filtros-bebidas" role="search"><div><label for="buscar-bebida">Qual bebida você procura?</label><input id="buscar-bebida" type="search" placeholder="Busque pelo nome"></div><div><label for="categoria-bebida">Tipo de bebida</label><select id="categoria-bebida"><option value="">Todas as bebidas</option><option>Sem álcool</option><option>Com álcool</option></select></div></form>
+<p id="status-bebidas" role="status" aria-live="polite"></p>
+<div class="bebidas-layout"><section aria-label="Bebidas disponíveis"><div class="grade-bebidas">
+{% for bebida in bebidas %}
+<article class="card-bebida" data-id="{{ bebida.id }}" data-nome="{{ bebida.nome }}" data-categoria="{{ bebida.categoria }}">
+<img class="foto-bebida" src="{{ bebida.imagem if bebida.imagem.startswith(('https://', 'http://')) else url_for('static', filename=bebida.imagem) }}" alt="{{ bebida.nome }}" width="400" height="280" loading="lazy" decoding="async">
+<span class="tipo-bebida">{{ bebida.categoria }}</span><h2>{{ bebida.nome }}</h2>
+{% if bebida.volume_ml %}<p class="volume-bebida">{{ bebida.volume_ml }} ml <span>por {{ 'dose' if bebida.categoria == 'Com álcool' else 'porção' }}</span></p>{% endif %}
+{% if bebida.descricao %}<p class="descricao-bebida">{{ bebida.descricao }}</p>{% endif %}
+<p class="preco-bebida">{% if bebida.preco is not none %}R$ {{ '%.2f'|format(bebida.preco)|replace('.', ',') }} <small>por unidade</small>{% else %}<span>Valor a confirmar</span>{% endif %}</p>
+<label class="label-quantidade" for="quantidade-{{ loop.index }}">Quantidade</label><div class="quantidade-bebida"><button type="button" data-delta="-1" aria-label="Diminuir quantidade de {{ bebida.nome }}">−</button><input id="quantidade-{{ loop.index }}" type="number" min="0" max="99" value="0" step="1" inputmode="numeric"><button type="button" data-delta="1" aria-label="Aumentar quantidade de {{ bebida.nome }}">+</button></div>
+</article>
+{% else %}<p>Nenhuma bebida avulsa cadastrada no momento.</p>{% endfor %}
+</div><p id="bebidas-sem-resultado" hidden>Nenhuma bebida encontrada. Tente outro nome ou tipo.</p></section>
+<aside class="resumo-bebidas"><h2>Sua seleção</h2><p class="resumo-vazio" id="selecao-vazia">Escolha as bebidas que vão acompanhar seu pedido.</p><ul id="selecao-bebidas"></ul><div class="total-bebidas"><span>Subtotal</span><strong id="total-bebidas">R$ 0,00</strong></div><p id="precos-pendentes" hidden>Há bebidas com valor a confirmar.</p><button class="botao" id="adicionar-bebidas" type="button" disabled>Adicionar ao carrinho</button><a class="voltar-carrinho" href="{{ carrinho_url }}">Voltar sem adicionar</a></aside></div>
+<noscript>Ative o JavaScript para selecionar e adicionar bebidas.</noscript>
+</main>
+<script id="catalogo-bebidas" type="application/json">{{ bebidas|tojson }}</script>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/bebidas.js') }}" defer></script>{% endblock %}

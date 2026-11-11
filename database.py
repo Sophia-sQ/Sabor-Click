@@ -1,6 +1,7 @@
 """Inicialização do SQLAlchemy e carga inicial (seeds) do banco de dados."""
 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase
 
@@ -47,6 +48,7 @@ def criar_estoque() -> None:
         iniciar_servicos,
         iniciar_bancadas,
         iniciar_cardapios,
+        iniciar_bebidas,
         iniciar_pratos,
         iniciar_ingredientes,
         iniciar_lotes,
@@ -68,6 +70,8 @@ def criar_estoque() -> None:
     # CRIAÇÃO DE CARDAPIO
     cardapios = iniciar_cardapios()
     db.session.add_all(cardapios)
+
+    db.session.add_all(iniciar_bebidas())
 
     # CRIAÇÃO DE PRATOS
     pratos = iniciar_pratos()
@@ -121,6 +125,9 @@ def init_app(app) -> None:
     # Cria automaticamente todas as tabelas no arquivo do banco se elas não existirem
     with app.app_context():
         db.create_all()
+        if db.engine.dialect.name == "sqlite":
+            from triggers import criar_trigger_baixa_estoque
+            criar_trigger_baixa_estoque()
         
     @app.cli.command("seed")
     def seed_command():
@@ -136,4 +143,4 @@ def init_app(app) -> None:
             secho("Success", fg="green", bold=True)
         except SQLAlchemyError as e:
             db.session.rollback()
-            secho(f"FAIL {e}", fg="red", bold=True)
+            secho(f"FAIL {e}", fg="red", bold=True)        

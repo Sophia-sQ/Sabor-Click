@@ -218,8 +218,7 @@ def associar_bebida_cardapio(id_bebida: int, id_cardapio: int) -> tuple[int, int
 def criar_pedido(id_cliente: int, id_endereco: int, valor_total: float, data_evento: str, hora_inicio: str, hora_fim: str, cardapios: list[dict], observacao: str | None = None, bebidas: list[dict] | None = None) -> Pedido | None:
     """Cria um pedido e associa seus cardápios e bebidas (quando houver).
 
-    Persiste o pedido, vincula os cardápios e, se fornecidas, as bebidas, e
-    garante a trigger de baixa de estoque.
+    Persiste o pedido e seus vínculos em uma única transação.
 
     Args:
         id_cliente (int): identificador do cliente.
@@ -232,7 +231,7 @@ def criar_pedido(id_cliente: int, id_endereco: int, valor_total: float, data_eve
             'id_servico' e 'qtd' - o nº de convidados daquele cardápio).
         observacao (str | None, optional): observação do pedido.
         bebidas (list[dict] | None, optional): bebidas do pedido (cada item com
-            'id_bebida', 'qtd' e 'valor_unitario').
+            'id_bebida', 'qtd' e 'valor_total').
 
     Returns:
         Pedido | None: o pedido criado; None em caso de violação de integridade.
@@ -249,9 +248,8 @@ def criar_pedido(id_cliente: int, id_endereco: int, valor_total: float, data_eve
         observacao=observacao,
 
     )
-    db.session.add(novo_pedido)
-
     try:
+        db.session.add(novo_pedido)
         db.session.flush()
 
         for cardapio in cardapios:
@@ -280,10 +278,6 @@ def criar_pedido(id_cliente: int, id_endereco: int, valor_total: float, data_eve
                     valor_total=valor_total_bebida,
                 )
                 db.session.add(p_b)
-
-        from triggers import criar_trigger_baixa_estoque
-        
-        criar_trigger_baixa_estoque()
 
         db.session.commit()
     except SQLAlchemyError:

@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-chef.png') }}"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Finalizar pedido | Sabor &amp; Click</title><link rel="stylesheet" href="/static/css/previas.css"><link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+</head><body><header class="cabecalho"><a class="marca" href="/previas/"><img class="logo-marca" src="/static/images/logo-chef.png" width="38" height="38" alt="">Sabor &amp; Click</a></header><div class="estrutura"><main><header class="intro"><h1>Falta pouco para saborear.</h1><p>Confira os dados e os itens da entrega.</p></header><div class="colunas"><section class="card"><h2>Dados da entrega</h2><form class="formulario"><label for="recebedor">Nome de quem recebe</label><input id="recebedor" autocomplete="name"><label for="contato">Telefone</label><input id="contato" type="tel" autocomplete="tel"><div class="endereco-checkout">
+<h3>Endereço do evento</h3>
+{% if endereco_evento %}
+<p id="checkout-endereco-linha">{{ endereco_linha }}</p>
+<p id="checkout-endereco-cidade">{{ endereco_cidade }}</p>
+{% else %}
+<p>Escolha o endereço do evento no carrinho.</p>
+{% endif %}
+<a id="alterar-endereco-checkout" href="{{ carrinho_url|default('/carrinho') }}#endereco-evento">Alterar endereço</a>
+</div><label for="observacao">Observações</label><textarea id="observacao" rows="3" placeholder="Complemento ou referência"></textarea></form></section><section class="card"><h2>Resumo do pedido</h2>{% if itens_checkout is defined %}
+{% if itens_checkout %}
+{% macro moeda(valor) %}R$ {{ '{:,.2f}'.format(valor).replace(',', '_').replace('.', ',').replace('_', '.') }}{% endmacro %}
+<dl>
+{% for item in itens_checkout %}
+<div><dt>{{ item.nome }}</dt><dd>{{ moeda(item.subtotal) }}</dd></div>
+{% endfor %}
+<div class="total"><dt>Subtotal dos cardápios</dt><dd>{{ moeda(itens_checkout|sum(attribute='subtotal')) }}</dd></div>
+</dl>
+{% else %}
+<p class="muted">Nenhum cardápio no carrinho.</p>
+{% endif %}
+{% else %}
+<p class="muted">Itens de exemplo</p><dl><div><dt>2 pratos quentes</dt><dd>R$ 70,00</dd></div><div><dt>2 bebidas</dt><dd>R$ 16,00</dd></div><div class="total"><dt>Subtotal</dt><dd>R$ 86,00</dd></div></dl>{% endif %}<p class="muted">Taxa de entrega a definir.</p><button disabled>Confirmar pedido</button><small>Finalização disponível após integração.</small></section></div><footer>Sabor &amp; Click · Base visual para desenvolvimento · 2026</footer></main></div></body></html>

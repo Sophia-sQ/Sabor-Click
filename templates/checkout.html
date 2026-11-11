@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ 'Pedido recebido' if pedido else 'Finalizar pedido' }} | Sabor &amp; Click</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/previas.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+    <script src="{{ url_for('static', filename='js/bebidas.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/checkout.js') }}" defer></script>
+</head>
+<body>
+<header class="cabecalho">
+    <a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt="">Sabor &amp; Click</a>
+</header>
+<main class="estrutura">
+    {% for mensagem in get_flashed_messages(category_filter=['success', 'danger']) %}
+    <p role="status">{{ mensagem }}</p>
+    {% endfor %}
+    {% if pedido %}
+    <section class="card" {% if limpar_bebidas %}id="limpar-bebidas"{% endif %}>
+        <h1>Pedido nº {{ pedido.id_pedido }}</h1>
+        <p>Status: {{ pedido.status|capitalize }}</p>
+        <p>Total: {{ (pedido.valor_total * 100)|moeda }}</p>
+        {% if pedido.status == 'aguardando' %}
+        <form method="post" action="{{ url_for('cliente.cancelar_pedido', id_pedido=pedido.id_pedido) }}">
+            <button type="submit">Cancelar pedido</button>
+        </form>
+        {% endif %}
+        <a href="{{ url_for('cliente.menu') }}">Voltar ao cardápio</a>
+    </section>
+    {% else %}
+    <header class="intro"><h1>Finalizar pedido</h1></header>
+    <div class="colunas">
+        <section class="card">
+            <h2>Dados do evento</h2>
+            <p>{{ endereco_linha }}<br>{{ endereco_cidade }}</p>
+            <a href="{{ url_for('cliente.mostrar_carrinho') }}#endereco-evento">Alterar endereço</a>
+            <form id="formulario-pedido" class="formulario" method="post" action="{{ url_for('cliente.fazer_pedido') }}">
+                <label for="data-evento">Data do evento</label>
+                <input id="data-evento" name="data_evento" type="date" required>
+                <label for="hora-inicio">Horário de início</label>
+                <input id="hora-inicio" name="hora_inicio" type="time" required>
+                <label for="hora-fim">Horário de término</label>
+                <input id="hora-fim" name="hora_fim" type="time" required>
+                {% if not itens_checkout %}
+                <label for="convidados">Número de convidados</label>
+                <input id="convidados" name="convidados" type="number" min="1" max="500" required>
+                {% endif %}
+                <label for="obs">Observações</label>
+                <textarea id="obs" name="obs" rows="3" maxlength="1000"></textarea>
+                <input type="hidden" name="bebidas" value="{}">
+            </form>
+        </section>
+        <section class="card">
+            <h2>Resumo do pedido</h2>
+            <dl id="resumo-pedido">
+                {% for item in itens_checkout %}
+                <div><dt>{{ item.nome }} · {{ item.qtd }} pessoas</dt><dd>{{ item.subtotal|moeda }}</dd></div>
+                {% endfor %}
+                <div class="total" id="total-pedido" data-centavos="{{ total_centavos }}">
+                    <dt>Total</dt><dd>{{ total_centavos|moeda }}</dd>
+                </div>
+            </dl>
+            <p id="aviso-pedido" role="status" hidden></p>
+            <button form="formulario-pedido" type="submit" id="confirmar-pedido" disabled>Enviar pedido</button>
+        </section>
+    </div>
+    <script id="catalogo-bebidas" type="application/json">{{ bebidas|tojson }}</script>
+    {% endif %}
+</main>
+</body>
+</html>

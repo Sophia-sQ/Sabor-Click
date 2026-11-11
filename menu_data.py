@@ -31,3 +31,25 @@ categorias = [
         ('Misto', 'Opções com e sem álcool para diferentes preferências.', 'extras', 6),
     ]},
 ]
+
+# Cada opção pública aponta para o serviço e o nome do cardápio cadastrados.
+cardapios_do_menu = {
+    "Feijoada completa": ("buffet", "feijoada completa"),
+    "Bobó de camarão": ("buffet", "bobo de camarao"),
+    "Tilápia com alcaparras": ("buffet", "file de tilapia ao molho manteiga e alcaparras"),
+    "Strogonoff de filé-mignon": ("buffet", "strogonoff de file mignon"),
+    "Nhoque ao molho": ("buffet", "nhoque ao molho"),
+    "Risoto de cogumelos": ("buffet", "risoto de cogumelos com tiras de file mignon"),
+    "Escondidinho de carne-seca": ("buffet", "escondinho de carne seca com mandioca"),
+    "Ravioli de queijo": ("buffet", "raviolli de queijo ao molho bolonhesa"),
+    "Salgados completo": ("mesa-de-salgados", "salgados completo"),
+    "Salgados reduzido": ("mesa-de-salgados", "salgados reduzido"),
+    "Hambúrguer tradicional": ("mesa-de-salgados", "hamburguer tradicional"),
+    "Hambúrguer smash": ("mesa-de-salgados", "hamburguer smash"),
+    "Hambúrguer mega bacon": ("mesa-de-salgados", "hamburguer mega bacon"),
+    "Mexicano": ("mesa-de-salgados", "mexicano"),
+    "Boteco brasileiro": ("mesa-de-salgados", "boteco brasileiro"),
+    "Sem álcool": ("bar", "bebida sem alcool"),
+    "Com álcool": ("bar", "bebida com alcool"),
+    "Misto": ("bar", "bebida mista"),
+}

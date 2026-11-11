@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-chef.png') }}">
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nosso menu | Sabor &amp; Click</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,13 +12,36 @@
 </head>
 {% from "componentes/fotos_menu.html" import fotos_menu %}
 {% from "componentes/precos_menu.html" import precos_menu %}
+{% set fotos_menu = dict(fotos_menu) %}{% set precos_menu = dict(precos_menu) %}
+{% for item in adicionais_menu|default([]) %}{% set _ = fotos_menu.update({item.nome: {'imagem': '', 'versao': 'local', 'url': imagem_catalogo_url(item.imagem)}}) %}{% set _ = precos_menu.update({item.nome: (item.preco * 100)|round|int}) %}{% endfor %}
 {% set categorias = categorias | rejectattr("id", "equalto", "sobremesas") | list %}
 {% macro moeda(centavos) %}R$ {{ '{:,.2f}'.format(centavos / 100).replace(',', '_').replace('.', ',').replace('_', '.') }}{% endmacro %}
 <body class="pagina-menu">
-<header class="navbar"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a><nav aria-label="Navegação principal"><a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.menu') }}" aria-current="page">Menu</a><a class="botao" href="{{ url_for('auth.login') }}">Login</a></nav></header>
+<header class="navbar">
+    <a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
+    <nav aria-label="Navegação principal">
+        <a href="{{ url_for('cliente.home') }}">Início</a>
+        {% if session.get('id') %}
+        <div class="acoes-usuario">
+            <a class="icone-acao icone-carrinho" href="{{ carrinho_url if carrinho_url is defined else url_for('cliente.mostrar_carrinho') }}" aria-label="Carrinho"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a>
+            <a class="icone-acao perfil" href="{{ perfil_url if perfil_url is defined else url_for('cliente.perfil') }}" aria-label="Meu perfil"><img src="{{ url_for('static', filename='images/icone-perfil.svg') }}" width="20" height="20" alt=""></a>
+        </div>
+        {% else %}
+        <a class="botao" href="{{ url_for('auth.login') }}">Login</a>
+        {% endif %}
+    </nav>
+</header>
 <main>
 <section class="menu-intro"><div class="menu-intro-texto"><p class="rotulo">SABORES QUE REÚNEM</p><h1>Menus para celebrar.</h1><p class="introducao">Boa comida, companhia especial e um evento com a sua cara. Explore nossos cardápios e encontre seus sabores favoritos.</p></div><figure class="menu-intro-foto"><img src="{{ url_for('static', filename='images/menu-encontro.jpg') }}" alt="Pessoas reunidas ao redor de uma mesa com pratos, queijos e acompanhamentos para compartilhar" width="1400" height="934" fetchpriority="high" decoding="async"></figure></section>
 <section class="menu-catalogo" aria-label="Catálogo de cardápios">
+{% for categoria_aviso, mensagem in get_flashed_messages(with_categories=true, category_filter=['success', 'danger']) %}
+<p class="detalhe-nota" id="retorno-carrinho" role="status">
+    {{ mensagem }}
+    {% if categoria_aviso == 'success' %}
+    <a href="{{ carrinho_url if carrinho_url is defined else url_for('cliente.mostrar_carrinho') }}">Ver carrinho ↗</a>
+    {% endif %}
+</p>
+{% endfor %}
 <form class="menu-filtros" role="search" onsubmit="return false">
 <div><label for="filtro-categoria">Tipo de cardápio</label><select id="filtro-categoria"><option value="">Todos os cardápios</option>{% for categoria in categorias %}<option value="{{ categoria.id }}">{{ categoria.nome }}</option>{% endfor %}</select></div>
 <div><label for="filtro-busca">Encontre seu sabor</label><input id="filtro-busca" type="search" placeholder="Busque um prato ou ingrediente"></div>
@@ -28,11 +52,11 @@
 {% for categoria in categorias %}{% for nome, descricao, imagem, credito in categoria.itens %}{% set credito = fotos_menu[nome] %}{% set imagem = credito.imagem %}
 {% set preco = precos_menu.get(nome) %}
 <article class="prato" data-preco-centavos="{{ preco if preco is not none else '' }}" data-categoria="{{ categoria.id }}" data-busca="{{ nome }} {{ descricao }}">
-<div class="prato-visual"><img class="prato-imagem" src="{{ url_for('static', filename='images/menu/' ~ imagem ~ '.' ~ credito.get('extensao', 'jpg'), v=credito.versao) }}" alt="Fotografia ilustrativa de {{ nome }}" width="960" height="640" loading="lazy" decoding="async"><span class="prato-selo">{{ categoria.nome }}</span></div>
+<div class="prato-visual"><img class="prato-imagem" src="{{ credito.url if credito.url is defined else url_for('static', filename='images/menu/' ~ imagem ~ '.' ~ credito.get('extensao', 'jpg'), v=credito.versao) }}" alt="Fotografia ilustrativa de {{ nome }}" width="960" height="640" loading="lazy" decoding="async"><span class="prato-selo">{{ categoria.nome }}</span></div>
 <div class="prato-texto"><h2>{{ nome }}</h2><p>{{ descricao }}</p></div>
 <div class="prato-acoes">
-{% if preco is not none %}<div class="preco-pessoa"><strong>{{ moeda(preco) }}</strong><span>/ pessoa</span></div><div class="escolha-menu"><label class="convidados-label">Para <input class="quantidade-pessoas" type="number" name="convidados" min="10" max="500" step="1" value="50" inputmode="numeric" list="sugestoes-convidados" aria-label="Quantidade de pessoas para {{ nome }}"></label><button type="button" class="ver-menu" data-nome="{{ nome }}" data-descricao="{{ descricao }}" data-tipo="{{ categoria.nome }}">Ver menu <span aria-hidden="true">↗</span></button></div><p class="total-menu" aria-live="polite" aria-atomic="true">Total para <span class="total-pessoas">50</span> pessoas: <strong class="total-valor">{{ moeda(preco * 50) }}</strong></p>
-{% else %}<div class="preco-pessoa"><strong>Sob consulta</strong><span>Preço a definir</span></div><button type="button" class="ver-menu" data-nome="{{ nome }}" data-descricao="{{ descricao }}" data-tipo="{{ categoria.nome }}">Ver menu <span aria-hidden="true">↗</span></button>{% endif %}
+{% if preco is not none %}<div class="preco-pessoa"><strong>{{ moeda(preco) }}</strong><span>/ pessoa</span></div><div class="escolha-menu"><label class="convidados-label">Para <input class="quantidade-pessoas" type="number" name="convidados" min="10" max="500" step="1" value="50" inputmode="numeric" list="sugestoes-convidados" aria-label="Quantidade de pessoas para {{ nome }}"></label><button type="button" class="ver-menu" data-nome="{{ nome }}" data-descricao="{{ descricao }}" data-tipo="{{ categoria.nome }}">Detalhes <span aria-hidden="true">↗</span></button></div><p class="total-menu" aria-live="polite" aria-atomic="true">Total para <span class="total-pessoas">50</span> pessoas: <strong class="total-valor">{{ moeda(preco * 50) }}</strong></p>
+{% else %}<div class="preco-pessoa"><strong>Sob consulta</strong><span>Preço a definir</span></div><button type="button" class="ver-menu" data-nome="{{ nome }}" data-descricao="{{ descricao }}" data-tipo="{{ categoria.nome }}">Detalhes <span aria-hidden="true">↗</span></button>{% endif %}
 </div>
 </article>
 {% endfor %}{% endfor %}
@@ -40,6 +64,26 @@
 </section>
 <section class="menu-convite"><p class="rotulo">O PRÓXIMO PASSO É SEU</p><h2>Gostou? Vamos planejar seu evento.</h2><p>Acesse sua conta para continuar.</p><a class="botao" href="{{ url_for('auth.login') }}">Entrar na minha conta <span aria-hidden="true">&nbsp;↗</span></a></section>
 </main><footer class="menu-rodape"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a><span>© 2026 Sabor &amp; Click</span><a href="{{ url_for('cliente.home') }}">Voltar ao início ↑</a></footer>
-<dialog id="menu-detalhe" aria-labelledby="detalhe-nome"><button type="button" class="fechar-modal" aria-label="Fechar detalhes">×</button><p class="rotulo" id="detalhe-tipo"></p><h2 id="detalhe-nome"></h2><p id="detalhe-descricao"></p><div class="detalhe-orcamento" id="detalhe-orcamento" hidden><p><strong id="detalhe-preco"></strong> / pessoa</p><label for="detalhe-pessoas">Quantidade de pessoas</label><input id="detalhe-pessoas" type="number" min="10" max="500" step="1" value="50" inputmode="numeric" list="sugestoes-convidados"><p id="detalhe-total" role="status" aria-live="polite"></p></div><p class="detalhe-nota" id="detalhe-sem-preco" hidden>Preço sob consulta.</p><a class="botao" href="{{ url_for('auth.login') }}">Entrar para planejar meu evento ↗</a></dialog>
+<dialog id="menu-detalhe" aria-labelledby="detalhe-nome">
+    <button type="button" class="fechar-modal" aria-label="Fechar detalhes">×</button>
+    <p class="rotulo" id="detalhe-tipo"></p>
+    <h2 id="detalhe-nome"></h2>
+    <p id="detalhe-descricao"></p>
+    <div class="detalhe-orcamento" id="detalhe-orcamento" hidden>
+        <p><strong id="detalhe-preco"></strong> / pessoa</p>
+        <label for="detalhe-pessoas">Quantidade de pessoas</label>
+        <input id="detalhe-pessoas" name="qtd" {% if session.get('id') %}form="adicionar-do-menu"{% endif %} type="number" min="10" max="500" step="1" value="50" inputmode="numeric" list="sugestoes-convidados" required>
+        <p id="detalhe-total" role="status" aria-live="polite"></p>
+    </div>
+    <p class="detalhe-nota" id="detalhe-sem-preco" hidden>Preço sob consulta.</p>
+    {% if session.get('id') %}
+    <form id="adicionar-do-menu" method="post" action="{{ adicionar_menu_url if adicionar_menu_url is defined else url_for('cliente.adicionar_do_menu') }}" hidden>
+        <input type="hidden" name="nome">
+        <button type="submit" class="botao">Adicionar ao carrinho</button>
+    </form>
+    {% else %}
+    <a class="botao" href="{{ url_for('auth.login') }}">Entrar para planejar meu evento ↗</a>
+    {% endif %}
+</dialog>
 <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
 </body></html>

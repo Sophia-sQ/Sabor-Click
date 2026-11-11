@@ -1,7 +1,4 @@
 .pagina-carrinho { min-height: 100vh; min-height: 100svh; }
-.acoes-usuario { display: flex; gap: 10px; }
-.icone-acao { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid rgb(169 79 46 / 65%); border-radius: 20px; }
-.carrinho-ativo { background: #a94f2e; border-color: transparent; border-radius: 12px; }
 .carrinho-conteudo { padding: 54px 64px 64px; }
 .carrinho-cabecalho { display: flex; flex-direction: column; gap: 10px; margin-bottom: 36px; }
 .carrinho-cabecalho .rotulo { letter-spacing: 0; }
@@ -49,7 +46,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid #a94f2e; outline-
 .endereco-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .dialogo-endereco h2 { font-size: 34px; margin-bottom: 20px; }
 .dialogo-endereco label { display: block; margin: 16px 0 8px; font-size: 14px; }
-.dialogo-endereco input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #c49c73; border-radius: 8px; font: inherit; }
+.dialogo-endereco input, .dialogo-endereco select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #c49c73; border-radius: 8px; font: inherit; }
+#formulario-endereco-cadastrado button { margin: 12px 0; }
 .ajuda-endereco { margin-top: 14px; color: var(--secundario); font-size: 13px; }
 .dialogo-acoes { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
 #cancelar-endereco { padding: 10px 20px; border: 1px solid #c49c73; border-radius: 22px; background: transparent; color: var(--texto); }
@@ -103,3 +101,4 @@ button:focus-visible, input:focus-visible { outline: 3px solid #a94f2e; outline-
 .carrinho-vazio .botao {
   margin-top: 48px;
 }
+.dialogo-sugestao{position:relative;margin:auto;width:480px;max-width:calc(100% - 32px);max-height:calc(100svh - 32px);overflow:auto;padding:38px;border:1px solid #e3d1b8;border-radius:24px;background:#fff9ed;color:var(--texto);text-align:center;box-shadow:0 20px 60px rgb(31 15 8 / 22%)}.dialogo-sugestao::backdrop{background:rgb(49 33 24 / 45%);backdrop-filter:blur(4px)}#fechar-sugestao{position:absolute;right:14px;top:10px;width:44px;height:44px;border:0;background:transparent;color:#614a3d;font-size:26px}.icone-sugestao{display:grid;place-items:center;width:72px;height:72px;margin:8px auto 22px;background:#eee2ce;color:#a94f2e;border-radius:22px}.icone-sugestao svg{width:45px;height:45px}.dialogo-sugestao h2{font-size:36px;line-height:1.15;margin-bottom:18px}.dialogo-sugestao p{font-size:15px;line-height:1.7;color:var(--secundario);margin-bottom:28px}.dialogo-sugestao>.botao{width:100%;min-height:48px;border-radius:99px;font-size:14px}#continuar-sem-bebidas{display:block;margin:16px auto 0;min-height:44px;border:0;background:transparent;color:var(--secundario);font-size:14px;text-decoration:underline;text-underline-offset:4px}#bebidas-no-carrinho{display:grid;gap:16px}#bebidas-no-carrinho:empty{display:none}.bebida-carrinho{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:24px;border:1px solid #e3d1b8;background:#fff9ed;border-radius:18px}.bebida-carrinho h2{font:600 20px 'DM Sans',sans-serif;margin:8px 0}.bebida-carrinho p{color:var(--secundario);font-size:14px}.bebida-carrinho button{background:transparent;color:#803317;border:1px solid #d2bfa4;border-radius:99px;padding:10px 16px;min-height:44px}.bebida-carrinho strong{display:block;font-size:17px;color:#7d3d24;margin:10px 0}.bebida-carrinho>div:last-child{text-align:right}[hidden]{display:none!important}@media(max-width:540px){.dialogo-sugestao{padding:30px 24px}.dialogo-sugestao h2{font-size:31px}.bebida-carrinho{align-items:flex-start;flex-direction:column}.bebida-carrinho>div:last-child{text-align:left}}
