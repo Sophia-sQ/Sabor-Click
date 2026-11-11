@@ -1,4 +1,8 @@
-from model.pedido_model import listar_pedidos_periodo, buscar_cardapios_pedido, listar_pedidos_entre_datas
+from datetime import date
+
+from sqlalchemy import func
+
+from model.pedido_model import Pedido, listar_pedidos_periodo, buscar_cardapios_pedido, listar_pedidos_entre_datas
 from model.servico_model import buscar_servico_por_id
 
 from utils import calcular_periodo, hoje, mes_passado, ultimos_30_dias, semana_passada
@@ -58,6 +62,28 @@ def _faturamento() -> tuple[int, int]:
     return (faturamento_atual, faturamento_anterior)
 
 # =================================== RELATÓRIOS ======================================
+
+def resumo_pedidos_por_dia(inicio: date, fim: date) -> list[dict]:
+    """Agrupa os pedidos pela data do evento e pelo status, com datas inclusivas."""
+    resultados = (
+        Pedido.query.with_entities(
+            Pedido.data_evento, Pedido.status, func.count(), func.sum(Pedido.valor_total)
+        )
+        .filter(Pedido.data_evento.between(inicio, fim))
+        .group_by(Pedido.data_evento, Pedido.status)
+        .order_by(Pedido.data_evento, Pedido.status)
+        .all()
+    )
+    return [
+        {
+            "data": dia.isoformat(),
+            "status": status,
+            "quantidade": quantidade,
+            "receita": str(valor) if status == "concluido" else "0",
+        }
+        for dia, status, quantidade, valor in resultados
+    ]
+
 
 def pedidos_quantidade() -> tuple[int, float | None]:
     """Conta os pedidos do mês e compara com o mesmo período do mês anterior.
