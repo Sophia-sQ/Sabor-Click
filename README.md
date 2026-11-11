@@ -3,7 +3,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Sophia-sQ/Sabor-Click">
-    <img src="docs\documentos\logo&mockups\logo_proto_1.png" alt="Logo" width="80" height="80">
+    <img src="docs\documentos\logo&mockups\l_sabor.PNG" alt="Logo" width="200" height="200">
   </a>
 <h3 align="center">Sabor & Click</h3>
 <p align="center">
