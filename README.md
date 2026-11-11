@@ -121,8 +121,6 @@ Acesso é feito pelo <a href="127.0.0.1:5000">localhost</a> na porta 5000 (padr�
 * **Thiago Vinícius**  - [github](https://github.com/Th1ago-V)
 <p align="right">(<a href="#readme-top">para o início</a>)</p>
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- LICENSE -->
 ## 📄 Licença
 
