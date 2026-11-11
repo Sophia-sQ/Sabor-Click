@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from flask import (
     Blueprint,
     Response,
+    abort,
     current_app,
     flash,
     jsonify,
@@ -677,47 +678,43 @@ def dados_perfil() -> Response:
     from security import descriptografar
     from utils import formatar_moeda
 
-    # usuario
-    usuario=buscar_usuario_por_id(session("id"))
+    id_usuario = session["id"]
+    usuario = buscar_usuario_por_id(id_usuario)
+    if usuario is None:
+        abort(404)
 
-    usuario.cpf_criptografado=descriptografar(usuario.cpf_criptografado)
-    usuario.email_criptografado=descriptografar(usuario.email_criptografado)
-
-    # pedido
-    pedido=next((p for p in listar_pedidos_por_cliente(session("id"))
-    if p.status not in ("cancelado", "concluido")), "Nenhum pedido ativo.")
-
-    pedido.valor_total = formatar_moeda(pedido.valor_total)
-
-    # detalhamento
-    cardapios=buscar_cardapios_pedido(pedido.id_pedido) or []
+    pedido = next(
+        (p for p in listar_pedidos_por_cliente(id_usuario)
+         if p.status not in ("cancelado", "concluido")),
+        None,
+    )
+    cardapios = buscar_cardapios_pedido(pedido.id_pedido) if pedido else []
     servicos = {
-        servico.nome: [cardapio.nome, formatar_moeda(cardapio.preco_base*pedido.num_convidados)]
-        for cardapio in cardapios
-        if (servico := buscar_servico_por_id(cardapio.id_servico))
+        servico.nome: [
+            cardapio.nome,
+            formatar_moeda(cardapio.preco_base * (item.qtd or pedido.num_convidados) * 100),
+        ]
+        for item in cardapios
+        if (servico := buscar_servico_por_id(item.id_servico))
+        and (cardapio := buscar_cardapio_por_id(item.id_cardapio))
     }
 
-    endereco = buscar_endereco_por_id(pedido.id_endereco)
-
-    bebidas=listar_bebidas_do_pedido(pedido.id_pedido) or []
-
-    valor_total = 0
-    for bebida in bebidas:
-        valor_total += bebida.valor_total
-    valor_total = formatar_moeda(valor_total)
+    endereco = buscar_endereco_por_id(pedido.id_endereco) if pedido else None
+    bebidas = (listar_bebidas_do_pedido(pedido.id_pedido) or []) if pedido else []
+    valor_total = formatar_moeda(sum(bebida.valor_total for bebida in bebidas) * 100)
 
     return jsonify({
         "usuario": {
             "id": usuario.id_usuario,
             "nome": usuario.nome,
-            "cpf": usuario.cpf_criptografado,
-            "email": usuario.email_criptografado,
+            "cpf": descriptografar(usuario.cpf_criptografado),
+            "email": descriptografar(usuario.email_criptografado),
         },
         "pedido": {
             "id": pedido.id_pedido,
             "status": pedido.status,
             "num_convidados": pedido.num_convidados,
-            "valor_total": pedido.valor_total,
+            "valor_total": formatar_moeda(pedido.valor_total * 100),
             "data_evento": pedido.data_evento.isoformat() if pedido.data_evento else None,
             "hora_inicio": pedido.hora_inicio.isoformat() if pedido.hora_inicio else None,
             "hora_fim": pedido.hora_fim.isoformat() if pedido.hora_fim else None,
@@ -729,7 +726,7 @@ def dados_perfil() -> Response:
                 {
                     "nome": buscar_bebida_por_id(b.id_bebida).nome,
                     "qtd": b.qtd,
-                    "valor_un": b.valor_total // b.qtd,
+                    "valor_un": b.valor_total / b.qtd,
                 }
                 for b in (bebidas or [])
             ],
