@@ -1,15 +1,155 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-chef.png') }}"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Meu perfil | Sabor &amp; Click</title><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/perfil.css') }}"><script src="{{ url_for('static', filename='js/perfil.js') }}" defer></script><link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+<html lang="pt-BR">
+
+<head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-chef.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/alto_contraste.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu perfil | Sabor &amp; Click</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/perfil.css') }}">
+    <script src="{{ url_for('static', filename='js/perfil.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 </head>
-{% set previa = previa|default(false) %}{% set pessoa = pessoa|default({'nome':'','email':'','cpf':''}) %}{% set enderecos = enderecos|default([]) %}
-<body data-previa="{{ 'true' if previa else 'false' }}"><a class="pular" href="#conteudo">Pular para conteúdo</a><header class="navbar"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt="">Sabor &amp; Click</a><nav aria-label="Navegação principal"><a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.menu') }}">Menu</a><a href="{{ '/carrinho' if previa else url_for('cliente.mostrar_carrinho') }}">Carrinho</a><a class="conta-atual" href="#conteudo" aria-current="page">Minha conta</a></nav></header>
-<main id="conteudo"><header class="intro-perfil"><h1>Meu perfil</h1></header>
-{% for categoria, mensagem in get_flashed_messages(with_categories=true) %}<p class="aviso" role="status">{{ mensagem }}</p>{% endfor %}<p id="retorno" class="aviso" role="status" tabindex="-1" hidden></p>
-<div class="perfil-layout">
-<div class="secoes"><section class="cartao" id="dados"><header><div><h2>Dados pessoais</h2></div><span class="ornamento" aria-hidden="true">✧</span></header><form action="{{ '#' if previa else url_for('cliente.atualizar_perfil') }}" method="post"><div class="campos"><label class="largo">Nome completo<input name="nome" autocomplete="name" value="{{ pessoa.nome }}" required maxlength="100" placeholder="Seu nome completo"></label><label>E-mail<input name="email" type="email" autocomplete="email" value="{{ pessoa.email }}" required placeholder="voce@exemplo.com"></label><label>CPF<input name="cpf" inputmode="numeric" value="{{ pessoa.cpf }}" required maxlength="14" pattern="[0-9]{3}\.?[0-9]{3}\.?[0-9]{3}-?[0-9]{2}" title="Informe os 11 dígitos do CPF." placeholder="000.000.000-00"></label></div><div class="form-rodape"><p>Seus dados ajudam a organizar seu evento.</p><button class="primario">Salvar alterações →</button></div></form></section>
-<section class="cartao" id="enderecos"><header><div><h2>Meus endereços</h2></div><button class="secundario" id="novo-endereco" type="button">+ Adicionar endereço</button></header><div class="lista-enderecos">{% for e in enderecos %}<article class="endereco"><span aria-hidden="true">⌂</span><div><h3>{{ e.nome }}</h3><p>{{ e.logradouro }}, {{ e.numero }}{% if e.complemento %} · {{ e.complemento }}{% endif %}</p><p>{{ e.bairro }} · {{ e.cidade }}</p><p>CEP {{ e.cep }}</p><div class="endereco-acoes"><button class="editar" type="button" data-endereco='{{ e|tojson }}'>Editar</button><button class="excluir" type="button" data-id="{{ e.id_endereco }}" data-nome="{{ e.nome }}">Excluir</button></div></div></article>{% else %}<div class="vazio"><span aria-hidden="true">⌂</span><h3>Seu próximo encontro pode ser aqui.</h3><p>Adicione um endereço para facilitar o planejamento do evento.</p></div>{% endfor %}</div></section>
-<section class="cartao" id="seguranca"><header><div><p class="rotulo">03 · CUIDADO COM SUA CONTA</p><h2>Segurança</h2><p>Escolha uma senha que só você conheça.</p></div><span class="ornamento" aria-hidden="true">◇</span></header><details><summary>Alterar minha senha <span aria-hidden="true">+</span></summary><form action="{{ '#' if previa else url_for('cliente.atualizar_perfil') }}" method="post"><div class="campos"><label>Nova senha<input id="senha" name="senha" type="password" autocomplete="new-password" required minlength="8" pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&amp;+=!_*\-]).{8,}" aria-describedby="ajuda-senha"></label><label>Confirmar nova senha<input id="confirmacao" type="password" autocomplete="new-password" required minlength="8"></label></div><p class="ajuda" id="ajuda-senha">Use pelo menos 8 caracteres, com maiúscula, minúscula, número e um símbolo: @ # $ % ^ &amp; + = ! _ * -.</p><label class="mostrar"><input id="mostrar" type="checkbox"> Mostrar senhas</label><div class="form-rodape"><p>Evite senhas que você já usa em outros sites.</p><button class="primario">Atualizar senha →</button></div></form></details></section><div class="perfil-sair"><button class="secundario sair-conta" id="abrir-sair" type="button" aria-haspopup="dialog" aria-controls="modal-sair">Sair da conta ↗</button></div></div></div></main>
-<footer class="perfil-footer"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a><small>© 2026 Sabor &amp; Click</small></footer>
-<dialog id="modal-endereco" aria-labelledby="titulo-endereco"><form id="form-endereco" method="post" data-criar="{{ '#' if previa else url_for('cliente.novo_endereco') }}"><header><div><p class="rotulo">UM LUGAR ESPECIAL</p><h2 id="titulo-endereco">Adicionar endereço</h2></div><button type="button" class="fechar" aria-label="Fechar">×</button></header><div class="campos"><label class="largo">Nome do endereço<input name="nome" required maxlength="150" placeholder="Ex.: Minha casa, espaço do evento"></label><label>CEP<input name="cep" inputmode="numeric" autocomplete="postal-code" required pattern="[0-9]{5}-?[0-9]{3}" maxlength="9" placeholder="00000-000"></label><label>Número<input name="num" inputmode="numeric" required pattern="[0-9]+" title="Informe apenas números." maxlength="20"></label><label class="largo">Rua / logradouro<input name="logadouro" autocomplete="address-line1" required maxlength="150"></label><label class="largo">Complemento (opcional)<input name="compl" autocomplete="address-line2" maxlength="100" placeholder="Apartamento, bloco ou referência"></label><label>Bairro<input name="bairro" required maxlength="100"></label><label>Cidade<input name="cidade" autocomplete="address-level2" required maxlength="100"></label></div><div class="dialogo-acoes"><button type="button" class="secundario fechar">Cancelar</button><button class="primario">Salvar endereço</button></div></form></dialog>
-<dialog id="modal-excluir" aria-labelledby="titulo-excluir"><h2 id="titulo-excluir">Excluir endereço?</h2><p id="descricao-excluir"></p><form method="post" id="form-excluir"><div class="dialogo-acoes"><button type="button" class="secundario fechar">Manter endereço</button><button class="primario">Excluir endereço</button></div></form></dialog><dialog id="modal-sair" aria-labelledby="titulo-sair"><div class="confirmacao-sair"><h2 id="titulo-sair">Você tem certeza que deseja encerrar sua sessão?</h2><div class="dialogo-acoes"><button class="secundario fechar" type="button" autofocus>Cancelar</button>{% if previa %}<a class="primario confirmar-sair" href="{{ url_for('auth.login') }}">Sair da conta</a>{% else %}<form action="{{ url_for('auth.logout') }}" method="post" data-logout><button class="primario confirmar-sair" type="submit">Sair da conta</button></form>{% endif %}</div></div></dialog></body></html>
+{% set previa = previa|default(false) %}{% set pessoa = pessoa|default({'nome':'','email':'','cpf':''}) %}{% set
+enderecos = enderecos|default([]) %}
+
+<body data-previa="{{ 'true' if previa else 'false' }}"><a class="pular" href="#conteudo">Pular para conteúdo</a>
+    <button type="button" id="botao-alto-contraste" aria-pressed="false"> Ativar alto contraste </button>
+    {% include "componentes/navbar_cliente.html" %}
+    <main id="conteudo">
+        <header class="intro-perfil">
+            <h1>Meu perfil</h1>
+        </header>
+        {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}<p class="aviso" role="status">{{
+            mensagem }}</p>{% endfor %}<p id="retorno" class="aviso" role="status" tabindex="-1" hidden></p>
+        <div class="perfil-layout">
+            <div class="secoes">
+                <section class="cartao" id="dados">
+                    <header>
+                        <div>
+                            <h2>Dados pessoais</h2>
+                        </div><span class="ornamento" aria-hidden="true">✧</span>
+                    </header>
+                    <form action="{{ '#' if previa else url_for('cliente.atualizar_perfil') }}" method="post">
+                        <div class="campos"><label class="largo">Nome completo<input name="nome" autocomplete="name"
+                                    value="{{ pessoa.nome }}" required maxlength="100"
+                                    placeholder="Seu nome completo"></label><label>E-mail<input name="email"
+                                    type="email" autocomplete="email" value="{{ pessoa.email }}" required
+                                    placeholder="voce@exemplo.com"></label><label>CPF<input name="cpf"
+                                    inputmode="numeric" value="{{ pessoa.cpf }}" required maxlength="14"
+                                    pattern="[0-9]{3}\.?[0-9]{3}\.?[0-9]{3}-?[0-9]{2}"
+                                    title="Informe os 11 dígitos do CPF." placeholder="000.000.000-00"></label></div>
+                        <div class="form-rodape">
+                            <p>Seus dados ajudam a organizar seu evento.</p><button class="primario">Salvar alterações
+                                →</button>
+                        </div>
+                    </form>
+                </section>
+                <section class="cartao" id="enderecos">
+                    <header>
+                        <div>
+                            <h2>Meus endereços</h2>
+                        </div><button class="secundario" id="novo-endereco" type="button">+ Adicionar endereço</button>
+                    </header>
+                    <div class="lista-enderecos">{% for e in enderecos %}<article class="endereco"><span
+                                aria-hidden="true">⌂</span>
+                            <div>
+                                <h3>{{ e.nome }}</h3>
+                                <p>{{ e.logradouro }}, {{ e.numero }}{% if e.complemento %} · {{ e.complemento }}{%
+                                    endif %}</p>
+                                <p>{{ e.bairro }} · {{ e.cidade }}</p>
+                                <p>CEP {{ e.cep }}</p>
+                                <div class="endereco-acoes"><button class="editar" type="button"
+                                        data-endereco='{{ e|tojson }}'>Editar</button><button class="excluir"
+                                        type="button" data-id="{{ e.id_endereco }}"
+                                        data-nome="{{ e.nome }}">Excluir</button></div>
+                            </div>
+                        </article>{% else %}<div class="vazio"><span aria-hidden="true">⌂</span>
+                            <h3>Seu próximo encontro pode ser aqui.</h3>
+                            <p>Adicione um endereço para facilitar o planejamento do evento.</p>
+                        </div>{% endfor %}</div>
+                </section>
+                <section class="cartao" id="seguranca">
+                    <header>
+                        <div>
+                            <p class="rotulo">03 · CUIDADO COM SUA CONTA</p>
+                            <h2>Segurança</h2>
+                            <p>Escolha uma senha que só você conheça.</p>
+                        </div><span class="ornamento" aria-hidden="true">◇</span>
+                    </header>
+                    <details>
+                        <summary>Alterar minha senha <span aria-hidden="true">+</span></summary>
+                        <form action="{{ '#' if previa else url_for('cliente.atualizar_perfil') }}" method="post">
+                            <div class="campos"><label>Nova senha<input id="senha" name="senha" type="password"
+                                        autocomplete="new-password" required minlength="8"
+                                        pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&amp;+=!_*\-]).{8,}"
+                                        aria-describedby="ajuda-senha"></label><label>Confirmar nova senha<input
+                                        id="confirmacao" type="password" autocomplete="new-password" required
+                                        minlength="8"></label></div>
+                            <p class="ajuda" id="ajuda-senha">Use pelo menos 8 caracteres, com maiúscula, minúscula,
+                                número e um símbolo: @ # $ % ^ &amp; + = ! _ * -.</p><label class="mostrar"><input
+                                    id="mostrar" type="checkbox"> Mostrar senhas</label>
+                            <div class="form-rodape">
+                                <p>Evite senhas que você já usa em outros sites.</p><button class="primario">Atualizar
+                                    senha →</button>
+                            </div>
+                        </form>
+                    </details>
+                </section>
+                <div class="perfil-sair"><button class="secundario sair-conta" id="abrir-sair" type="button"
+                        aria-haspopup="dialog" aria-controls="modal-sair">Sair da conta ↗</button></div>
+            </div>
+        </div>
+    </main>
+    <footer class="perfil-footer"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca"
+                src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor
+                &amp; Click</span></a><small>© 2026 Sabor &amp; Click</small></footer>
+    <dialog id="modal-endereco" aria-labelledby="titulo-endereco">
+        <form id="form-endereco" method="post" data-criar="{{ '#' if previa else url_for('cliente.novo_endereco') }}">
+            <header>
+                <div>
+                    <p class="rotulo">UM LUGAR ESPECIAL</p>
+                    <h2 id="titulo-endereco">Adicionar endereço</h2>
+                </div><button type="button" class="fechar" aria-label="Fechar">×</button>
+            </header>
+            <div class="campos"><label class="largo">Nome do endereço<input name="nome" required maxlength="150"
+                        placeholder="Ex.: Minha casa, espaço do evento"></label><label>CEP<input name="cep"
+                        inputmode="numeric" autocomplete="postal-code" required pattern="[0-9]{5}-?[0-9]{3}"
+                        maxlength="9" placeholder="00000-000"></label><label>Número<input name="num" inputmode="numeric"
+                        required pattern="[0-9]+" title="Informe apenas números." maxlength="20"></label><label
+                    class="largo">Rua / logradouro<input name="logadouro" autocomplete="address-line1" required
+                        maxlength="150"></label><label class="largo">Complemento (opcional)<input name="compl"
+                        autocomplete="address-line2" maxlength="100"
+                        placeholder="Apartamento, bloco ou referência"></label><label>Bairro<input name="bairro"
+                        required maxlength="100"></label><label>Cidade<input name="cidade" autocomplete="address-level2"
+                        required maxlength="100"></label></div>
+            <div class="dialogo-acoes"><button type="button" class="secundario fechar">Cancelar</button><button
+                    class="primario">Salvar endereço</button></div>
+        </form>
+    </dialog>
+    <dialog id="modal-excluir" aria-labelledby="titulo-excluir">
+        <h2 id="titulo-excluir">Excluir endereço?</h2>
+        <p id="descricao-excluir"></p>
+        <form method="post" id="form-excluir">
+            <div class="dialogo-acoes"><button type="button" class="secundario fechar">Manter endereço</button><button
+                    class="primario">Excluir endereço</button></div>
+        </form>
+    </dialog>
+    <dialog id="modal-sair" aria-labelledby="titulo-sair">
+        <div class="confirmacao-sair">
+            <h2 id="titulo-sair">Você tem certeza que deseja encerrar sua sessão?</h2>
+            <div class="dialogo-acoes"><button class="secundario fechar" type="button" autofocus>Cancelar</button>{% if
+                previa %}<a class="primario confirmar-sair" href="{{ url_for('auth.login') }}">Sair da conta</a>{% else
+                %}<form action="{{ url_for('auth.logout') }}" method="post" data-logout><button
+                        class="primario confirmar-sair" type="submit">Sair da conta</button></form>{% endif %}</div>
+        </div>
+    </dialog>
+    <script src="{{ url_for('static', filename='js/alto_contraste.js') }}" defer></script>
+</body>
+
+</html>

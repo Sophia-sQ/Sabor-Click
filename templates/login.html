@@ -3,6 +3,7 @@
 
 <head>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-chef.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/alto_contraste.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrar</title>
@@ -16,6 +17,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
 </head>
 <body class="pagina-acesso">
+    <button type="button" id="botao-alto-contraste" aria-pressed="false"> Ativar alto contraste </button>
     <a class="voltar" href="{{ url_for('cliente.home') }}">
         <span class="seta" aria-hidden="true">←</span>
         <span>Voltar</span>
@@ -95,6 +97,7 @@
         window.addEventListener('pageshow', alternarLogin);
         alternarLogin();
     </script>
+    <script src="{{ url_for('static', filename='js/alto_contraste.js') }}" defer></script>
 </body>
 
 </html>
