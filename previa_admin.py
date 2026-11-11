@@ -1,11 +1,36 @@
 """Execute a prévia administrativa com: python previa_admin.py."""
 import os
-from flask import Flask, redirect, render_template, url_for, request
+from secrets import token_hex
+from flask import Flask, redirect, render_template, url_for, request, session
 from catalogo_previa_admin import registrar, menu_publico, listar, bebidas_publicas
+from endereco_evento import apresentar_endereco_evento, validar_endereco_evento
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.secret_key = token_hex(32)
 registrar(app)
+
+@app.context_processor
+def dados_endereco_evento():
+    endereco = session.get("endereco_evento_previa")
+    return apresentar_endereco_evento(endereco) if endereco else {}
+
+@app.post("/carrinho/endereco")
+def selecionar_endereco():
+    if not request.is_json:
+        return {"erro": "Envie os dados do endereço em JSON."}, 415
+    try:
+        endereco = validar_endereco_evento(request.get_json(silent=True))
+    except ValueError as erro:
+        return {"erro": str(erro)}, 400
+    session["endereco_evento_previa"] = endereco
+    return apresentar_endereco_evento(endereco)
+
+@app.get("/checkout")
+def checkout():
+    if not session.get("endereco_evento_previa"):
+        return redirect(url_for("menu_admin_retorno", _anchor="endereco-evento"))
+    return render_template("previas/checkout.html", carrinho_url=url_for("menu_admin_retorno"))
 
 @app.get('/', endpoint='cliente.home')
 def home():
@@ -36,6 +61,7 @@ def carrinho():
                       subtotal=350, inclui_bebidas=bar)]
     return render_template('carrinho.html', itens_carrinho=itens,
                            perfil_url=url_for('auth.login'), bebidas=bebidas_publicas(),
+                           checkout_url=url_for('checkout'),
                            bebidas_url=url_for('bebidas', exemplo=exemplo))
 
 @app.get('/previas/')
