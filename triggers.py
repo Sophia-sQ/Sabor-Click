@@ -37,7 +37,7 @@ def criar_trigger_baixa_estoque() -> None:
                     cp.id_pedido,
                     ft.id_ingrediente,
                     SUM(
-                        ft.qtd_necessaria * p.num_convidados
+                        ft.qtd_necessaria * cp.num_convidados
                     ) AS qtd_total
                 FROM pedido p
                 JOIN cardapio_pedido cp

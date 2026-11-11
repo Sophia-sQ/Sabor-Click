@@ -1364,10 +1364,25 @@ def iniciar_cardapios() -> list[Cardapio]:
     """
         
     cardapios=[]
-    
+
+    # Slugs de imagem na ordem fixa dos seeds (quentes + salgados + bebidas).
+    # Casa com _CARDAPIO_POR_ID (ids 1..18) no controller do cliente, tornando o
+    # banco também fonte de verdade da imagem para os cardápios seed.
+    slugs_imagem = [
+        "feijoada", "bobo-camarao", "tilapia", "strogonoff", "nhoque",
+        "risoto", "escondidinho", "ravioli",
+        "salgados-completo", "salgados-reduzido", "hamburguer", "smash",
+        "bacon", "mexicano", "boteco",
+        "sem-alcool", "com-alcool", "misto",
+    ]
+
+    indice = 0
     for tipo_cardapio in lista_cardapios:
         for nome, descricao, preco_base in tipo_cardapio:
             nome = formatar_nome(nome)
+
+            imagem_slug = slugs_imagem[indice] if indice < len(slugs_imagem) else None
+            indice += 1
 
             if buscar_cardapio_por_nome(nome):
                 continue
@@ -1375,7 +1390,8 @@ def iniciar_cardapios() -> list[Cardapio]:
             cardapio = Cardapio(
                 nome=nome,
                 descricao=descricao,
-                preco_base=preco_base
+                preco_base=preco_base,
+                imagem_slug=imagem_slug
             )
             cardapios.append(cardapio)
     

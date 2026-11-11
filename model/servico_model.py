@@ -49,13 +49,20 @@ class ServicoBancada(db.Model):
         self.id_bancada = id_bancada
 
 class Cardapio(db.Model):
-    """Cardápio com nome, descrição e preço-base."""
+    """Cardápio com nome, descrição e preço-base (em centavos)."""
     __tablename__ = "cardapio"
 
     id_cardapio = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(60), nullable=False)
     descricao = db.Column(db.Text, nullable=False)
-    preco_base = db.Column(db.Numeric(10, 2), nullable=False)
+    # preço por pessoa em CENTAVOS (ex.: 14990 = R$ 149,90). Use utils.formatar_moeda
+    # para exibir em Real.
+    preco_base = db.Column(db.Integer, nullable=False)
+    # slug usado para resolver a imagem do cardápio em docs/imagens-menu.json.
+    # É a fonte de verdade para cardápios novos (id >= 19, fora de
+    # _CARDAPIO_POR_ID); os 18 cardápios seed continuam resolvíveis via fallback
+    # pelo dicionário _CARDAPIO_POR_ID no controller do cliente.
+    imagem_slug = db.Column(db.String(120), nullable=True)
 
     __table_args__ = (
         db.CheckConstraint("preco_base >= 0", name="ck_cardapio_preco"),
@@ -254,19 +261,21 @@ def deletar_servico(id_servico) -> bool:
 
 
 """===============CRUD CARDÁPIO========="""
-def criar_cardapio(nome, descricao, preco_base) -> int:
+def criar_cardapio(nome, descricao, preco_base, imagem_slug=None) -> int:
     """Cria um cardápio e retorna seu id.
 
     Args:
         nome: nome do cardápio.
         descricao: descrição do cardápio.
         preco_base: preço-base do cardápio.
+        imagem_slug (str | None, optional): slug da imagem em
+            docs/imagens-menu.json; None quando o cardápio é criado sem imagem.
 
     Returns:
         int: id do cardápio criado.
     """
 
-    novo_cardapio = Cardapio(nome=nome, descricao=descricao, preco_base=preco_base)
+    novo_cardapio = Cardapio(nome=nome, descricao=descricao, preco_base=preco_base, imagem_slug=imagem_slug)
     db.session.add(novo_cardapio)
     db.session.commit()
     registrar_log("CRIACAO CARDAPIO", "Usuário criou novo cardapio")
@@ -297,7 +306,7 @@ def listar_cardapios() -> list[Cardapio] | None:
         return cardapios
     return None
 
-def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, preco_base=None) -> bool:
+def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, preco_base=None, imagem_slug=None) -> bool:
     """Atualiza os dados de um cardápio (campos None não são alterados).
 
     Args:
@@ -306,6 +315,8 @@ def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, 
         nome (str | None, optional): novo nome.
         descricao (str | None, optional): nova descrição.
         preco_base (optional): novo preço-base.
+        imagem_slug (str | None, optional): novo slug de imagem; só é alterado
+            quando fornecido (não-None), seguindo o padrão dos demais campos.
 
     Returns:
         bool: True se atualizado; False se o cardápio não existir.
@@ -319,6 +330,8 @@ def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, 
         cardapio.descricao = descricao
     if preco_base is not None:
         cardapio.preco_base = preco_base
+    if imagem_slug is not None:
+        cardapio.imagem_slug = imagem_slug
     db.session.commit()
     registrar_log(id_usuario,"ATUALIZACAO CARDAPIO", "Usuário atualizou cardapio")
 

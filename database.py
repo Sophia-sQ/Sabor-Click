@@ -121,11 +121,19 @@ def init_app(app) -> None:
     # Cria automaticamente todas as tabelas no arquivo do banco se elas não existirem
     with app.app_context():
         db.create_all()
+        
+    @app.cli.command("seed")
+    def seed_command():
+        """Popula o banco de dados com os dados iniciais."""
+        
+        from click import secho
+        
         criar_cargos()
         criar_admin()
         criar_estoque()
         try:
             db.session.commit()
-        except SQLAlchemyError:
+            secho("Success", fg="green", bold=True)
+        except SQLAlchemyError as e:
             db.session.rollback()
-
+            secho(f"FAIL {e}", fg="red", bold=True)

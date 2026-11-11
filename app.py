@@ -52,6 +52,9 @@ def create_app() -> Flask:
             Response | None: redirecionamento para o login quando o acesso é
             negado; None quando a requisição pode prosseguir.
         """
+        #app.logger.info("id=%s", session.get("id") or "nada")
+        #app.logger.info("cargo=%s", session.get("cargo") or "nada2")
+
     
         rotas_publicas = {"auth.login", "auth.cadastro", "auth.verificacao", "auth.verificar_token", 
                           "static", "cliente.pagina_inicial", "cliente.home", "cliente.menu", "auth.fazer_login",
@@ -136,4 +139,4 @@ def create_app() -> Flask:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

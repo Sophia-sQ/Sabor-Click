@@ -40,10 +40,11 @@ from services import enviar_email_nao_responda
 
 cliente_bp = Blueprint("cliente", __name__, url_prefix="/home")
 
-# Mapa nome do prato -> slug usada em docs/imagens-menu.json
 # Mapa id_cardapio (ordem fixa dos seeds) -> (slug da imagem em docs/imagens-menu.json,
-# chave do preço em docs/precos-menu.json). Usa o id porque Cardapio.nome é gravado
-# normalizado (minúsculo/sem acento) e não casa com as chaves dos JSON.
+# nome de exibição). O preço vem do banco (Cardapio.preco_base, em centavos); o
+# segundo elemento da tupla é mantido apenas como referência de nome de exibição.
+# Usa o id porque Cardapio.nome é gravado normalizado (minúsculo/sem acento) e não
+# casa com as chaves do JSON de imagens.
 _CARDAPIO_POR_ID = {
     1:  ("feijoada", "Feijoada completa"),
     2:  ("bobo-camarao", "Bobó de camarão"),
@@ -64,6 +65,23 @@ _CARDAPIO_POR_ID = {
     17: ("com-alcool", "Com álcool"),
     18: ("misto", "Misto"),
 }
+
+def _slug_imagem_do_cardapio(cardapio) -> str | None:
+    """Resolve o slug de imagem de um cardápio.
+
+    Prefere o slug persistido no banco (Cardapio.imagem_slug), fonte de verdade
+    para cardápios novos (id fora de 1..18). Se não houver, faz fallback para o
+    dicionário _CARDAPIO_POR_ID, que mapeia os 18 cardápios seed.
+
+    Args:
+        cardapio: objeto Cardapio.
+
+    Returns:
+        str | None: slug da imagem ou None se não houver mapeamento.
+    """
+    if getattr(cardapio, "imagem_slug", None):
+        return cardapio.imagem_slug
+    return _CARDAPIO_POR_ID.get(cardapio.id_cardapio, (None, None))[0]
 
 @cliente_bp.get("")
 def pagina_inicial():
@@ -98,10 +116,24 @@ def fazer_pedido():
     hora_inicio = string_para_hora(hora_inicio)
     hora_fim = string_para_hora(hora_fim)
 
-    total = sum(servico["qtd"] for servico in session["carrinho"])
+    carrinho = session.get("carrinho", [])
 
+    # total = soma dos subtotais (valor em centavos) de cada item do carrinho.
+    # Os itens da sessão não guardam o subtotal; ele é recalculado aqui a partir
+    # do preço por pessoa x qtd de convidados (mesma regra de mostrar_carrinho).
+    total = sum(_subtotal_item(item) for item in carrinho)
 
-    criar_pedido(session.get("id"), id_endereco, data_evento, hora_inicio, hora_fim, session["carrinho"], total, observacao, bebidas)
+    criar_pedido(
+        id_cliente=session.get("id"),
+        id_endereco=id_endereco,
+        valor_total=total,
+        data_evento=data_evento,
+        hora_inicio=hora_inicio,
+        hora_fim=hora_fim,
+        cardapios=carrinho,
+        observacao=observacao,
+        bebidas=bebidas,
+    )
 
 
     registrar_log("REALIZOU PEDIDO",
@@ -113,7 +145,9 @@ def fazer_pedido():
     "conteudo html ***adicionar modelo de pedido")
     
     flash("Pedido realizado com sucesso.", "success")
-    return redirect(url_for(request.endpoint))
+    # fazer_pedido é POST-only; após o sucesso redireciona para o perfil (GET),
+    # onde o cliente visualiza o pedido ativo recém-criado.
+    return redirect(url_for("cliente.perfil"))
 
 
 @cliente_bp.post("/cancelar_pedido/<int:id_pedido>")
@@ -264,9 +298,8 @@ def mostrar_servico(slug):
     import json
     from pathlib import Path
 
+    # Só as imagens vêm do JSON; o preço (centavos) é lido do banco (preco_base).
     base = Path(current_app.root_path)
-    with open(base / "docs" / "precos-menu.json", encoding="utf-8") as arq:
-        precos = json.load(arq).get("precos", {})
     with open(base / "docs" / "imagens-menu.json", encoding="utf-8") as arq:
         imagens = json.load(arq)
 
@@ -278,11 +311,10 @@ def mostrar_servico(slug):
         if cardapio is None:
             continue
 
-        slug_img, nome_preco = _CARDAPIO_POR_ID.get(cardapio.id_cardapio, (None, None))
+        slug_img = _slug_imagem_do_cardapio(cardapio)
 
-        preco_pessoa = precos.get(nome_preco)
-        if preco_pessoa is None:
-            preco_pessoa = int(round(float(cardapio.preco_base) * 100))
+        # preço por pessoa em centavos, direto do banco
+        preco_pessoa = cardapio.preco_base
 
         dados_img = imagens.get(slug_img, {}) if slug_img else {}
         arquivo = dados_img.get("arquivo")
@@ -304,12 +336,32 @@ def _carrinho() -> list:
     """Retorna o carrinho da sessão, criando-o (lista vazia) se não existir."""
     return session.setdefault("carrinho", [])
 
+def _subtotal_item(item: dict) -> int:
+    """Calcula o subtotal (em centavos) de um item do carrinho da sessão.
+
+    Os itens de session['carrinho'] guardam apenas 'id_servico', 'id_cardapio'
+    e 'qtd' (nº de convidados). O preço por pessoa (centavos) vem do banco, do
+    campo preco_base do cardápio.
+
+    Args:
+        item (dict): item do carrinho da sessão.
+
+    Returns:
+        int: subtotal em centavos (0 se o cardápio não existir).
+    """
+    cardapio = buscar_cardapio_por_id(item.get("id_cardapio"))
+    if cardapio is None:
+        return 0
+
+    # preço por pessoa em centavos, direto do banco
+    return cardapio.preco_base * item.get("qtd", 0)
+
 @cliente_bp.get("/carrinho")
 def mostrar_carrinho():
     """Exibe a página do carrinho com os itens da sessão enriquecidos.
 
-    Cruza cada item de session['carrinho'] (via id_cardapio -> nome do cardápio)
-    com os preços de docs/precos-menu.json (por nome) e com as imagens de
+    Cada item de session['carrinho'] é cruzado com o preço do banco
+    (Cardapio.preco_base, em centavos) e com as imagens de
     docs/imagens-menu.json (por slug da imagem). O subtotal é o preço por pessoa
     (centavos) multiplicado pela quantidade de convidados.
 
@@ -319,9 +371,8 @@ def mostrar_carrinho():
     import json
     from pathlib import Path
 
+    # Só as imagens vêm do JSON; o preço (centavos) é lido do banco (preco_base).
     base = Path(current_app.root_path)
-    with open(base / "docs" / "precos-menu.json", encoding="utf-8") as arq:
-        precos = json.load(arq).get("precos", {})
     with open(base / "docs" / "imagens-menu.json", encoding="utf-8") as arq:
         imagens = json.load(arq)
 
@@ -335,12 +386,10 @@ def mostrar_carrinho():
             continue
 
         qtd = item.get("qtd", 0)
-        slug_img, nome_preco = _CARDAPIO_POR_ID.get(cardapio.id_cardapio, (None, None))
+        slug_img = _slug_imagem_do_cardapio(cardapio)
 
-        # preço por pessoa (centavos): JSON por id->nome; fallback para preco_base do banco
-        preco_pessoa = precos.get(nome_preco)
-        if preco_pessoa is None:
-            preco_pessoa = int(round(float(cardapio.preco_base) * 100))
+        # preço por pessoa em centavos, direto do banco
+        preco_pessoa = cardapio.preco_base
 
         subtotal_centavos = preco_pessoa * qtd
         total_centavos += subtotal_centavos
@@ -514,7 +563,7 @@ def dados_perfil() -> Response:
     # detalhamento
     cardapios=buscar_cardapios_pedido(pedido.id_pedido) or []
     servicos = {
-        servico.nome: [cardapio.nome, formatar_moeda(cardapio.preco_base*pedido.num_convidados)]
+        servico.nome: [cardapio.nome, formatar_moeda(cardapio.preco_base*cardapio.num_convidados)]
         for cardapio in cardapios
         if (servico := buscar_servico_por_id(cardapio.id_servico))
     }
@@ -538,7 +587,6 @@ def dados_perfil() -> Response:
         "pedido": {
             "id": pedido.id_pedido,
             "status": pedido.status,
-            "num_convidados": pedido.num_convidados,
             "valor_total": pedido.valor_total,
             "data_evento": pedido.data_evento.isoformat() if pedido.data_evento else None,
             "hora_inicio": pedido.hora_inicio.isoformat() if pedido.hora_inicio else None,

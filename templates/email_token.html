@@ -5,43 +5,65 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Código de verificação</title>
 </head>
-<body style="margin:0; padding:0; background-color:#f4f4f5; font-family:Arial,Helvetica,sans-serif;">
+<body style="margin:0; padding:0; background-color:#f7f1e6; font-family:'DM Sans','Inter',Helvetica,Arial,sans-serif; color:#312118;">
 
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
-         style="background-color:#f4f4f5; padding:32px 12px;">
+         style="background-color:#f7f1e6; padding:32px 12px;">
     <tr>
       <td align="center">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
-               style="max-width:420px; background-color:#ffffff; border-radius:12px;">
+               style="max-width:440px; background-color:#ffffff; border-radius:24px; overflow:hidden; box-shadow:0 10px 24px rgba(31,15,9,0.12);">
+
+          <!-- Cabeçalho -->
           <tr>
-            <td align="center" style="padding:32px 24px;">
+            <td style="background-color:#6b381f; padding:28px 24px; text-align:center; color:#fff9ed;">
+              <p style="margin:0 0 8px; font-size:12px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:#e6d0b0;">
+                Sabor &amp; Click
+              </p>
+              <h1 style="margin:0; font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif; font-size:30px; font-weight:600; line-height:1.1;">
+                Confirme seu e-mail
+              </h1>
+            </td>
+          </tr>
 
-              <h2 style="margin:0 0 16px; color:#18181b; font-size:22px;">
-                Confirme seu email
-              </h2>
+          <!-- Conteúdo -->
+          <tr>
+            <td align="center" style="padding:32px 28px;">
 
-              <p style="margin:0 0 24px; color:#52525b; font-size:14px; line-height:1.6;">
+              <p style="margin:0 0 24px; color:#604a3d; font-size:15px; line-height:1.6;">
                 Use o código abaixo para concluir sua verificação.
               </p>
 
-              <div style="display:inline-block; padding:16px 24px;
-                          background-color:#f4f4f5; border-radius:8px;
-                          color:#18181b; font-size:32px; font-weight:bold;
-                          letter-spacing:8px;">
+              <div style="display:inline-block; padding:18px 28px;
+                          background-color:#f7f1e6; border:1px solid #e6d0b0; border-radius:12px;
+                          color:#6b381f; font-size:34px; font-weight:bold;
+                          letter-spacing:10px;">
                 {{ token }}
               </div>
 
-              <p style="margin:24px 0 0; color:#71717a; font-size:13px; line-height:1.6;">
+              <p style="margin:26px 0 0; color:#614a3d; font-size:13px; line-height:1.6;">
                 Este código expira em 10 minutos.<br>
                 Não compartilhe este código com ninguém.
               </p>
 
-              <p style="margin:28px 0 0; color:#a1a1aa; font-size:11px;">
-                Se você não solicitou esta verificação, ignore este email.
+              <p style="margin:24px 0 0; color:#a08a76; font-size:11px; line-height:1.6;">
+                Se você não solicitou esta verificação, ignore este e-mail.
               </p>
 
             </td>
           </tr>
+
+          <!-- Rodapé -->
+          <tr>
+            <td style="background-color:#1f150f; padding:20px 28px; text-align:center;">
+              <p style="margin:0; font-size:11px; color:#bda891; line-height:1.7;">
+                Este é um e-mail automático. Por favor, não responda a esta mensagem.
+                <br>
+                &copy; Sabor &amp; Click. Todos os direitos reservados.
+              </p>
+            </td>
+          </tr>
+
         </table>
       </td>
     </tr>
@@ -49,4 +71,3 @@
 
 </body>
 </html>
-```

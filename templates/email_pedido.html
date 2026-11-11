@@ -3,78 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedido Confirmado</title>
+    <title>Atualização do seu pedido</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, Helvetica, sans-serif; color: #333333;">
+<body style="margin: 0; padding: 0; background-color: #f7f1e6; font-family: 'DM Sans', 'Inter', Helvetica, Arial, sans-serif; color: #312118;">
 
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
-           style="background-color: #f4f4f4; padding: 30px 10px;">
+           style="background-color: #f7f1e6; padding: 32px 12px;">
         <tr>
             <td align="center">
 
                 <table role="presentation" width="600" cellspacing="0" cellpadding="0"
-                       style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                       style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 24px rgba(31, 15, 9, 0.12);">
 
                     <!-- Cabeçalho -->
                     <tr>
-                        <td style="background-color: #6B381F; padding: 30px 20px; text-align: center; color: #ffffff;">
-                            <h1 style="margin: 0; font-size: 26px;">
-                                Pedido confirmado!
+                        <td style="background-color: #6b381f; padding: 36px 32px; text-align: center; color: #fff9ed;">
+                            <p style="margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #e6d0b0;">
+                                Sabor &amp; Click
+                            </p>
+                            <h1 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size: 34px; font-weight: 600; line-height: 1.1;">
+                                Atualização do seu pedido
                             </h1>
-                            <p style="margin: 10px 0 0; font-size: 15px;">
-                                Recebemos a confirmação do seu pedido.
+                            <p style="margin: 12px 0 0; font-size: 15px; color: rgba(255, 249, 237, 0.88);">
+                                Seu pedido #{{ id }} tem novidades.
                             </p>
                         </td>
                     </tr>
 
                     <!-- Conteúdo -->
                     <tr>
-                        <td style="padding: 30px 25px;">
+                        <td style="padding: 36px 32px;">
 
-                            <p style="font-size: 16px; line-height: 1.6;">
+                            <p style="margin: 0 0 16px; font-size: 17px; line-height: 1.6;">
                                 Olá, <strong>{{ nome }}</strong>!
                             </p>
 
-                            <p style="font-size: 15px; line-height: 1.7;">
+                            <p style="margin: 0 0 8px; font-size: 15px; line-height: 1.7; color: #604a3d;">
                                 Temos uma notícia! Houve uma atualização do seu pedido.
                             </p>
 
                             <!-- Resumo do pedido -->
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
-                                   style="background-color: #f8f9fa; border: 1px solid #e5e5e5; border-radius: 6px; margin: 25px 0;">
+                                   style="background-color: #f7f1e6; border: 1px solid #e6d0b0; border-radius: 16px; margin: 24px 0;">
                                 <tr>
-                                    <td style="padding: 20px;">
-                                        <p style="margin: 0 0 15px; font-size: 18px; font-weight: bold;">
+                                    <td style="padding: 22px 24px;">
+                                        <p style="margin: 0 0 16px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; color: #312118;">
                                             Resumo do pedido
                                         </p>
 
-                                        <p style="margin: 10px 0; font-size: 15px;">
+                                        <p style="margin: 10px 0; font-size: 15px; color: #40261a;">
                                             <strong>Número:</strong> #{{ id }}
                                         </p>
 
-                                        <p style="margin: 10px 0; font-size: 15px;">
+                                        <p style="margin: 10px 0; font-size: 15px; color: #40261a;">
                                             <strong>Status:</strong>
-                                            <span style="color: #2e7d32; font-weight: bold;">
-                                                Em preparo
+                                            <span style="display: inline-block; padding: 4px 12px; border-radius: 999px; background-color: #e6d0b0; color: #663c25; font-weight: 700; font-size: 13px; text-transform: capitalize;">
+                                                {{ status }}
                                             </span>
                                         </p>
 
-                                        <p style="margin: 10px 0 0; font-size: 15px;">
-                                            <strong>Data da confirmação:</strong>
-                                            {{ data_confirmacao }}
+                                        {% if chefe %}
+                                        <p style="margin: 10px 0; font-size: 15px; color: #40261a;">
+                                            <strong>Chefe responsável:</strong> {{ chefe }}
                                         </p>
+                                        {% endif %}
+
+                                        {% if valor_total %}
+                                        <p style="margin: 10px 0; font-size: 15px; color: #40261a;">
+                                            <strong>Valor total:</strong> {{ valor_total }}
+                                        </p>
+                                        {% endif %}
+
+                                        {% if data_confirmacao %}
+                                        <p style="margin: 10px 0 0; font-size: 15px; color: #40261a;">
+                                            <strong>Data da atualização:</strong> {{ data_confirmacao }}
+                                        </p>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             </table>
 
-                            <p style="font-size: 15px; line-height: 1.7;">
+                            <!-- Detalhes do evento -->
+                            {% if data_evento or hora_inicio or endereco %}
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                   style="border: 1px solid #e6d0b0; border-radius: 16px; margin: 0 0 24px;">
+                                <tr>
+                                    <td style="padding: 22px 24px;">
+                                        <p style="margin: 0 0 16px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; color: #312118;">
+                                            Detalhes do evento
+                                        </p>
+
+                                        {% if data_evento %}
+                                        <p style="margin: 10px 0; font-size: 15px; color: #40261a;">
+                                            <strong>Data do evento:</strong> {{ data_evento }}
+                                        </p>
+                                        {% endif %}
+
+                                        {% if hora_inicio %}
+                                        <p style="margin: 10px 0; font-size: 15px; color: #40261a;">
+                                            <strong>Horário:</strong> {{ hora_inicio }}{% if hora_fim %} às {{ hora_fim }}{% endif %}
+                                        </p>
+                                        {% endif %}
+
+                                        {% if endereco %}
+                                        <p style="margin: 10px 0; font-size: 15px; color: #40261a;">
+                                            <strong>Local:</strong> {{ endereco }}
+                                        </p>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+
+                            <!-- Cardápios -->
+                            {% if cardapios %}
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                   style="border: 1px solid #e6d0b0; border-radius: 16px; margin: 0 0 24px;">
+                                <tr>
+                                    <td style="padding: 22px 24px;">
+                                        <p style="margin: 0 0 16px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; color: #312118;">
+                                            Cardápios
+                                        </p>
+                                        {% for item in cardapios %}
+                                        <p style="margin: 12px 0; padding-bottom: 12px; font-size: 15px; color: #40261a;{% if not loop.last %} border-bottom: 1px solid #eee2ce;{% endif %}">
+                                            <strong>{{ item.nome }}</strong>
+                                            {% if item.servico %}<br><span style="color: #614a3d;">Serviço: {{ item.servico }}</span>{% endif %}
+                                            <br><span style="color: #614a3d;">Convidados: {{ item.num_convidados }}</span>
+                                            {% if item.subtotal %}<br><span style="color: #614a3d;">Subtotal: {{ item.subtotal }}</span>{% endif %}
+                                        </p>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+
+                            <!-- Bebidas -->
+                            {% if bebidas %}
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                   style="border: 1px solid #e6d0b0; border-radius: 16px; margin: 0 0 24px;">
+                                <tr>
+                                    <td style="padding: 22px 24px;">
+                                        <p style="margin: 0 0 16px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; color: #312118;">
+                                            Bebidas
+                                        </p>
+                                        {% for item in bebidas %}
+                                        <p style="margin: 10px 0; font-size: 15px; color: #40261a;">
+                                            <strong>{{ item.nome }}</strong>
+                                            <span style="color: #614a3d;">— {{ item.qtd }} un.{% if item.subtotal %} · {{ item.subtotal }}{% endif %}</span>
+                                        </p>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+
+                            <!-- Observação -->
+                            {% if observacao %}
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                   style="background-color: #eee2ce; border-radius: 16px; margin: 0 0 24px;">
+                                <tr>
+                                    <td style="padding: 22px 24px;">
+                                        <p style="margin: 0 0 10px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; color: #312118;">
+                                            Observações
+                                        </p>
+                                        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #574033;">
+                                            {{ observacao }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+
+                            <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.7; color: #604a3d;">
                                 Agradecemos pela preferência! Você poderá acompanhar
                                 as atualizações do seu pedido pela nossa plataforma.
                             </p>
 
-                            <p style="font-size: 15px; line-height: 1.7;">
+                            <p style="margin: 18px 0 0; font-size: 15px; line-height: 1.7; color: #604a3d;">
                                 Atenciosamente,<br>
-                                <strong>Equipe da Sabor & Click</strong>
+                                <strong style="color: #312118;">Equipe da Sabor &amp; Click</strong>
                             </p>
 
                         </td>
@@ -82,11 +189,11 @@
 
                     <!-- Rodapé -->
                     <tr>
-                        <td style="background-color: #eeeeee; padding: 20px; text-align: center;">
-                            <p style="margin: 0; font-size: 12px; color: #666666; line-height: 1.6;">
+                        <td style="background-color: #1f150f; padding: 24px 32px; text-align: center;">
+                            <p style="margin: 0; font-size: 12px; color: #bda891; line-height: 1.7;">
                                 Este é um e-mail automático. Por favor, não responda a esta mensagem.
                                 <br>
-                                &copy; {{ ano }} Equipe da Sabor & Click. Todos os direitos reservados.
+                                &copy; {{ ano }} Sabor &amp; Click. Todos os direitos reservados.
                             </p>
                         </td>
                     </tr>
@@ -99,4 +206,3 @@
 
 </body>
 </html>
-```

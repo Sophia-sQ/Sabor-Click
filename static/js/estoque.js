@@ -49,6 +49,15 @@ document.getElementById('fechar-cadastro').addEventListener('click', () => {
   cadastroItem.close();
 });
 
+const botaoCadastrarCardapio = document.querySelector('.cadastrar-cardapio');
+const cadastroCardapio = document.getElementById('cadastro-cardapio');
+botaoCadastrarCardapio.addEventListener('click', () => {
+  cadastroCardapio.showModal();
+});
+document.getElementById('fechar-cadastro-cardapio').addEventListener('click', () => {
+  cadastroCardapio.close();
+});
+
 const entidadeEstoque = document.getElementById('estoque-entidade');
 const buscaEstoque = document.getElementById('estoque-busca');
 const situacaoEstoque = document.getElementById('estoque-situacao');

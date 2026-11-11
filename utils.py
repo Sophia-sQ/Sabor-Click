@@ -1,5 +1,7 @@
 """Funções utilitárias de formatação de nomes, valores monetários e datas."""
 
+import re
+import unicodedata
 from calendar import monthrange
 from datetime import date, datetime, timedelta, time
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
@@ -22,6 +24,49 @@ def formatar_nome(nome_completo: str) -> str:
 
     nome_formatado = nome_completo.strip().replace("_", " ").lower()
     return nome_formatado
+
+def gerar_slug(texto: str) -> str:
+    """Gera um slug a partir de um texto usando apenas a biblioteca padrão.
+
+    Normaliza acentos (NFKD + remoção de não-ASCII), passa para minúsculo,
+    troca qualquer caractere fora de [a-z0-9] por hífen, colapsa hífens
+    repetidos e remove hífens das pontas. Não depende do pacote 'slugify'.
+
+    Args:
+        texto (str): texto de origem (ex.: nome do cardápio).
+
+    Returns:
+        str: slug no formato 'texto-exemplo' (pode ser vazio se não houver
+            caracteres aproveitáveis).
+    """
+    normalizado = unicodedata.normalize("NFKD", texto)
+    ascii_texto = normalizado.encode("ascii", "ignore").decode("ascii")
+    ascii_texto = ascii_texto.lower()
+    ascii_texto = re.sub(r"[^a-z0-9]+", "-", ascii_texto)
+    ascii_texto = re.sub(r"-{2,}", "-", ascii_texto)
+    return ascii_texto.strip("-")
+
+def slug_unico(base_slug: str, slugs_existentes: set[str]) -> str:
+    """Garante que um slug seja único em relação a um conjunto existente.
+
+    Se o slug-base já estiver em uso, acrescenta sufixos numéricos ('-2',
+    '-3', ...) até encontrar um slug livre, evitando sobrescrever entradas
+    como 'feijoada'.
+
+    Args:
+        base_slug (str): slug desejado (saída de gerar_slug).
+        slugs_existentes (set[str]): slugs já em uso.
+
+    Returns:
+        str: slug único que não pertence a slugs_existentes.
+    """
+    if base_slug not in slugs_existentes:
+        return base_slug
+
+    contador = 2
+    while f"{base_slug}-{contador}" in slugs_existentes:
+        contador += 1
+    return f"{base_slug}-{contador}"
 
 def formatar_nome_proprio(nome_completo: str) -> str:
     """Ajusta a capitalização de um nome próprio mantendo conectivos em minúscula.

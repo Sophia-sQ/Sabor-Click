@@ -9,12 +9,89 @@ from model.pedido_model import (buscar_cardapios_pedido, listar_bebidas_do_pedid
                                 atualizar_pedido, buscar_pedido_por_id, listar_pedido_por_status, 
                                 buscar_pedido_por_chefe)
 from model.servico_model import buscar_cardapio_por_id
-from model.usuario_model import buscar_usuario_por_id, registrar_log
+from model.usuario_model import buscar_usuario_por_id, buscar_endereco_por_id, registrar_log
 
 from services import enviar_email_nao_responda
 from triggers import criar_trigger_baixa_estoque
 
 chefe_bp = Blueprint("chefe", __name__, url_prefix="/pedido")
+
+
+def _contexto_email_pedido(pedido, data_atualizacao=None) -> dict:
+    """Monta o contexto completo para o template email_pedido.html.
+
+    Reúne todas as informações relevantes de um pedido para a notificação por
+    e-mail: cliente, chefe responsável (se houver), status, datas/horário do
+    evento, endereço, observação, cardápios (com serviço e nº de convidados) e
+    bebidas, além do valor total formatado.
+
+    Args:
+        pedido: objeto Pedido.
+        data_atualizacao (datetime | None): momento da atualização a exibir
+            como "data da confirmação/atualização". Se None, usa
+            pedido.confirmado_em quando disponível.
+
+    Returns:
+        dict: contexto pronto para render_template("email_pedido.html", **ctx).
+    """
+    from model.servico_model import buscar_servico_por_id
+    from utils import formatar_moeda
+
+    cliente = buscar_usuario_por_id(pedido.id_cliente)
+    chefe = buscar_usuario_por_id(pedido.id_chefe) if pedido.id_chefe else None
+    endereco = buscar_endereco_por_id(pedido.id_endereco)
+
+    # Cardápios do pedido (com nome do serviço e nº de convidados por cardápio).
+    cardapios = []
+    for vinculo in buscar_cardapios_pedido(pedido.id_pedido) or []:
+        cardapio = buscar_cardapio_por_id(vinculo.id_cardapio)
+        servico = buscar_servico_por_id(vinculo.id_servico)
+        cardapios.append({
+            "nome": cardapio.nome if cardapio else None,
+            "servico": servico.nome if servico else None,
+            "num_convidados": vinculo.num_convidados,
+            "subtotal": formatar_moeda(
+                (cardapio.preco_base if cardapio else 0) * vinculo.num_convidados
+            ),
+        })
+
+    # Bebidas do pedido.
+    bebidas = []
+    for item in listar_bebidas_do_pedido(pedido.id_pedido) or []:
+        bebida = buscar_bebida_por_id(item.id_bebida)
+        bebidas.append({
+            "nome": bebida.nome if bebida else None,
+            "qtd": item.qtd,
+            "subtotal": formatar_moeda(item.valor_total),
+        })
+
+    quando = data_atualizacao or pedido.confirmado_em
+
+    # Rótulo amigável de endereço (quando existir).
+    endereco_linha = None
+    if endereco:
+        partes = [endereco.logradouro, endereco.numero, endereco.complemento]
+        linha = ", ".join(str(p) for p in partes if p)
+        cidade = " · ".join(str(p) for p in (endereco.bairro, endereco.cidade) if p)
+        endereco_linha = " — ".join(p for p in (linha, cidade) if p) or None
+
+    return {
+        "nome": cliente.nome if cliente else "",
+        "chefe": chefe.nome if chefe else None,
+        "id": pedido.id_pedido,
+        "status": pedido.status,
+        "observacao": pedido.observacao,
+        "valor_total": formatar_moeda(pedido.valor_total),
+        "data_evento": pedido.data_evento.strftime("%d/%m/%Y") if pedido.data_evento else None,
+        "hora_inicio": pedido.hora_inicio.strftime("%H:%M") if pedido.hora_inicio else None,
+        "hora_fim": pedido.hora_fim.strftime("%H:%M") if pedido.hora_fim else None,
+        "endereco": endereco_linha,
+        "cardapios": cardapios,
+        "bebidas": bebidas,
+        "data_confirmacao": quando.strftime("%d/%m/%Y %H:%M") if quando else None,
+        "ano": (quando or pedido.criado_em).strftime("%Y"),
+    }
+
 
 @chefe_bp.get('/cozinha')
 def pedidos():
@@ -59,8 +136,12 @@ def aceitar_pedido():
 
 
     cliente=buscar_usuario_por_id(pedido.id_cliente)
-    enviar_email_nao_responda("Seu pedido foi aceito.", cliente.email, "Seu pedido foi aceito.",
-    render_template("email_pedido.html", cliente.nome, pedido.id, pedido.status, data_confirma, data_confirma.strftime("%Y")))
+    enviar_email_nao_responda(
+        "Seu pedido foi aceito.",
+        cliente.email,
+        "Seu pedido foi aceito.",
+        render_template("email_pedido.html", **_contexto_email_pedido(pedido, data_confirma)),
+    )
 
     return render_template("pagina do pedido.html")
 
@@ -101,11 +182,15 @@ def atualizar_status():
         return abort(400)
     
     registrar_log("ACEITOU PEDIDO.", f"Em {data_confirma}, o chefe {chefe.nome} atualizou o pedido {pedido.id_pedido} para '{dados['status']}'.")
-    data_confirma=datetime.astimezone(ZoneInfo("America/Sao_Paulo"))
+    data_confirma=data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
 
     cliente=buscar_usuario_por_id(pedido.id_cliente)
-    enviar_email_nao_responda("Seu pedido recebeu uma atualização.", cliente.email, f"Seu pedido está {dados['status']}.",
-    render_template("email_pedido.html", cliente.nome, pedido.id, pedido.status, data_confirma, data_confirma.strftime("%Y")))
+    enviar_email_nao_responda(
+        "Seu pedido recebeu uma atualização.",
+        cliente.email,
+        f"Seu pedido está {dados['status']}.",
+        render_template("email_pedido.html", **_contexto_email_pedido(pedido, data_confirma)),
+    )
 
     return render_template("pagina de pedidos.html")
 
@@ -174,6 +259,7 @@ def enviar_preparo():
         cardapios_resposta.append({
             "id_cardapio": vinculo.id_cardapio,
             "id_servico": vinculo.id_servico,
+            "num_convidados": vinculo.num_convidados,
             "nome": cardapio.nome if cardapio else None,
             "descricao": cardapio.descricao if cardapio else None,
             "pratos": pratos_resposta,
@@ -194,7 +280,6 @@ def enviar_preparo():
     return jsonify({
         "id_pedido": pedido.id_pedido,
         "status": pedido.status,
-        "num_convidados": pedido.num_convidados,
         "observacao": pedido.observacao,
         "cardapios": cardapios_resposta,
         "bebidas": bebidas_resposta,

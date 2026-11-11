@@ -21,7 +21,6 @@ class Pedido(db.Model):
         db.Enum("aguardando", "confirmado", "em preparo", "concluido", "cancelado", name="status_pedido"),default="aguardando",nullable=False)
     confirmado_em = db.Column(db.DateTime, nullable=True)
     criado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False)
-    num_convidados = db.Column(db.Integer, nullable=False, default=1)
     valor_total = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
     data_evento = db.Column(db.Date, nullable=False)
     hora_inicio = db.Column(db.Time, nullable=False)
@@ -34,7 +33,6 @@ class Pedido(db.Model):
     #id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), nullable=False)
 
     __table_args__ = (
-        db.CheckConstraint("num_convidados > 0", name="ck_pedido_convidados"),
         db.CheckConstraint("valor_total >= 0", name="ck_pedido_valor"),
     )
 
@@ -88,17 +86,23 @@ class BebidaCardapio(db.Model):
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
 
 class CardapioPedido(db.Model):
-    """Associação entre cardápio, pedido e serviço."""
+    """Associação entre cardápio, pedido e serviço, com o nº de convidados do cardápio."""
     __tablename__ = "cardapio_pedido"
 
     id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), primary_key=True)
     id_pedido = db.Column(db.Integer, db.ForeignKey("pedido.id_pedido"), primary_key=True)
     id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), primary_key=True)
+    num_convidados = db.Column(db.Integer, nullable=False, default=1)
 
-    def __init__(self, id_cardapio: int, id_pedido: int, id_servico: int):
+    __table_args__ = (
+        db.CheckConstraint("num_convidados > 0", name="ck_cardapio_pedido_convidados"),
+    )
+
+    def __init__(self, id_cardapio: int, id_pedido: int, id_servico: int, num_convidados: int = 1):
         self.id_cardapio = id_cardapio
         self.id_pedido = id_pedido
         self.id_servico = id_servico
+        self.num_convidados = num_convidados
 
 # ======================================================
 
@@ -211,7 +215,7 @@ def associar_bebida_cardapio(id_bebida: int, id_cardapio: int) -> tuple[int, int
     return (id_bebida, id_cardapio)
 
 # CRUD - PEDIDO
-def criar_pedido(id_cliente: int, id_endereco: int, num_convidados: int, valor_total: float, data_evento: str, hora_inicio: str, hora_fim: str, cardapios: list[dict], observacao: str | None = None, bebidas: list[dict] | None = None) -> Pedido | None:
+def criar_pedido(id_cliente: int, id_endereco: int, valor_total: float, data_evento: str, hora_inicio: str, hora_fim: str, cardapios: list[dict], observacao: str | None = None, bebidas: list[dict] | None = None) -> Pedido | None:
     """Cria um pedido e associa seus cardápios e bebidas (quando houver).
 
     Persiste o pedido, vincula os cardápios e, se fornecidas, as bebidas, e
@@ -220,12 +224,12 @@ def criar_pedido(id_cliente: int, id_endereco: int, num_convidados: int, valor_t
     Args:
         id_cliente (int): identificador do cliente.
         id_endereco (int): identificador do endereço de entrega.
-        num_convidados (int): número de convidados.
         valor_total (float): valor total do pedido.
         data_evento (str): data do evento.
         hora_inicio (str): hora de início.
         hora_fim (str): hora de término.
-        cardapios (list[dict]): cardápios do pedido (cada item com 'id_cardapio').
+        cardapios (list[dict]): cardápios do pedido (cada item com 'id_cardapio',
+            'id_servico' e 'qtd' - o nº de convidados daquele cardápio).
         observacao (str | None, optional): observação do pedido.
         bebidas (list[dict] | None, optional): bebidas do pedido (cada item com
             'id_bebida', 'qtd' e 'valor_unitario').
@@ -238,7 +242,6 @@ def criar_pedido(id_cliente: int, id_endereco: int, num_convidados: int, valor_t
         id_endereco=id_endereco,
         #id_servico=id_servico,
         #id_cardapio=id_cardapio,
-        num_convidados=num_convidados,
         valor_total=valor_total,
         data_evento=data_evento,
         hora_inicio=hora_inicio,
@@ -255,6 +258,8 @@ def criar_pedido(id_cliente: int, id_endereco: int, num_convidados: int, valor_t
             p_c = CardapioPedido(
                 id_cardapio=cardapio["id_cardapio"],
                 id_pedido=novo_pedido.id_pedido,
+                id_servico=cardapio["id_servico"],
+                num_convidados=cardapio["qtd"],
             )
             db.session.add(p_c)
 
@@ -262,11 +267,17 @@ def criar_pedido(id_cliente: int, id_endereco: int, num_convidados: int, valor_t
         #verifica se o pedido tem bebida, se tiver adiciona
         if bebidas:
             for item in bebidas:
+                # PedidoBebida espera valor_total. Usa item["valor_total"]
+                # quando disponível; caso contrário calcula a partir do
+                # valor_unitario multiplicado pela quantidade.
+                valor_total_bebida = item.get("valor_total")
+                if valor_total_bebida is None:
+                    valor_total_bebida = item["valor_unitario"] * item["qtd"]
                 p_b = PedidoBebida(
                     id_pedido=novo_pedido.id_pedido,
                     id_bebida=item["id_bebida"],
                     qtd=item["qtd"],
-                    valor_unitario=item["valor_unitario"],
+                    valor_total=valor_total_bebida,
                 )
                 db.session.add(p_b)
 
@@ -388,7 +399,7 @@ def buscar_pedido_por_chefe(id_chefe: int) -> Pedido | None:
     
     return db.session.query(Pedido).filter_by(id_chefe=id_chefe).first()
     
-def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=None, observacao=None, num_convidados=None, valor_total=None) -> bool | None:
+def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=None, observacao=None, valor_total=None) -> bool | None:
     """Atualiza dados cadastrais e de status de um pedido (campos None são ignorados).
 
     Args:
@@ -397,7 +408,6 @@ def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=N
         confirmado_em (datetime | None, optional): data/hora de confirmação.
         id_chefe (int | None, optional): identificador do chefe responsável.
         observacao (str | None, optional): nova observação.
-        num_convidados (int | None, optional): novo número de convidados.
         valor_total (float | None, optional): novo valor total.
 
     Returns:
@@ -416,8 +426,6 @@ def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=N
         pedido.id_chefe = id_chefe
     if observacao is not None:
         pedido.observacao = observacao
-    if num_convidados is not None:
-        pedido.num_convidados = num_convidados
     if valor_total is not None:
         pedido.valor_total = valor_total
 
@@ -464,11 +472,12 @@ def adicionar_bebida_ao_pedido(id_pedido: int, id_bebida: int, qtd: int, valor_u
     if item:
         item.qtd += qtd
     else:
+        # PedidoBebida espera valor_total: valor_unitario * qtd.
         item = PedidoBebida(
             id_pedido=id_pedido,
             id_bebida=id_bebida,
             qtd=qtd,
-            valor_unitario=valor_unitario,
+            valor_total=valor_unitario * qtd,
         )
         db.session.add(item)
 
@@ -493,25 +502,26 @@ def listar_bebidas_do_pedido(id_pedido: int) -> list[PedidoBebida]:
     return None
 
 # CRUD CardapioPedido
-def criar_cardapio_pedido(id_cardapio: int, id_pedido: int, id_servico: int) -> CardapioPedido | None:
+def criar_cardapio_pedido(id_cardapio: int, id_pedido: int, id_servico: int, num_convidados: int = 1) -> CardapioPedido | None:
     """Relaciona um cardápio a um pedido (e serviço).
 
     Args:
         id_cardapio (int): identificador do cardápio.
         id_pedido (int): identificador do pedido.
         id_servico (int): identificador do serviço.
+        num_convidados (int, optional): nº de convidados do cardápio. Padrão: 1.
 
     Returns:
         CardapioPedido | None: a associação criada; None em caso de violação de
         integridade.
     """
 
-    cardapio_pedido=CardapioPedido(id_cardapio, id_pedido, id_servico)
+    cardapio_pedido=CardapioPedido(id_cardapio, id_pedido, id_servico, num_convidados)
 
     db.session.add(cardapio_pedido)
 
     try:
-        db.session.commit(cardapio_pedido)
+        db.session.commit()
         return cardapio_pedido
     except SQLAlchemyError:
         db.session.rollback()

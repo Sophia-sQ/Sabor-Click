@@ -2,10 +2,15 @@
 
 from . import admin_bp, _retorno, _bool_form, _int_form
 
+from decimal import Decimal, InvalidOperation
+
 from flask import request, flash
 
-from decimal import Decimal, InvalidOperation
 from sqlalchemy.exc import SQLAlchemyError
+
+from utils import moeda_para_centavos
+
+from services import imagem_cardapio
 
 from model.servico_model import criar_cardapio, atualizar_cardapio, deletar_cardapio
 from model.ficha_model import (
@@ -33,17 +38,30 @@ def c_cardapio():
         flash("Preencha todos os campos.", "danger")
         return _retorno()
     
+    # preco_base é armazenado em CENTAVOS (inteiro); converte o texto digitado
+    # (ex.: "149,90" / "149.90") para centavos.
     try:
-        preco_base = Decimal(preco_texto.replace(",", "."))
-    except InvalidOperation:
+        preco_base = moeda_para_centavos(preco_texto)
+    except ValueError:
         flash("Preço inválido.", "danger")
         return _retorno()
-    
-    if not preco_base.is_finite() or preco_base < 0:
+
+    if preco_base < 0:
         flash("O preço deve ser válido e não negativo.", "danger")
         return _retorno()
-    
-    criar_cardapio(nome=nome, descricao=descricao, preco_base=preco_base)
+
+    # Imagem é opcional: se enviada, salva o arquivo e atualiza o JSON de imagens,
+    # obtendo o slug persistido no cardápio; se não, o cardápio é criado sem imagem.
+    imagem_slug = None
+    arquivo = request.files.get("imagem")
+    if arquivo is not None and arquivo.filename:
+        try:
+            imagem_slug = imagem_cardapio.salvar_imagem_cardapio(arquivo, nome)
+        except ValueError as erro:
+            flash(f"Imagem inválida: {erro}", "danger")
+            return _retorno()
+
+    criar_cardapio(nome=nome, descricao=descricao, preco_base=preco_base, imagem_slug=imagem_slug)
 
     flash("Cardápio criado.", "success")
     return _retorno()
