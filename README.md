@@ -101,7 +101,7 @@ pip install flask
 ```
 <p align="right">(<a href="#readme-top">para o início</a>)</p>
 
-#### Inicialização: 
+#### Inicialização:
 Popule o banco de dados
 ```sh
 flask seed
