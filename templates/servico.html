@@ -1,60 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ servico.nome }} | Sabor &amp; Click</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/alto_contraste.css') }}">
+    <title>{{ servico.nome }} | Sabor &amp; Click</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 </head>
+
 <body class="pagina-menu">
-<header class="navbar">
-    <a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
-    <nav aria-label="Navegação principal"><a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.menu') }}">Menu</a><a class="icone-acao carrinho" href="{{ url_for('cliente.mostrar_carrinho') }}" aria-label="Carrinho"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a></nav>
-</header>
-<main>
-{% from 'componentes/fotos_servicos.html' import fotos_servicos %}
-<section class="menu-intro">
-    {% if servico.slug in fotos_servicos %}
-    <figure class="menu-intro-foto">
-        <img src="{{ url_for('static', filename='images/' ~ fotos_servicos[servico.slug]) }}" alt="">
-    </figure>
-    {% endif %}
-    <div class="menu-intro-texto">
-        <p class="rotulo">SERVIÇO</p>
-        <h1>{{ servico.nome }}</h1>
-        <p class="introducao">{{ servico.descricao }}</p>
-    </div>
-</section>
-<section class="menu-catalogo" aria-label="Cardápios do serviço">
-<datalist id="sugestoes-convidados">{% for quantidade in [10,20,30,40,50,75,100,150,200,300,400,500] %}<option value="{{ quantidade }}"></option>{% endfor %}</datalist>
-<div class="pratos-grade">
-{% for cardapio in cardapios %}
-<article class="prato" data-categoria="{{ servico.slug }}" data-busca="{{ cardapio.nome }} {{ cardapio.descricao }}">
-    <div class="prato-visual">
-        {% if cardapio.imagem %}
-        <img class="prato-imagem" src="{{ cardapio.imagem if cardapio.imagem.startswith(('https://', 'http://')) else url_for('static', filename=cardapio.imagem, v=cardapio.versao) }}" alt="Fotografia ilustrativa de {{ cardapio.nome }}" width="960" height="640" loading="lazy" decoding="async">
-        {% endif %}
-        <span class="prato-selo">{{ servico.nome }}</span>
-    </div>
-    <div class="prato-texto"><h2>{{ cardapio.nome }}</h2><p>{{ cardapio.descricao }}</p></div>
-    <div class="prato-acoes">
-        <div class="preco-pessoa"><strong>{{ cardapio.preco | moeda }}</strong><span>/ pessoa</span></div>
-        <form class="escolha-menu" method="post" action="{{ url_for('cliente.adicionar') }}">
-            <input type="hidden" name="slug_servico" value="{{ servico.slug }}">
-            <input type="hidden" name="id_cardapio" value="{{ cardapio.id_cardapio }}">
-            <label class="convidados-label">Para <input class="quantidade-pessoas" type="number" name="qtd" min="10" max="500" step="1" value="50" inputmode="numeric" list="sugestoes-convidados" aria-label="Quantidade de pessoas para {{ cardapio.nome }}" required></label>
-            <button type="submit" class="ver-menu">Adicionar ao carrinho <span aria-hidden="true">↗</span></button>
-        </form>
-    </div>
-</article>
-{% else %}
-<div class="menu-vazio"><h2>Nenhum cardápio disponível.</h2><p>Em breve novos cardápios para este serviço.</p></div>
-{% endfor %}
-</div>
-</section>
-</main>
-<footer class="menu-rodape"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a><span>© 2026 Sabor &amp; Click</span><a href="{{ url_for('cliente.home') }}">Voltar ao início ↑</a></footer>
-</body></html>
+    <button type="button" id="botao-alto-contraste" aria-pressed="false"> Ativar alto contraste </button>
+    {% include "componentes/navbar_cliente.html" %}
+    <main>
+        {% from 'componentes/fotos_servicos.html' import fotos_servicos %}
+        <section class="menu-intro">
+            {% if servico.slug in fotos_servicos %}
+            <figure class="menu-intro-foto">
+                <img src="{{ url_for('static', filename='images/' ~ fotos_servicos[servico.slug]) }}" alt="">
+            </figure>
+            {% endif %}
+            <div class="menu-intro-texto">
+                <p class="rotulo">SERVIÇO</p>
+                <h1>{{ servico.nome }}</h1>
+                <p class="introducao">{{ servico.descricao }}</p>
+            </div>
+        </section>
+        <section class="menu-catalogo" aria-label="Cardápios do serviço">
+            <datalist id="sugestoes-convidados">{% for quantidade in [10,20,30,40,50,75,100,150,200,300,400,500] %}
+                <option value="{{ quantidade }}"></option>{% endfor %}</datalist>
+            <div class="pratos-grade">
+                {% for cardapio in cardapios %}
+                <article class="prato" data-categoria="{{ servico.slug }}"
+                    data-busca="{{ cardapio.nome }} {{ cardapio.descricao }}">
+                    <div class="prato-visual">
+                        {% if cardapio.imagem %}
+                        <img class="prato-imagem"
+                            src="{{ cardapio.imagem if cardapio.imagem.startswith(('https://', 'http://')) else url_for('static', filename=cardapio.imagem, v=cardapio.versao) }}"
+                            alt="Fotografia ilustrativa de {{ cardapio.nome }}" width="960" height="640" loading="lazy"
+                            decoding="async">
+                        {% endif %}
+                        <span class="prato-selo">{{ servico.nome }}</span>
+                    </div>
+                    <div class="prato-texto">
+                        <h2>{{ cardapio.nome }}</h2>
+                        <p>{{ cardapio.descricao }}</p>
+                    </div>
+                    <div class="prato-acoes">
+                        <div class="preco-pessoa"><strong>{{ cardapio.preco | moeda }}</strong><span>/ pessoa</span>
+                        </div>
+                        <form class="escolha-menu" method="post" action="{{ url_for('cliente.adicionar') }}">
+                            <input type="hidden" name="slug_servico" value="{{ servico.slug }}">
+                            <input type="hidden" name="id_cardapio" value="{{ cardapio.id_cardapio }}">
+                            <label class="convidados-label">Para <input class="quantidade-pessoas" type="number"
+                                    name="qtd" min="10" max="500" step="1" value="50" inputmode="numeric"
+                                    list="sugestoes-convidados"
+                                    aria-label="Quantidade de pessoas para {{ cardapio.nome }}" required></label>
+                            <button type="submit" class="ver-menu">Adicionar ao carrinho <span
+                                    aria-hidden="true">↗</span></button>
+                        </form>
+                    </div>
+                </article>
+                {% else %}
+                <div class="menu-vazio">
+                    <h2>Nenhum cardápio disponível.</h2>
+                    <p>Em breve novos cardápios para este serviço.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+    <footer class="menu-rodape"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca"
+                src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor
+                &amp; Click</span></a><span>© 2026 Sabor &amp; Click</span><a
+            href="{{ url_for('cliente.home') }}">Voltar ao início ↑</a></footer>
+    <script src="{{ url_for('static', filename='js/alto_contraste.js') }}" defer></script>
+</body>
+
+</html>
