@@ -1,6 +1,6 @@
 # Página do chef
 
-Execute `.venv\Scripts\python.exe previa_admin.py` e acesse `http://127.0.0.1:8080/cozinha` ou `/previas/cozinha.html`. A porta pode ser alterada pela variável PREVIEW_PORT.
+Execute `.venv\Scripts\python.exe -m services.previa.previa_admin` e acesse `http://127.0.0.1:8080/cozinha` ou `/previas/cozinha.html`. A porta pode ser alterada pela variável PREVIEW_PORT.
 
 A tela mostra a fila em ordem de chegada. Aceitar um pedido abre os itens, a lista total de ingredientes e as fichas de preparo. O checklist é independente por pedido. Após separar os ingredientes, o chef pode iniciar e concluir o preparo.
 

@@ -101,6 +101,24 @@ def formatar_nome_proprio(nome_completo: str) -> str:
     # Junta as palavras novamente em uma única string
     return " ".join(nome_formatado)
 
+def nome_exibicao(nome: str) -> str:
+    """Formata, apenas para exibição, um nome normalizado vindo do banco.
+
+    Usado como filtro Jinja ('nome_exibicao'). Reaproveita a lógica de
+    formatar_nome_proprio (Title Case com conectivos em minúscula) para
+    transformar nomes gravados em minúsculas/sem acento (ex.: 'feijoada
+    completa') em uma forma apresentável (ex.: 'Feijoada completa'). Não muta o
+    nome armazenado; apenas retorna a string formatada. Como os nomes do banco
+    não têm acento, a saída também não terá -- comportamento aceito.
+
+    Args:
+        nome (str): nome normalizado do banco.
+
+    Returns:
+        str: nome formatado para exibição.
+    """
+    return formatar_nome_proprio(nome or "")
+
 # ==================== FUNÇÕES DE FORMATAÇÃO MONETÁRIA ====================
 def moeda_para_centavos(valor) -> int:
     """Converte um valor monetário (texto ou número) em centavos (inteiro).

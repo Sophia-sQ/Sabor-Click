@@ -2,7 +2,7 @@
 
 ## Visualização local
 
-Execute `.venv\Scripts\python.exe previa_admin.py` e abra:
+Execute `.venv\Scripts\python.exe -m services.previa.previa_admin` e abra:
 
 - `/carrinho`: carrinho vazio ou com bebidas já selecionadas neste navegador.
 - `/carrinho?exemplo=sem-bebidas`: serviço ilustrativo para testar o card na finalização.
@@ -19,11 +19,11 @@ O template recebe `itens_carrinho` com `numero`, `nome`, `descricao`, `imagem`, 
 
 ## Origem do catálogo
 
-`bebidas_data.py` identifica as oito bebidas avulsas na lista `lista_bebida` de `seeds.py`; coquetéis do serviço de Bar não entram nessa tela. O arquivo é lido por AST, sem executar a inicialização do banco. Há uma vírgula ausente na lista atual entre o uísque e o primeiro coquetel; o leitor tolera essa estrutura sem modificar o cadastro existente.
+`services/bebidas_data.py` formata o catálogo avulso a partir dos registros de `Bebida` do banco. As oito bebidas avulsas (as que o cliente escolhe fora do serviço de Bar) e seus volumes estão embutidos no módulo como constantes de dados; coquetéis do serviço de Bar não entram nessa tela.
 
-Na aplicação principal, GET `/home/bebidas` consulta `listar_bebidas()` e formata os registros reais de `Bebida`. O carrinho em `/home/carrinho` recebe esse mesmo catálogo.
+Na aplicação principal, GET `/home/bebidas` consulta `listar_bebidas()` e formata os registros reais de `Bebida` via `formatar_bebidas`. O carrinho em `/home/carrinho` recebe esse mesmo catálogo.
 
-Na prévia, a tabela `bebida` de `instance/banco.db` é consultada em modo somente leitura quando existe. No banco local verificado, a tabela está ausente. Nesse caso, a tela usa os nomes de cadastro e mostra “Valor a confirmar”. Os preços de `seeds.py` misturam escalas aparentes (700, 1500, 17, 20), portanto não são convertidos ou interpretados automaticamente.
+Na prévia, a mesma formatação é reutilizada: `catalogo_previa` recebe os registros já consultados pelo chamador e, quando não há dados, usa os nomes do cadastro e mostra “Valor a confirmar”. Nenhum acesso direto a `instance/banco.db` é feito.
 
 ## Seleção e limites
 

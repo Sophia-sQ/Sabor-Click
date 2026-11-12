@@ -3,6 +3,10 @@
     Baseado em docs/documentos/Cardapio.md. Define a estrutura `categorias`,
     uma lista de categorias (pratos quentes, salgados e bebidas), cada uma com
     seus itens.
+
+    O menu público (cliente_controller.menu/adicionar_do_menu) passou a ler os
+    cardápios diretamente do banco; estas estruturas permanecem apenas como
+    fonte estática para a prévia administrativa (catalogo_previa_admin).
     """
     
 categorias = [

@@ -110,7 +110,7 @@ Rode a aplicação
 ```sh
 python app.py
 ```
-Acesso é feito pelo <a href="127.0.0.1:5000">localhost</a> na porta 5000 (padrão do framework)
+Acesso é feito pelo <a href="http//:127.0.0.1:5000">localhost</a> na porta 5000 (padrão do framework)
 <p align="right">(<a href="#readme-top">para o início</a>)</p>
 
 ## ✒️ Autores

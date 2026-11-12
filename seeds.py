@@ -1,6 +1,7 @@
 """Armazena todos os valores padrão do banco de dados"""
 
-from datetime import datetime
+from datetime import datetime, time
+
 from database import db
 
 
@@ -25,9 +26,10 @@ from model.ficha_model import (
 # ================================== Import CARGOS ==================================
 
 from model.cargos import Cargo
-from model.usuario_model import NivelPermissao, Usuario
+from model.usuario_model import NivelPermissao, Usuario, Endereco, LogAtividade, Token
 from model.usuario_model import buscar_permissao_por_nome, atualizar_permissao
 from model.pedido_model import buscar_bebida_por_nome
+from model.pedido_model import Pedido, PedidoBebida, CardapioPedido
 from model.servico_model import ServicoBancada, ServicoCardapio
 from model.ficha_model import FichaTecnica, FichaTecnica_bebida, PratoCardapio
 
@@ -78,32 +80,32 @@ lista_servicos_bancadas = [
 
 #nome, descrição, preco base
 cardapios_quentes = [
-    ("Feijoada_completa", "Feijoada completa com carnes suínas, feijão preto e acompanhamentos.", 14990),
-    ("Bobo_de_camarao ", "Bobó de camarão preparado com mandioca, leite de coco e temperos.", 13990),
-    ("File_de_tilapia_ao_molho_manteiga_e_alcaparras ", "Filé de tilápia ao molho de manteiga e alcaparras.", 12990),
-    ("Strogonoff_de_file_Mignon ", "Strogonoff de filé-mignon ao molho cremoso.", 12990),
-    ("Nhoque_ao_molho", "Nhoque servido com molho especial.", 11990),
-    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Risoto de cogumelos acompanhado de tiras de filé-mignon.", 13990),
-    ("Escondinho_de_carne_seca_com_mandioca ", "Escondidinho de carne-seca com purê de mandioca.", 12990),
-    ("Raviolli_de_queijo_ao_molho_bolonhesa ", "Ravioli recheado com queijo e servido ao molho à bolonhesa.", 12990),
+    ("Feijoada_completa", "Feijoada com arroz branco, couve refogada, farofa, vinagrete e molho de pimenta. Acompanha tábua de frios e mandioca frita. Sobremesa incluída: sorvete de maracujá e limão.", 14990),
+    ("Bobo_de_camarao ", "Bobó de camarão com arroz branco e salada fresca. Sobremesa incluída: salada de frutas com creme.", 13990),
+    ("File_de_tilapia_ao_molho_manteiga_e_alcaparras ", "Filé de tilápia ao molho de manteiga e alcaparras, com arroz branco e bruschetta. Sobremesa incluída: iogurte natural com morangos e mel.", 12990),
+    ("Strogonoff_de_file_Mignon ", "Strogonoff de filé-mignon com arroz branco, batata palha e salada Caesar. Sobremesa incluída: pudim de leite condensado.", 12990),
+    ("Nhoque_ao_molho", "Nhoque ao molho bolonhesa ou de queijo, acompanhado de mix de folhas. Sobremesa incluída: mousse de maracujá.", 11990),
+    ("Risoto_de_cogumelos_com_tiras_de_file_mignon", "Risoto de cogumelos com tiras de filé-mignon e bruschetta. Sobremesa incluída: brownie de chocolate.", 13990),
+    ("Escondinho_de_carne_seca_com_mandioca ", "Escondidinho de carne-seca com purê de mandioca, acompanhado de dadinhos de tapioca e geleia de pimenta. Sobremesa incluída: cheesecake de frutas vermelhas.", 12990),
+    ("Raviolli_de_queijo_ao_molho_bolonhesa ", "Ravioli de queijo ao molho bolonhesa, com parmesão ralado e tábua de frios. Sobremesa incluída: mousse de chocolate.", 12990),
 ]
 
 #nome, descrição, preco base
 cardapios_salgados = [
-    ("Salgados_completo ", "Seleção completa de salgados variados para festas e eventos.", 12990),
-    ("Salgados_Reduzido", "Seleção reduzida de salgados variados para festas e eventos.", 9990),
-    ("Hamburguer_tradicional ", "Hambúrguer tradicional preparado com carne, pão e acompanhamentos.", 7990),
-    ("Hamburguer_smash ", "Hambúrguer smash com carne prensada na chapa e acompanhamentos.", 8990),
-    ("Hamburguer_mega_bacon ", "Hambúrguer com carne, bastante bacon e acompanhamentos.", 9990),
-    ("Mexicano ", "Seleção de comidas inspiradas na culinária mexicana.", 8990),
-    ("Boteco_brasileiro", "Seleção de petiscos tradicionais de boteco brasileiro.", 6990),
+    ("Salgados_completo ", "Coxinha, risole, quibe, bolinha de queijo, empada e croquete, com batata frita, queijo, embutidos e pães. Doces incluídos: brigadeiro, beijinho e bolo.", 12990),
+    ("Salgados_Reduzido", "Coxinha, risole e bolinha de queijo, com batata frita, queijo e presunto. Doces incluídos: brigadeiro e bolo simples.", 9990),
+    ("Hamburguer_tradicional ", "Pão brioche, carne bovina, cheddar, alface, tomate, cebola caramelizada, maionese temperada e barbecue. Acompanha batata frita, molho mostarda e mel e onion rings.", 7990),
+    ("Hamburguer_smash ", "Pão brioche, blend de carnes, queijo picado, cheddar, maionese temperada, manteiga e cebola caramelizada. Acompanha batata frita e onion rings.", 8990),
+    ("Hamburguer_mega_bacon ", "Pão brioche, carne bovina, quatro fatias de cheddar, alface, cebola caramelizada, maionese temperada e barbecue. Acompanha batata frita, molho mostarda e mel e onion rings.", 9990),
+    ("Mexicano ", "Tortillas de milho com carne moída temperada, alface, tomate e queijo ralado. Acompanha nachos, guacamole e quesadilla com tortilla de trigo, frango ou queijo e pimentão.", 8990),
+    ("Boteco_brasileiro", "Coxinha, pastel de carne, bolinho de bacalhau, linguiça acebolada, batata palha e pastel de queijo. Sobremesa incluída: iogurte natural com morangos e mel.", 6990),
 ]
 
 #nome, descrição, preco base
 cardapios_bebidas = [
-    ("Bebida_sem_alcool", "Seleção de bebidas sem álcool para eventos.", 16990),
-    ("Bebida_com_alcool", "Seleção de bebidas alcoólicas para eventos.", 18990),
-    ("Bebida_mista", "Seleção de bebidas alcoólicas e não alcoólicas para eventos.", 17990),
+    ("Bebida_sem_alcool", "Uma seleção de sucos, refrigerantes, águas e bebidas sem álcool.", 16990),
+    ("Bebida_com_alcool", "Uma seleção de bebidas alcoólicas e coquetéis para o evento.", 18990),
+    ("Bebida_mista", "Opções com e sem álcool para diferentes preferências.", 17990),
 ]
 
 # nome, descrição, preço base
@@ -804,6 +806,97 @@ lista_cargos = [
     (1, "cliente"),
     (2, "chefe"),
     (3, "admin"),
+]
+
+# ================================= "Tabelas" USUARIOS / PEDIDOS =================================
+
+# Usuários adicionais (além do admin, que é criado por iniciar_admin()).
+# Cada CPF e e-mail é distinto do admin (00000000000 / ADMIN_EMAIL) e entre si,
+# pois cpf_hmac e email_hmac são UNIQUE. A senha é sempre colocada em hash.
+# nome, cpf, email, senha, cargo (Cargo enum)
+lista_usuarios = [
+    ("Ana Clara Souza", "11144477735", "ana.souza@exemplo.com", "SenhaCliente1!", Cargo.CLIENTE),
+    ("Bruno Henrique Lima", "22255588846", "bruno.lima@exemplo.com", "SenhaCliente2!", Cargo.CLIENTE),
+    ("Carla Regina Nunes", "33366699957", "carla.nunes@exemplo.com", "SenhaCliente3!", Cargo.CLIENTE),
+    ("Diego Martins Rocha", "44477700012", "diego.rocha@exemplo.com", "SenhaChefe1!", Cargo.CHEFE),
+    ("Eduarda Alves Pinto", "55588811123", "eduarda.pinto@exemplo.com", "SenhaChefe2!", Cargo.CHEFE),
+]
+
+# Endereços vinculados aos clientes seed (resolvidos por e-mail do dono).
+# Variados: cidades/UFs diferentes, alguns com complemento e outros sem.
+# email_dono, nome, logradouro, numero, complemento, bairro, cidade, cep, uf
+lista_enderecos = [
+    ("ana.souza@exemplo.com", "Casa", "Rua das Acácias", "120", "Apto 34", "Jardim Primavera", "São Paulo", "01234-567", "SP"),
+    ("ana.souza@exemplo.com", "Trabalho", "Avenida Paulista", "1500", "Sala 802", "Bela Vista", "São Paulo", "01310-100", "SP"),
+    ("bruno.lima@exemplo.com", "Casa", "Rua do Sol", "45", None, "Centro", "Belo Horizonte", "30110-000", "MG"),
+    ("carla.nunes@exemplo.com", "Casa", "Travessa das Flores", "9", "Fundos", "Boa Viagem", "Recife", "51020-000", "PE"),
+    ("carla.nunes@exemplo.com", "Sítio", "Estrada do Vale", "s/n", None, "Zona Rural", "Gravatá", "55640-000", "PE"),
+]
+
+# Pedidos seed, cobrindo os cinco status do enum.
+# Resolvem cliente/chefe por e-mail e endereço pelo nome do endereço do cliente.
+# As datas de evento são futuras e hora_fim > hora_inicio.
+# O trigger de baixa de estoque é AFTER UPDATE OF status, portanto inserir um
+# pedido já com status 'confirmado'/'em preparo'/'concluido' NÃO o dispara.
+# chave, email_cliente, nome_endereco, email_chefe (ou None), status,
+#   dias_no_futuro, hora_inicio, hora_fim, valor_total, observacao, confirmado
+lista_pedidos = [
+    ("pedido_aguardando", "ana.souza@exemplo.com", "Casa", None,
+     "aguardando", 30, time(18, 0), time(23, 0), 1499.00,
+     "Aniversário de 30 anos, preferência por pratos quentes.", False),
+    ("pedido_confirmado", "ana.souza@exemplo.com", "Trabalho", "diego.rocha@exemplo.com",
+     "confirmado", 45, time(12, 0), time(16, 0), 2599.90,
+     "Confraternização da equipe.", True),
+    ("pedido_em_preparo", "bruno.lima@exemplo.com", "Casa", "eduarda.pinto@exemplo.com",
+     "em preparo", 20, time(19, 30), time(23, 30), 3250.00,
+     None, True),
+    ("pedido_concluido", "carla.nunes@exemplo.com", "Casa", "diego.rocha@exemplo.com",
+     "concluido", 10, time(11, 0), time(15, 0), 1890.50,
+     "Casamento na praia.", True),
+    ("pedido_cancelado", "carla.nunes@exemplo.com", "Sítio", None,
+     "cancelado", 60, time(13, 0), time(18, 0), 0.00,
+     "Cliente cancelou por mudança de data.", False),
+]
+
+# Cardápios de cada pedido. (nome_servico, nome_cardapio) precisa existir em
+# lista_servicos_cardapios para que (id_cardapio, id_servico) seja consistente.
+# chave_pedido, nome_servico, nome_cardapio, num_convidados
+lista_cardapio_pedido = [
+    ("pedido_aguardando", "Chef_em_casa", "Feijoada_completa", 30),
+    ("pedido_confirmado", "Buffet", "Strogonoff_de_file_Mignon", 80),
+    ("pedido_confirmado", "Bar", "Bebida_com_alcool", 80),
+    ("pedido_em_preparo", "Mesa_de_salgados", "Salgados_completo", 120),
+    ("pedido_em_preparo", "Bar", "Bebida_mista", 120),
+    ("pedido_concluido", "Buffet", "Feijoada_completa", 60),
+    ("pedido_cancelado", "Mesa_de_salgados", "Hamburguer_tradicional", 200),
+]
+
+# Bebidas avulsas de alguns pedidos. valor_total = valor_unitario * qtd (resolvido
+# dinamicamente no inicializador a partir da bebida). chave_pedido, nome_bebida, qtd
+lista_pedido_bebida = [
+    ("pedido_aguardando", "Agua_com_gas", 30),
+    ("pedido_aguardando", "Suco_de_abacaxi", 15),
+    ("pedido_confirmado", "Refrigerante_de_guarana", 50),
+    ("pedido_concluido", "Agua_de_coco", 40),
+]
+
+# Logs de auditoria seed, espelhando as ações usadas pelos controllers.
+# email_usuario, acao, descricao
+lista_logs = [
+    ("ana.souza@exemplo.com", "LOGIN", "Usuário efetuou login no sistema."),
+    ("ana.souza@exemplo.com", "NOVO ENDERECO", "Novo endereço cadastrado pelo cliente."),
+    ("ana.souza@exemplo.com", "PEDIDO", "Cliente realizou um novo pedido."),
+    ("bruno.lima@exemplo.com", "LOGIN", "Usuário efetuou login no sistema."),
+    ("carla.nunes@exemplo.com", "REMOCAO PEDIDO", "Cliente cancelou um pedido."),
+    ("diego.rocha@exemplo.com", "LOGIN", "Chefe efetuou login no sistema."),
+]
+
+# Tokens de verificação seed. O codigo_hash é o HMAC-SHA256 do código, com a
+# mesma chave (TOKEN_SHA) usada em security/token_auth.py; nunca em texto puro.
+# email_usuario, codigo, ativo, tentativas
+lista_tokens = [
+    ("ana.souza@exemplo.com", "123456", True, 0),
+    ("bruno.lima@exemplo.com", "654321", False, 3),
 ]
 
 # prato, ingrediente, quantidade (na unidade especifica)
@@ -1762,4 +1855,403 @@ def iniciar_bebida_cardapio() -> list[BebidaCardapio]:
         associacao_bebida_cardapio.append(associacao)
 
     return associacao_bebida_cardapio
+
+
+# ================================== Inicialização USUARIOS / PEDIDOS ==================================
+
+def _buscar_usuario_por_cpf(cpf: str) -> Usuario | None:
+    """Busca um usuário pelo CPF em texto puro usando o índice HMAC.
+
+    Usuários armazenam o CPF criptografado, então a busca é feita pelo mesmo
+    HMAC determinístico gerado em iniciar_admin()/criar_usuario().
+
+    Args:
+        cpf (str): CPF em texto puro.
+
+    Returns:
+        Usuario | None: o usuário encontrado ou None.
+    """
+    import security
+
+    return db.session.execute(
+        db.select(Usuario).where(Usuario.cpf_hmac == security.gerar_hmac(cpf=cpf)),
+    ).scalar_one_or_none()
+
+
+def _buscar_usuario_por_email(email: str) -> Usuario | None:
+    """Busca um usuário pelo e-mail em texto puro usando o índice HMAC.
+
+    Args:
+        email (str): e-mail em texto puro.
+
+    Returns:
+        Usuario | None: o usuário encontrado ou None.
+    """
+    import security
+
+    return db.session.execute(
+        db.select(Usuario).where(Usuario.email_hmac == security.gerar_hmac(email=email)),
+    ).scalar_one_or_none()
+
+
+def iniciar_usuarios() -> list[Usuario]:
+    """Inicializa os usuários padrão (clientes e chefes) ainda inexistentes.
+
+    Segue iniciar_admin() para os campos sensíveis: criptografa CPF/e-mail,
+    gera seus HMACs de busca (UNIQUE) e aplica hash na senha. Pula usuários já
+    existentes (busca por cpf_hmac/email_hmac) para manter a idempotência.
+
+    Returns:
+        list[Usuario]: todos os objetos Usuario a serem inicializados.
+    """
+
+    import security
+    from werkzeug.security import generate_password_hash
+
+    usuarios = []
+
+    for nome, cpf, email, senha, cargo in lista_usuarios:
+        if _buscar_usuario_por_cpf(cpf) or _buscar_usuario_por_email(email):
+            continue
+
+        usuario = Usuario(
+            cpf_criptografado=security.criptografar(cpf),
+            cpf_hmac=security.gerar_hmac(cpf=cpf),
+            nome=nome,
+            email_criptografado=security.criptografar(email),
+            email_hmac=security.gerar_hmac(email=email),
+            senha_hash=generate_password_hash(senha),
+            id_permissao=cargo.value,
+        )
+        usuarios.append(usuario)
+
+    return usuarios
+
+
+def iniciar_enderecos() -> list[Endereco]:
+    """Inicializa os endereços padrão vinculados aos clientes seed.
+
+    Resolve o dono pelo e-mail (via HMAC) e evita duplicar endereços já
+    cadastrados (mesmo dono, logradouro e número).
+
+    Returns:
+        list[Endereco]: todos os objetos Endereco a serem inicializados.
+    """
+
+    enderecos = []
+
+    for email_dono, nome, logradouro, numero, complemento, bairro, cidade, cep, uf in lista_enderecos:
+        dono = _buscar_usuario_por_email(email_dono)
+
+        if not dono:
+            continue
+
+        existente = db.session.execute(
+            db.select(Endereco).where(
+                Endereco.id_usuario == dono.id_usuario,
+                Endereco.logradouro == logradouro,
+                Endereco.numero == str(numero),
+            ),
+        ).scalar_one_or_none()
+
+        if existente:
+            continue
+
+        endereco = Endereco(
+            id_usuario=dono.id_usuario,
+            nome=nome,
+            logradouro=logradouro,
+            numero=str(numero),
+            complemento=complemento,
+            bairro=bairro,
+            cidade=cidade,
+            cep=cep,
+            uf=uf,
+        )
+        enderecos.append(endereco)
+
+    return enderecos
+
+
+def _pedidos_por_chave() -> dict:
+    """Mapeia a chave lógica de cada pedido seed ao objeto Pedido persistido.
+
+    Identifica o pedido seed pela combinação de cliente, endereço, data do
+    evento e horários, todos definidos em lista_pedidos.
+
+    Returns:
+        dict: {chave_pedido: Pedido} para os pedidos seed já existentes.
+    """
+    from utils import hoje
+    from datetime import timedelta
+
+    mapa = {}
+
+    for (chave, email_cliente, nome_endereco, _email_chefe, _status,
+         dias, hora_inicio, hora_fim, _valor, _obs, _confirmado) in lista_pedidos:
+        cliente = _buscar_usuario_por_email(email_cliente)
+        if not cliente:
+            continue
+
+        data_evento = (hoje() + timedelta(days=dias)).date()
+
+        pedido = db.session.execute(
+            db.select(Pedido).where(
+                Pedido.id_cliente == cliente.id_usuario,
+                Pedido.data_evento == data_evento,
+                Pedido.hora_inicio == hora_inicio,
+                Pedido.hora_fim == hora_fim,
+            ),
+        ).scalars().first()
+
+        if pedido:
+            mapa[chave] = pedido
+
+    return mapa
+
+
+def iniciar_pedidos() -> list[Pedido]:
+    """Inicializa pedidos padrão cobrindo todos os status do enum.
+
+    Resolve cliente e chefe pelo e-mail (via HMAC) e o endereço pelo nome
+    (garantindo que pertence ao cliente). As datas de evento são futuras e
+    hora_fim > hora_inicio. Como o trigger de baixa de estoque é AFTER UPDATE OF
+    status, inserir pedidos já confirmados não o dispara. Pula pedidos já
+    existentes para manter a idempotência.
+
+    Returns:
+        list[Pedido]: todos os objetos Pedido a serem inicializados.
+    """
+    from utils import hoje
+    from datetime import timedelta
+
+    pedidos = []
+
+    for (chave, email_cliente, nome_endereco, email_chefe, status,
+         dias, hora_inicio, hora_fim, valor, observacao, confirmado) in lista_pedidos:
+        cliente = _buscar_usuario_por_email(email_cliente)
+        if not cliente:
+            continue
+
+        endereco = db.session.execute(
+            db.select(Endereco).where(
+                Endereco.id_usuario == cliente.id_usuario,
+                Endereco.nome == nome_endereco,
+            ),
+        ).scalars().first()
+
+        if not endereco:
+            continue
+
+        data_evento = (hoje() + timedelta(days=dias)).date()
+
+        # Idempotência: não recria um pedido idêntico já existente.
+        existente = db.session.execute(
+            db.select(Pedido).where(
+                Pedido.id_cliente == cliente.id_usuario,
+                Pedido.data_evento == data_evento,
+                Pedido.hora_inicio == hora_inicio,
+                Pedido.hora_fim == hora_fim,
+            ),
+        ).scalars().first()
+
+        if existente:
+            continue
+
+        id_chefe = None
+        if email_chefe:
+            chefe = _buscar_usuario_por_email(email_chefe)
+            if chefe:
+                id_chefe = chefe.id_usuario
+
+        pedido = Pedido(
+            id_cliente=cliente.id_usuario,
+            id_endereco=endereco.id_endereco,
+            id_chefe=id_chefe,
+            status=status,
+            valor_total=valor,
+            data_evento=data_evento,
+            hora_inicio=hora_inicio,
+            hora_fim=hora_fim,
+            observacao=observacao,
+            confirmado_em=(hoje() if confirmado else None),
+        )
+        pedidos.append(pedido)
+
+    return pedidos
+
+
+def iniciar_cardapio_pedido() -> list[CardapioPedido]:
+    """Inicializa as associações cardápio-pedido (com nº de convidados).
+
+    Resolve o pedido pela chave lógica e o par (cardápio, serviço) pelos nomes,
+    mantendo a consistência com as associações serviço-cardápio existentes. Pula
+    associações já existentes.
+
+    Returns:
+        list[CardapioPedido]: todos os objetos CardapioPedido a inicializar.
+    """
+    mapa_pedidos = _pedidos_por_chave()
+
+    associacoes = []
+
+    for chave_pedido, nome_servico, nome_cardapio, num_convidados in lista_cardapio_pedido:
+        pedido = mapa_pedidos.get(chave_pedido)
+        if not pedido:
+            continue
+
+        servico = buscar_servico_por_nome(formatar_nome(nome_servico))
+        cardapio = buscar_cardapio_por_nome(formatar_nome(nome_cardapio))
+
+        if not servico or not cardapio:
+            continue
+
+        if db.session.get(
+            CardapioPedido,
+            (cardapio.id_cardapio, pedido.id_pedido, servico.id_servico),
+        ):
+            continue
+
+        associacoes.append(
+            CardapioPedido(
+                id_cardapio=cardapio.id_cardapio,
+                id_pedido=pedido.id_pedido,
+                id_servico=servico.id_servico,
+                num_convidados=num_convidados,
+            ),
+        )
+
+    return associacoes
+
+
+def iniciar_pedido_bebida() -> list[PedidoBebida]:
+    """Inicializa as bebidas avulsas de alguns pedidos.
+
+    Resolve o pedido pela chave lógica e a bebida pelo nome; calcula o
+    valor_total como valor_unitario * qtd. Pula vínculos já existentes.
+
+    Returns:
+        list[PedidoBebida]: todos os objetos PedidoBebida a inicializar.
+    """
+    mapa_pedidos = _pedidos_por_chave()
+
+    associacoes = []
+
+    for chave_pedido, nome_bebida, qtd in lista_pedido_bebida:
+        pedido = mapa_pedidos.get(chave_pedido)
+        if not pedido:
+            continue
+
+        bebida = buscar_bebida_por_nome(formatar_nome(nome_bebida))
+        if not bebida:
+            continue
+
+        if db.session.get(PedidoBebida, (pedido.id_pedido, bebida.id_bebida)):
+            continue
+
+        associacoes.append(
+            PedidoBebida(
+                id_pedido=pedido.id_pedido,
+                id_bebida=bebida.id_bebida,
+                qtd=qtd,
+                valor_total=bebida.valor_unitario * qtd,
+            ),
+        )
+
+    return associacoes
+
+
+def iniciar_logs() -> list[LogAtividade]:
+    """Inicializa registros de auditoria seed para os usuários criados.
+
+    Resolve o usuário pelo e-mail (via HMAC). Pula logs já existentes
+    (mesmo usuário, ação e descrição) para manter a idempotência.
+
+    Returns:
+        list[LogAtividade]: todos os objetos LogAtividade a inicializar.
+    """
+
+    logs = []
+
+    for email_usuario, acao, descricao in lista_logs:
+        usuario = _buscar_usuario_por_email(email_usuario)
+        if not usuario:
+            continue
+
+        existente = db.session.execute(
+            db.select(LogAtividade).where(
+                LogAtividade.id_usuario == usuario.id_usuario,
+                LogAtividade.acao == acao,
+                LogAtividade.descricao == descricao,
+            ),
+        ).scalars().first()
+
+        if existente:
+            continue
+
+        logs.append(
+            LogAtividade(
+                acao=acao,
+                id_usuario=usuario.id_usuario,
+                descricao=descricao,
+            ),
+        )
+
+    return logs
+
+
+def iniciar_tokens() -> list[Token]:
+    """Inicializa tokens de verificação seed para os usuários criados.
+
+    O codigo_hash é o HMAC-SHA256 do código com a chave TOKEN_SHA, exatamente
+    como security/token_auth.py gera e valida os tokens (nunca em texto puro).
+    Pula a criação quando a chave TOKEN_SHA não está configurada ou quando o
+    usuário já possui tokens (idempotência).
+
+    Returns:
+        list[Token]: todos os objetos Token a inicializar.
+    """
+
+    import hashlib
+    import hmac
+    from os import environ as env
+
+    chave = env.get("TOKEN_SHA")
+
+    # security/token_auth.py lança RuntimeError quando TOKEN_SHA não está
+    # configurada. Aqui a ausência da chave apenas pula os tokens, pois a
+    # seed não deve ser fatal quando a variável opcional não existe.
+    if not chave:
+        return []
+
+    tokens = []
+
+    for email_usuario, codigo, ativo, tentativas in lista_tokens:
+        usuario = _buscar_usuario_por_email(email_usuario)
+        if not usuario:
+            continue
+
+        ja_tem_token = db.session.execute(
+            db.select(Token).where(Token.id_usuario == usuario.id_usuario),
+        ).scalars().first()
+
+        if ja_tem_token:
+            continue
+
+        codigo_hash = hmac.new(
+            chave.encode("utf-8"),
+            codigo.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        tokens.append(
+            Token(
+                codigo_hash=codigo_hash,
+                id_usuario=usuario.id_usuario,
+                ativo=ativo,
+                tentativas=tentativas,
+            ),
+        )
+
+    return tokens
 

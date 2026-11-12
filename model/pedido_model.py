@@ -18,7 +18,8 @@ class Pedido(db.Model):
     id_pedido = db.Column(db.Integer, primary_key=True, autoincrement=True)
     observacao = db.Column(db.Text, nullable=True)  # Opcional
     status = db.Column(
-        db.Enum("aguardando", "confirmado", "em preparo", "concluido", "cancelado", name="status_pedido"),default="aguardando",nullable=False)
+        db.Enum("aguardando", "confirmado", "em preparo", "concluido", "cancelado", 
+                name="status_pedido"),default="aguardando",nullable=False)
     confirmado_em = db.Column(db.DateTime, nullable=True)
     criado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False)
     valor_total = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
@@ -29,8 +30,6 @@ class Pedido(db.Model):
     id_cliente = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
     id_endereco = db.Column(db.Integer, db.ForeignKey("endereco.id_endereco"), nullable=False)
     id_chefe = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=True)
-    #id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), nullable=False)
-    #id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), nullable=False)
 
     __table_args__ = (
         db.CheckConstraint("valor_total >= 0", name="ck_pedido_valor"),

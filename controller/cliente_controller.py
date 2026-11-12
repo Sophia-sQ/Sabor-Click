@@ -30,9 +30,9 @@ from model.pedido_model import (
 )
 from model.servico_model import (
     buscar_cardapio_por_id,
-    buscar_cardapio_por_nome,
     buscar_servico_por_id,
     buscar_servico_por_slug,
+    listar_cardapios,
     listar_cardapios_do_servico,
 )
 from model.usuario_model import (
@@ -46,7 +46,7 @@ from model.usuario_model import (
     registrar_log,
 )
 from services import enviar_email_nao_responda
-from endereco_evento import apresentar_endereco_evento, validar_endereco_evento
+from services import apresentar_endereco_evento, validar_endereco_evento
 
 cliente_bp = Blueprint("cliente", __name__, url_prefix="/home")
 
@@ -75,6 +75,82 @@ _CARDAPIO_POR_ID = {
     17: ("com-alcool", "Com álcool"),
     18: ("misto", "Misto"),
 }
+
+# Seções exibidas no menu público. A categoria de cada cardápio é derivada da
+# faixa de id do mapeamento fixo _CARDAPIO_POR_ID (mesma ordem dos seeds):
+# ids 1-8 -> quentes, 9-15 -> salgados, 16-18 -> bebidas. O 'slug' é o serviço
+# usado por adicionar_do_menu (quentes->buffet, salgados->mesa-de-salgados,
+# bebidas->bar), replicando o antigo mapeamento de menu_data.
+_SECOES_MENU = (
+    {"id": "quentes", "nome": "Pratos quentes",
+     "resumo": "Receitas que acolhem, sabores que ficam.",
+     "slug": "buffet", "ids": range(1, 9)},
+    {"id": "salgados", "nome": "Salgados & encontros",
+     "resumo": "Para compartilhar e celebrar à sua maneira.",
+     "slug": "mesa-de-salgados", "ids": range(9, 16)},
+    {"id": "bebidas", "nome": "Bebidas para brindar",
+     "resumo": "Do primeiro refresco ao último brinde.",
+     "slug": "bar", "ids": range(16, 19)},
+)
+
+# Serviço (slug) usado ao adicionar um cardápio do menu ao carrinho, por categoria.
+_SERVICO_POR_CATEGORIA = {secao["id"]: secao["slug"] for secao in _SECOES_MENU}
+
+
+def _categoria_do_cardapio(id_cardapio: int) -> str | None:
+    """Retorna o id da seção do menu a que o cardápio pertence (ou None)."""
+    for secao in _SECOES_MENU:
+        if id_cardapio in secao["ids"]:
+            return secao["id"]
+    return None
+
+
+def _categorias_do_menu() -> list:
+    """Monta as seções do menu público a partir dos cardápios do banco.
+
+    Agrupa os cardápios nas três seções (quentes/salgados/bebidas) pela faixa
+    de id, reutilizando a mesma resolução de imagem de mostrar_servico/
+    _itens_carrinho (slug via _slug_imagem_do_cardapio + docs/imagens-menu.json).
+    O nome continua normalizado (como no banco); o template aplica o filtro
+    'nome_exibicao' para exibi-lo.
+
+    Returns:
+        list: seções com id, nome, resumo e itens (dicts com id_cardapio, nome,
+            descricao, preco[centavos], imagem[relativa a static/] e versao).
+    """
+    import json
+    from pathlib import Path
+
+    base = Path(current_app.root_path)
+    with open(base / "docs" / "imagens-menu.json", encoding="utf-8") as arq:
+        imagens = json.load(arq)
+
+    por_categoria = {secao["id"]: [] for secao in _SECOES_MENU}
+    for cardapio in listar_cardapios() or []:
+        categoria = _categoria_do_cardapio(cardapio.id_cardapio)
+        if categoria is None:
+            continue
+
+        slug_img = _slug_imagem_do_cardapio(cardapio)
+        dados_img = imagens.get(slug_img, {}) if slug_img else {}
+        arquivo = dados_img.get("arquivo")
+        imagem_rel = arquivo[len("static/"):] if arquivo and arquivo.startswith("static/") else arquivo
+
+        por_categoria[categoria].append({
+            "id_cardapio": cardapio.id_cardapio,
+            "nome": cardapio.nome,
+            "descricao": cardapio.descricao,
+            "preco": cardapio.preco_base,  # centavos
+            "imagem": imagem_rel,          # ex.: "images/menu/feijoada.jpg" (ou None)
+            "versao": dados_img.get("versao"),
+        })
+
+    return [
+        {"id": secao["id"], "nome": secao["nome"], "resumo": secao["resumo"],
+         "itens": por_categoria[secao["id"]]}
+        for secao in _SECOES_MENU
+    ]
+
 
 def _slug_imagem_do_cardapio(cardapio) -> str | None:
     """Resolve o slug de imagem de um cardápio.
@@ -193,7 +269,7 @@ def cancelar_pedido(id_pedido: int):
 # =========================== BEBIDA ===========================
 
 def _catalogo_bebidas():
-    from bebidas_data import formatar_bebidas
+    from services import formatar_bebidas
     return formatar_bebidas([dict(id=b.id_bebida, nome=b.nome,
         descricao=b.descricao, preco=b.valor_unitario) for b in listar_bebidas()])
 
@@ -459,8 +535,7 @@ def _subtotal_item(item: dict) -> int:
     # preço por pessoa em centavos, direto do banco
     return cardapio.preco_base * item.get("qtd", 0)
 
-@cliente_bp.get("/carrinho")
-def mostrar_carrinho():
+def _itens_carrinho():
     """Exibe a página do carrinho com os itens da sessão enriquecidos.
 
     Cada item de session['carrinho'] é cruzado com o preço do banco
@@ -541,24 +616,31 @@ def mostrar_carrinho():
 
 @cliente_bp.post("/carrinho/adicionar-do-menu")
 def adicionar_do_menu():
-    """Adiciona o cardápio público ao carrinho com os dados do catálogo."""
-    from menu_data import cardapios_do_menu
+    """Adiciona o cardápio público ao carrinho a partir do id do cardápio.
 
-    nome = request.form.get("nome")
+    O formulário do menu envia o id_cardapio (resolvido no banco). O serviço é
+    escolhido de forma determinística pela categoria do cardápio (quentes->
+    buffet, salgados->mesa-de-salgados, bebidas->bar), replicando o mapeamento
+    que antes vinha de menu_data.
+    """
+    id_cardapio = request.form.get("id_cardapio", type=int)
     qtd = request.form.get("qtd", type=int)
-    if nome not in cardapios_do_menu or qtd is None or not 10 <= qtd <= 500:
+    cardapio = buscar_cardapio_por_id(id_cardapio) if id_cardapio is not None else None
+    if cardapio is None or qtd is None or not 10 <= qtd <= 500:
         flash("Escolha um prato e informe uma quantidade de 10 a 500 pessoas.", "danger")
         return redirect(url_for("cliente.menu"))
 
-    slug, nome_cadastrado = cardapios_do_menu[nome]
-    servico = buscar_servico_por_slug(slug)
-    cardapio = buscar_cardapio_por_nome(nome_cadastrado)
-    if servico is None or cardapio is None or not any(
+    categoria = _categoria_do_cardapio(cardapio.id_cardapio)
+    slug = _SERVICO_POR_CATEGORIA.get(categoria) if categoria else None
+    servico = buscar_servico_por_slug(slug) if slug else None
+    if servico is None or not any(
         vinculo.id_cardapio == cardapio.id_cardapio
         for vinculo in listar_cardapios_do_servico(servico.id_servico) or []
     ):
         flash("Este prato está indisponível no momento.", "danger")
         return redirect(url_for("cliente.menu"))
+
+    from utils import nome_exibicao
 
     item = {"id_servico": servico.id_servico, "id_cardapio": cardapio.id_cardapio, "qtd": qtd}
     carrinho = _carrinho()
@@ -571,7 +653,7 @@ def adicionar_do_menu():
     else:
         existente.update(item)
     session["carrinho"] = carrinho
-    flash(f"{nome} para {qtd} pessoas está no carrinho.", "success")
+    flash(f"{nome_exibicao(cardapio.nome)} para {qtd} pessoas está no carrinho.", "success")
     return redirect(url_for("cliente.menu", _anchor="retorno-carrinho"))
 
 @cliente_bp.post("/carrinho/adicionar")
@@ -707,14 +789,28 @@ def dados_perfil() -> Response:
     from utils import formatar_moeda
 
     # usuario
-    usuario=buscar_usuario_por_id(session("id"))
+    usuario=buscar_usuario_por_id(session.get("id"))
 
     usuario.cpf_criptografado=descriptografar(usuario.cpf_criptografado)
     usuario.email_criptografado=descriptografar(usuario.email_criptografado)
 
     # pedido
-    pedido=next((p for p in listar_pedidos_por_cliente(session("id"))
-    if p.status not in ("cancelado", "concluido")), "Nenhum pedido ativo.")
+    pedido=next((p for p in listar_pedidos_por_cliente(session.get("id"))
+    if p.status not in ("cancelado", "concluido")), None)
+
+    if pedido is None:
+        return jsonify({
+            "usuario": {
+                "id": usuario.id_usuario,
+                "nome": usuario.nome,
+                "cpf": usuario.cpf_criptografado,
+                "email": usuario.email_criptografado,
+            },
+            "pedido": None,
+            "servicos": {},
+            "bebidas": {"itens": [], "valor_total": formatar_moeda(0)},
+            "endereco": None,
+        })
 
     pedido.valor_total = formatar_moeda(pedido.valor_total)
 
@@ -829,6 +925,12 @@ def home():
 
 
 def menu():
-    """Renderiza a página de menu com as categorias de cardápio."""
-    from menu_data import categorias
-    return render_template("menu.html", categorias=categorias)
+    """Renderiza a página de menu com as categorias de cardápio.
+
+    As categorias são montadas a partir do banco (Cardapio) em vez de listas
+    estáticas. A categoria de cada cardápio é derivada da faixa de id do
+    mapeamento fixo _CARDAPIO_POR_ID (1-8 quentes, 9-15 salgados, 16-18
+    bebidas), que já é a ordem dos seeds; o nome de exibição é aplicado no
+    template via filtro Jinja 'nome_exibicao'.
+    """
+    return render_template("menu.html", categorias=_categorias_do_menu())

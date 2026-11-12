@@ -1,13 +1,19 @@
-"""Execute a prévia administrativa com: python previa_admin.py."""
+"""Execute a prévia administrativa com: python -m services.previa.previa_admin."""
 import os
+from pathlib import Path
 from secrets import token_hex
 from flask import Flask, redirect, render_template, url_for, request, session
-from catalogo_previa_admin import registrar, menu_publico, listar, bebidas_publicas
-from endereco_evento import apresentar_endereco_evento, validar_endereco_evento
+from services.previa.catalogo_previa_admin import registrar, menu_publico, listar, bebidas_publicas
+from services import apresentar_endereco_evento, validar_endereco_evento
+from utils import nome_exibicao
 
-app = Flask(__name__)
+RAIZ = Path(__file__).resolve().parents[2]
+app = Flask(__name__, template_folder=str(RAIZ / 'templates'), static_folder=str(RAIZ / 'static'))
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = token_hex(32)
+# menu.html (compartilhado com o app principal) usa o filtro 'nome_exibicao';
+# a prévia é um Flask standalone, então registra o mesmo filtro que app.create_app.
+app.jinja_env.filters['nome_exibicao'] = nome_exibicao
 registrar(app)
 
 @app.context_processor

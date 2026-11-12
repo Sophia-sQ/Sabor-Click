@@ -9,7 +9,7 @@ from uuid import uuid4
 from flask import abort, request, render_template, redirect, url_for
 from jinja2 import Environment, FileSystemLoader
 
-RAIZ = Path(__file__).parent
+RAIZ = Path(__file__).resolve().parents[2]
 ARQUIVO = RAIZ / 'instance' / 'catalogo-previa.json'
 UPLOADS = RAIZ / 'static' / 'images' / 'catalogo'
 LOCK = RLock()
@@ -37,9 +37,9 @@ def salvar(dados):
 
 def base(tipo):
     if tipo == 'bebidas':
-        from bebidas_data import catalogo_previa
+        from services.bebidas_data import catalogo_previa
         return catalogo_previa()
-    from menu_data import categorias
+    from services.menu_data import categorias
     fotos = ENV.get_template('componentes/fotos_menu.html').module.fotos_menu
     precos = ENV.get_template('componentes/precos_menu.html').module.precos_menu
     resultado = []
@@ -64,8 +64,26 @@ def bebidas_publicas():
     return listar('bebidas')
 
 def menu_publico():
-    from menu_data import categorias
-    return [dict(c, itens=[(i['nome'],i['descricao'],'',0) for i in listar('cardapio') if i['categoria']==c['id']]) for c in categorias]
+    """Monta as seções do menu da prévia no mesmo formato que templates/menu.html espera.
+
+    O template (reescrito para o menu público do banco) itera dicts com
+    'id_cardapio', 'nome', 'descricao', 'preco' (centavos), 'imagem' (relativo a
+    static/) e 'versao'. A prévia continua lendo do catálogo local (JSON +
+    base()), convertendo o preço de reais para centavos e reaproveitando a
+    imagem relativa que já é gerada em base()/CMS.
+    """
+    from services.menu_data import categorias
+    itens_por_categoria = {}
+    for item in listar('cardapio'):
+        itens_por_categoria.setdefault(item['categoria'], []).append({
+            'id_cardapio': item['id'],
+            'nome': item['nome'],
+            'descricao': item['descricao'],
+            'preco': round(float(item.get('preco') or 0) * 100),  # reais -> centavos
+            'imagem': item.get('imagem'),
+            'versao': None,
+        })
+    return [dict(c, itens=itens_por_categoria.get(c['id'], [])) for c in categorias]
 
 def imagem_url(imagem):
     return imagem if imagem.startswith(('https://','http://')) else url_for('static', filename=imagem)
@@ -109,7 +127,7 @@ def registrar(app):
     def catalogo_admin(tipo):
         if tipo not in {'cardapio','bebidas'}:
             abort(404)
-        from menu_data import categorias
+        from services.menu_data import categorias
         opcoes = [(c['id'],c['nome']) for c in categorias] if tipo=='cardapio' else [('Sem álcool','Sem álcool'),('Com álcool','Com álcool')]
         itens = listar(tipo)
         identificador = request.form.get('id', '') if request.method=='POST' else request.args.get('editar', '')

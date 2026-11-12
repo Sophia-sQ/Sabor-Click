@@ -60,7 +60,7 @@ document.querySelectorAll('.ver-menu').forEach(botao => botao.addEventListener('
   document.querySelector('#detalhe-sem-preco').hidden = Boolean(campo);
   if (formularioCarrinho) {
     formularioCarrinho.hidden = !campo;
-    formularioCarrinho.elements.namedItem('nome').value = botao.dataset.nome;
+    formularioCarrinho.elements.namedItem('id_cardapio').value = botao.dataset.id;
   }
   if (campo) {
     document.querySelector('#detalhe-preco').textContent = dinheiro(Number(pratoSelecionado.dataset.precoCentavos));

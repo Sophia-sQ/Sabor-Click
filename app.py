@@ -7,7 +7,7 @@ from werkzeug.exceptions import HTTPException
 from config import config_dict, mail  # importa configurações gerais da aplicação
 from database import init_app as init_database
 from model.cargos import Cargo
-from utils import formatar_moeda
+from utils import formatar_moeda, nome_exibicao
 
 
 def create_app() -> Flask:
@@ -40,6 +40,7 @@ def create_app() -> Flask:
     app.add_url_rule("/menu", endpoint="cliente.menu", view_func=menu)
     
     app.jinja_env.filters["moeda"] = formatar_moeda
+    app.jinja_env.filters["nome_exibicao"] = nome_exibicao
 
     @app.before_request
     def exigir_login():
