@@ -1,0 +1,145 @@
+
+/* =========================================
+   SABOR & CLICK — ALTO CONTRASTE
+========================================= */
+
+/* Botão de acessibilidade */
+#botao-alto-contraste {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 99999;
+
+    padding: 14px 20px;
+    border: 3px solid #ffffff;
+    border-radius: 10px;
+
+    background-color: #ffff00;
+    color: #000000;
+
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#botao-alto-contraste:hover {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+#botao-alto-contraste:focus-visible {
+    outline: 4px solid #ffff00;
+    outline-offset: 4px;
+}
+
+/* =========================================
+   MODO DE ALTO CONTRASTE
+========================================= */
+
+body.alto-contraste,
+body.alto-contraste * {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* =========================================
+   LINKS
+========================================= */
+
+body.alto-contraste a,
+body.alto-contraste a:visited {
+    color: #ffff00 !important;
+    text-decoration: underline !important;
+}
+
+body.alto-contraste a:hover,
+body.alto-contraste a:active {
+    color: #ffff00 !important;
+}
+
+/* =========================================
+   BOTÕES
+========================================= */
+
+body.alto-contraste button,
+body.alto-contraste .botao {
+    background-color: #ffff00 !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+}
+
+/* =========================================
+   CAMPOS DE FORMULÁRIO
+========================================= */
+
+body.alto-contraste input,
+body.alto-contraste select,
+body.alto-contraste textarea {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+body.alto-contraste input::placeholder,
+body.alto-contraste textarea::placeholder {
+    color: #ffff00 !important;
+    opacity: 1;
+}
+
+/* =========================================
+   DESTAQUE DE FOCO
+========================================= */
+
+body.alto-contraste :focus-visible {
+    outline: 3px solid #ffff00 !important;
+    outline-offset: 4px;
+}
+
+/* =========================================
+   PRESERVAR IMAGENS E VÍDEOS
+========================================= */
+
+body.alto-contraste img,
+body.alto-contraste video {
+    background-color: transparent !important;
+}
+
+/* =========================================
+   NAVBAR — CARRINHO E MINHA CONTA
+========================================= */
+
+/* Texto dos links */
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao,
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao:visited,
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao:hover,
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao:active {
+    color: #ffff00 !important;
+    background-color: #000000 !important;
+    text-decoration: underline !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+/* Elementos de texto dentro dos links */
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao span,
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao strong {
+    color: #ffff00 !important;
+}
+
+/* Ícones do carrinho e perfil */
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao img {
+    filter: brightness(0) saturate(100%)
+            invert(91%) sepia(100%) saturate(7497%)
+            hue-rotate(1deg) brightness(105%) contrast(106%) !important;
+
+    background-color: transparent !important;
+}
+
+/* Foco pelo teclado na navbar */
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao:focus-visible {
+    outline: 3px solid #ffff00 !important;
+    outline-offset: 4px;
+}

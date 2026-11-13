@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Cozinha | Sabor & Click{% endblock %}
+{% block estilos %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/previas.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cozinha.css') }}">
+{% endblock %}
+{% block atributos_body %} class="pagina-cozinha"{% endblock %}
+{% block conteudo %}
+<header class="cabecalho"><a class="marca" href="/previas/"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt="">Sabor &amp; Click</a><span class="identificador">ÁREA DO CHEF · COZINHA</span></header>
+<main class="cozinha">
+<header class="intro"><h1>Cada preparo começa aqui.</h1></header>
+
+<div class="resumo-cozinha" aria-label="Resumo da cozinha"><div><span class="numero" id="total-aguardando">0</span><span>Pedidos em aguardo</span></div><div><span class="numero" id="total-preparo">0</span><span>Seus pedidos</span></div><div><span class="numero" id="total-concluido">0</span><span>Pedidos Feitos</span></div></div>
+<p id="mensagem-cozinha" role="status" aria-live="polite"></p>
+<div class="layout-cozinha">
+<section aria-labelledby="titulo-fila"><div class="titulo-secao"><h2 id="titulo-fila">Fila de pedidos</h2></div><div id="fila-pedidos" class="fila-pedidos"></div></section>
+<section class="card painel-preparo" aria-labelledby="titulo-preparo">
+<h2 id="titulo-preparo">Bancada de preparo</h2>
+<div id="preparo-vazio" class="preparo-vazio"><span class="rotulo">SUA BANCADA</span><h3>Vamos começar?</h3><p>Ao aceitar um pedido, os itens necessários e as fichas de preparo aparecem aqui.</p></div>
+<div id="preparo-conteudo" hidden>
+<span class="rotulo">FICHA DO PEDIDO</span><h3 id="pedido-selecionado" tabindex="-1"></h3><p id="resumo-preparo" class="muted"></p><p id="observacao-preparo" class="observacao-preparo"></p>
+<h3>Itens do pedido</h3><ul id="itens-pedido" class="lista-itens"></ul>
+<div class="titulo-secao"><h3>Separar para o preparo</h3><span id="progresso-separacao" class="muted" aria-live="polite"></span></div>
+<p class="muted ajuda-preparo">Quantidades totais para este pedido. Marque os ingredientes conforme separar.</p><div id="ingredientes-preparo"></div>
+
+<div class="acoes-preparo"><button id="avancar-preparo" type="button"></button><p class="muted" id="ajuda-status"></p></div>
+</div></section></div>
+<noscript><p class="aviso">Ative o JavaScript para experimentar o aceite e consultar as fichas nesta prévia.</p></noscript>
+</main>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/cozinha.js') }}" defer></script>{% endblock %}

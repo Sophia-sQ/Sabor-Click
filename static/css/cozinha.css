@@ -1,0 +1,17 @@
+.pagina-cozinha{min-height:100vh;background:linear-gradient(125deg,#faf5ec,#f3e6d5)}
+.cozinha{max-width:1440px;margin:auto;padding:40px clamp(18px,4vw,56px)}
+.cozinha .aviso{margin:20px 0}.resumo-cozinha{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}
+.resumo-cozinha>div{display:flex;align-items:center;gap:18px;padding:20px 24px;border:1px solid var(--linha);border-radius:16px;background:var(--papel)}
+.resumo-cozinha>div{font-family:"Segoe UI",Arial,sans-serif}.resumo-cozinha .numero{font-family:inherit;font-size:36px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;color:var(--cor)}.resumo-cozinha>div>span:last-child{font-family:inherit;font-size:15px;font-weight:600;line-height:1.4;color:var(--muted)}
+.layout-cozinha{display:grid;grid-template-columns:minmax(280px,.85fr) minmax(0,1.4fr);gap:28px;align-items:start}
+.titulo-secao{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}.titulo-secao h2,.titulo-secao h3{margin:0}.titulo-secao>span{font-size:12px}
+.fila-pedidos{display:grid;gap:16px}.pedido-cozinha{transition:border-color .15s,box-shadow .15s}.pedido-cozinha.selecionado{border-color:var(--cor);box-shadow:0 0 0 1px var(--cor)}
+.pedido-cozinha h3{margin:16px 0 10px}.pedido-cozinha p{font-size:14px}.pedido-cozinha button{margin-top:12px;width:100%;cursor:pointer}.pedido-cozinha .status{font-size:11px}
+.pedido-cozinha .pedido-momento{float:right;color:var(--muted);font-size:12px}.pedido-cozinha .ver-ficha{background:transparent;border:1px solid var(--cor);color:var(--cor)}
+.painel-preparo{border-top:4px solid var(--cor)}.preparo-vazio{padding:64px 24px;text-align:center}.preparo-vazio h3{margin:18px 0}.preparo-vazio p{color:var(--muted)}
+#pedido-selecionado{margin:12px 0;font-size:28px}.observacao-preparo{background:#f3e7d6;border-radius:10px;padding:14px 16px;font-size:14px}.lista-itens{padding-left:20px}.lista-itens li{padding:5px 0}
+.painel-preparo h3{margin-top:28px}.ajuda-preparo{font-size:13px}.ingrediente-preparo{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--linha);padding:15px 0}
+.ingrediente-preparo label{display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:500}.ingrediente-preparo input{width:20px;height:20px;accent-color:var(--cor);flex-shrink:0}.ingrediente-preparo:has(input:checked) label span{text-decoration:line-through;color:var(--muted)}.ingrediente-preparo strong{white-space:nowrap;font-size:14px}
+.ficha-preparo{border:1px solid var(--linha);border-radius:10px;padding:16px;margin:12px 0}.ficha-preparo p,.ficha-preparo li{font-size:14px}.ficha-preparo ul{padding-left:20px}.acoes-preparo{border-top:1px solid var(--linha);margin-top:24px;padding-top:24px}.acoes-preparo button{cursor:pointer;width:100%}.acoes-preparo p{font-size:12px;text-align:center}#mensagem-cozinha:empty{display:none}
+@media(max-width:950px){.layout-cozinha{grid-template-columns:1fr}.fila-pedidos{grid-template-columns:repeat(2,minmax(0,1fr))}.resumo-cozinha>div{padding:16px;gap:12px}}
+@media(max-width:600px){.resumo-cozinha{gap:8px}.resumo-cozinha>div{flex-direction:column;align-items:flex-start;padding:14px 10px;gap:4px}.resumo-cozinha>div>span:last-child{font-size:12px}.resumo-cozinha .numero{font-size:30px}.fila-pedidos{grid-template-columns:1fr}.preparo-vazio{padding:36px 8px}}

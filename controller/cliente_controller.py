@@ -1,8 +1,14 @@
 """Rotas do cliente: pedidos, endereços, serviços, carrinho e perfil."""
     
+import json
+from datetime import date, datetime, time
+from decimal import Decimal
+from zoneinfo import ZoneInfo
+
 from flask import (
     Blueprint,
     Response,
+    abort,
     current_app,
     flash,
     jsonify,
@@ -15,14 +21,17 @@ from flask import (
 
 from model.pedido_model import (
     atualizar_pedido,
+    buscar_pedido_por_id,
     buscar_bebida_por_id,
     listar_bebidas_do_pedido,
     buscar_cardapios_pedido,
     criar_pedido,
     listar_pedidos_por_cliente,
+    listar_bebidas,
 )
 from model.servico_model import (
     buscar_cardapio_por_id,
+    buscar_cardapio_por_nome,
     buscar_servico_por_id,
     buscar_servico_por_slug,
     listar_cardapios_do_servico,
@@ -33,10 +42,12 @@ from model.usuario_model import (
     atualizar_usuario,
     buscar_endereco_por_id,
     buscar_usuario_por_id,
+    listar_enderecos_do_usuario,
     deletar_endereco,
     registrar_log,
 )
 from services import enviar_email_nao_responda
+from endereco_evento import apresentar_endereco_evento, validar_endereco_evento
 
 cliente_bp = Blueprint("cliente", __name__, url_prefix="/home")
 
@@ -74,68 +85,182 @@ def pagina_inicial():
 
 @cliente_bp.post("/carrinho/fazer_pedido")
 def fazer_pedido():
-    """Registra o pedido do cliente e dispara um e-mail de confirmação.
+    """Valida o checkout e registra o pedido com os valores do catálogo."""
+    endereco = _endereco_evento_selecionado()
+    if endereco is None:
+        flash("Escolha um endereço válido para o evento.", "danger")
+        return redirect(url_for("cliente.mostrar_carrinho"))
 
-    No GET, exibe a página de pedido. No POST, lê os dados do formulário/JSON
-    (endereço, bebidas, datas, observação), cria o pedido e registra o log.
+    itens, total_centavos = _itens_carrinho()
+    try:
+        data_evento = date.fromisoformat(request.form.get("data_evento", ""))
+        hora_inicio = time.fromisoformat(request.form.get("hora_inicio", ""))
+        hora_fim = time.fromisoformat(request.form.get("hora_fim", ""))
+        if (data_evento < datetime.now(ZoneInfo("America/Sao_Paulo")).date()
+                or hora_inicio.tzinfo or hora_fim.tzinfo or hora_fim <= hora_inicio):
+            raise ValueError
+    except ValueError:
+        flash("Informe uma data válida e um horário de término posterior ao início.", "danger")
+        return redirect(url_for("cliente.checkout"))
 
-    Returns:
-        str | None: template no GET; None após o processamento do POST.
-    """
-    if request.method=="GET":
-        return render_template("pagina de pedido")
+    selecionadas = request.form.get("bebidas", "{}")
+    try:
+        quantidades = json.loads(selecionadas)
+        if not isinstance(quantidades, dict):
+            raise ValueError
+        catalogo = {bebida["id"]: bebida for bebida in _catalogo_bebidas()}
+        bebidas = []
+        for codigo, qtd in quantidades.items():
+            bebida = catalogo.get(codigo)
+            if bebida is None or bebida["preco"] is None or type(qtd) is not int or not 1 <= qtd <= 99:
+                raise ValueError
+            valor = Decimal(str(bebida["preco"])) * qtd
+            total_centavos += int(valor * 100)
+            bebidas.append({"id_bebida": int(codigo), "qtd": qtd, "valor_total": valor})
+    except ValueError:
+        flash("Confira as bebidas selecionadas antes de enviar o pedido.", "danger")
+        return redirect(url_for("cliente.checkout"))
 
-    from utils import string_para_data, string_para_hora
+    if not itens and not bebidas:
+        flash("Adicione itens ao carrinho antes de confirmar.", "danger")
+        return redirect(url_for("cliente.mostrar_carrinho"))
 
-    id_endereco=request.form.get("endereco")
-    bebidas=request.get_json(silent=True)
-    observacao=request.form.get("obs")
-    data_evento=request.form.get("data_evento")
-    hora_inicio=request.form.get("hora_inicio")
-    hora_fim=request.form.get("hora_fim")
+    convidados = max((item["qtd"] for item in itens), default=1)
+    if not itens:
+        convidados = request.form.get("convidados", type=int)
+        if convidados is None or not 1 <= convidados <= 500:
+            flash("Informe de 1 a 500 convidados.", "danger")
+            return redirect(url_for("cliente.checkout"))
 
-    data_evento = string_para_data(data_evento)
-    hora_inicio = string_para_hora(hora_inicio)
-    hora_fim = string_para_hora(hora_fim)
+    pedido = criar_pedido(
+        id_cliente=session["id"], id_endereco=endereco.id_endereco,
+        num_convidados=convidados, valor_total=Decimal(total_centavos) / 100,
+        data_evento=data_evento, hora_inicio=hora_inicio, hora_fim=hora_fim,
+        cardapios=itens, observacao=request.form.get("obs", "").strip()[:1000] or None,
+        bebidas=bebidas,
+    )
+    if pedido is None:
+        flash("Não foi possível registrar seu pedido. Tente novamente.", "danger")
+        return redirect(url_for("cliente.checkout"))
 
-    total = sum(servico["qtd"] for servico in session["carrinho"])
+    id_pedido = pedido.id_pedido
+    session.pop("carrinho", None)
+    session.pop("endereco_evento_id", None)
+    session["pedido_recebido"] = id_pedido
+    try:
+        cliente = buscar_usuario_por_id(session["id"])
+        mensagem = f"Recebemos o pedido nº {id_pedido}. Ele aguarda confirmação."
+        enviar_email_nao_responda("Pedido recebido", cliente.email_criptografado, mensagem, f"<p>{mensagem}</p>")
+    except Exception:
+        current_app.logger.exception("Falha ao enviar e-mail do pedido %s", id_pedido)
+    return redirect(url_for("cliente.pedido_recebido", id_pedido=id_pedido), code=303)
 
 
-    criar_pedido(session.get("id"), id_endereco, data_evento, hora_inicio, hora_fim, session["carrinho"], total, observacao, bebidas)
-
-
-    registrar_log("REALIZOU PEDIDO",
-    "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****")
-
-    enviar_email_nao_responda("Pedido Realizado",
-
-    buscar_usuario_por_id(session.get("id")).email, "contém ****ADICIONAR CARDAPIOS E BEBIDAS E DADOS DO PEDIDO****",
-    "conteudo html ***adicionar modelo de pedido")
-    
-    flash("Pedido realizado com sucesso.", "success")
-    return redirect(url_for(request.endpoint))
+@cliente_bp.get("/pedido/<int:id_pedido>")
+def pedido_recebido(id_pedido):
+    pedido = buscar_pedido_por_id(id_pedido)
+    if pedido is None or pedido.id_cliente != session.get("id"):
+        return redirect(url_for("cliente.mostrar_carrinho"))
+    limpar_bebidas = session.get("pedido_recebido") == id_pedido
+    if limpar_bebidas:
+        session.pop("pedido_recebido", None)
+    return render_template("checkout.html", pedido=pedido, limpar_bebidas=limpar_bebidas)
 
 
 @cliente_bp.post("/cancelar_pedido/<int:id_pedido>")
-def cancelar_pedido(id_pedido: int):
-    """Cancela um pedido do cliente e registra a ação.
-
-    Args:
-        id_pedido (int): identificador do pedido a cancelar.
-
-    Returns:
-        Response | None: redirecionamento em caso de falha; None em caso de
-        sucesso.
-    """
-    if atualizar_pedido(id_pedido, status="cancelado"):
-        registrar_log("CANCELOU PEDIDO", "Cancelou o pedido.")
+def cancelar_pedido(id_pedido):
+    pedido = buscar_pedido_por_id(id_pedido)
+    if pedido is None or pedido.id_cliente != session.get("id"):
+        return redirect(url_for("cliente.mostrar_carrinho"))
+    if pedido.status == "aguardando" and atualizar_pedido(id_pedido, status="cancelado"):
+        flash("Pedido cancelado.", "success")
     else:
-        flash("Aconteceu um erro no cancelamento do pedido.", "danger")
-        return redirect(url_for("detalhes do pedido"))
+        flash("O pedido não pôde ser cancelado.", "danger")
+    return redirect(url_for("cliente.pedido_recebido", id_pedido=id_pedido))
 
 # =========================== BEBIDA ===========================
 
+def _catalogo_bebidas():
+    from bebidas_data import formatar_bebidas
+    return formatar_bebidas([dict(id=b.id_bebida, nome=b.nome,
+        descricao=b.descricao, preco=b.valor_unitario) for b in listar_bebidas()])
+
+
+@cliente_bp.get("/bebidas")
+def bebidas_avulsas():
+    return render_template("bebidas.html", bebidas=_catalogo_bebidas(),
+                           carrinho_url=url_for("cliente.mostrar_carrinho"))
+
+
 # =========================== ENDERECO ===========================
+
+def _endereco_evento_selecionado():
+    id_endereco = session.get("endereco_evento_id")
+    endereco = buscar_endereco_por_id(id_endereco) if id_endereco else None
+    if endereco is None or endereco.id_usuario != session.get("id"):
+        session.pop("endereco_evento_id", None)
+        return None
+    return endereco
+
+
+def _apresentar_endereco_cadastrado(endereco):
+    cep = endereco.cep.replace("-", "")
+    return apresentar_endereco_evento({
+        "rua": endereco.logradouro,
+        "numero": endereco.numero,
+        "complemento": endereco.complemento or "",
+        "bairro": endereco.bairro,
+        "cidade": endereco.cidade,
+        "cep": f"{cep[:5]}-{cep[5:]}" if len(cep) == 8 else endereco.cep,
+        "uf": endereco.uf or "",
+    })
+
+
+@cliente_bp.post("/carrinho/endereco")
+def selecionar_endereco():
+    if not request.is_json:
+        return jsonify(erro="Envie os dados do endereço em JSON."), 415
+    dados = request.get_json(silent=True)
+    if not isinstance(dados, dict):
+        return jsonify(erro="Informe os dados do endereço."), 400
+    if "id_endereco" in dados:
+        id_endereco = dados["id_endereco"]
+        if not isinstance(id_endereco, int) or isinstance(id_endereco, bool):
+            return jsonify(erro="Endereço inválido."), 400
+        endereco = buscar_endereco_por_id(id_endereco)
+        if endereco is None or endereco.id_usuario != session.get("id"):
+            return jsonify(erro="Endereço não encontrado."), 404
+    else:
+        try:
+            campos = validar_endereco_evento(dados)
+        except ValueError as erro:
+            return jsonify(erro=str(erro)), 400
+        atributos = {
+            "logradouro": campos["rua"], "numero": campos["numero"],
+            "complemento": campos["complemento"], "bairro": campos["bairro"],
+            "cidade": campos["cidade"], "cep": campos["cep"].replace("-", ""), "uf": campos["uf"],
+        }
+        # Uma repetição do envio reutiliza um endereço já cadastrado.
+        endereco = next((item for item in listar_enderecos_do_usuario(session["id"])
+                         if all((getattr(item, chave) or "") == valor for chave, valor in atributos.items())), None)
+        if endereco is None:
+            endereco = adicionar_endereco(nome="Endereço do evento", **atributos)
+        if endereco is None:
+            return jsonify(erro="Não foi possível salvar o endereço. Tente novamente."), 500
+    session["endereco_evento_id"] = endereco.id_endereco
+    return jsonify(_apresentar_endereco_cadastrado(endereco))
+
+
+@cliente_bp.get("/checkout")
+def checkout():
+    endereco = _endereco_evento_selecionado()
+    if endereco is None:
+        flash("Escolha o endereço do evento no carrinho.", "danger")
+        return redirect(url_for("cliente.mostrar_carrinho"))
+    itens, total = _itens_carrinho()
+    return render_template("checkout.html", itens_checkout=itens, total_centavos=total,
+                           bebidas=_catalogo_bebidas(), **_apresentar_endereco_cadastrado(endereco))
+
 
 @cliente_bp.get("/endereco")
 def endereco():
@@ -304,9 +429,8 @@ def _carrinho() -> list:
     """Retorna o carrinho da sessão, criando-o (lista vazia) se não existir."""
     return session.setdefault("carrinho", [])
 
-@cliente_bp.get("/carrinho")
-def mostrar_carrinho():
-    """Exibe a página do carrinho com os itens da sessão enriquecidos.
+def _itens_carrinho():
+    """Carrega os cardápios e calcula os subtotais em centavos.
 
     Cruza cada item de session['carrinho'] (via id_cardapio -> nome do cardápio)
     com os preços de docs/precos-menu.json (por nome) e com as imagens de
@@ -314,7 +438,7 @@ def mostrar_carrinho():
     (centavos) multiplicado pela quantidade de convidados.
 
     Returns:
-        str: template do carrinho com 'itens_carrinho' e 'total_centavos'.
+        tuple: itens do carrinho e total em centavos.
     """
     import json
     from pathlib import Path
@@ -331,7 +455,11 @@ def mostrar_carrinho():
 
     for numero, item in enumerate(carrinho, start=1):
         cardapio = buscar_cardapio_por_id(item.get("id_cardapio"))
-        if cardapio is None:
+        servico = buscar_servico_por_id(item.get("id_servico"))
+        if cardapio is None or servico is None or not any(
+            vinculo.id_cardapio == cardapio.id_cardapio
+            for vinculo in listar_cardapios_do_servico(servico.id_servico) or []
+        ):
             continue
 
         qtd = item.get("qtd", 0)
@@ -362,13 +490,61 @@ def mostrar_carrinho():
             "versao": versao,
             "qtd": qtd,
             "subtotal": subtotal_centavos,  # centavos
+            "inclui_bebidas": servico is not None and servico.slug == "bar",
         })
 
-    return render_template(
-        "carrinho.html",
-        itens_carrinho=itens_carrinho,
-        total_centavos=total_centavos,
-    )
+    return itens_carrinho, total_centavos
+
+
+@cliente_bp.get("/carrinho")
+def mostrar_carrinho():
+    """Exibe a página de carrinho para o usuário."""
+    endereco = _endereco_evento_selecionado()
+    dados_endereco = _apresentar_endereco_cadastrado(endereco) if endereco else {}
+    itens, total_centavos = _itens_carrinho()
+    return render_template("carrinho.html", itens_carrinho=itens, total_centavos=total_centavos,
+                           perfil_url=url_for("cliente.perfil"), bebidas=_catalogo_bebidas(),
+                           bebidas_url=url_for("cliente.bebidas_avulsas"),
+                           checkout_url=url_for("cliente.checkout"),
+                           salvar_endereco_url=url_for("cliente.selecionar_endereco"),
+                           login_url=url_for("auth.login") if "id" not in session else None,
+                           enderecos_cadastrados=listar_enderecos_do_usuario(session["id"]) if "id" in session else [],
+                           **dados_endereco)
+
+@cliente_bp.post("/carrinho/adicionar-do-menu")
+def adicionar_do_menu():
+    """Adiciona o cardápio público ao carrinho com os dados do catálogo."""
+    from menu_data import cardapios_do_menu
+
+    nome = request.form.get("nome")
+    qtd = request.form.get("qtd", type=int)
+    if nome not in cardapios_do_menu or qtd is None or not 10 <= qtd <= 500:
+        flash("Escolha um prato e informe uma quantidade de 10 a 500 pessoas.", "danger")
+        return redirect(url_for("cliente.menu"))
+
+    slug, nome_cadastrado = cardapios_do_menu[nome]
+    servico = buscar_servico_por_slug(slug)
+    cardapio = buscar_cardapio_por_nome(nome_cadastrado)
+    if servico is None or cardapio is None or not any(
+        vinculo.id_cardapio == cardapio.id_cardapio
+        for vinculo in listar_cardapios_do_servico(servico.id_servico) or []
+    ):
+        flash("Este prato está indisponível no momento.", "danger")
+        return redirect(url_for("cliente.menu"))
+
+    item = {"id_servico": servico.id_servico, "id_cardapio": cardapio.id_cardapio, "qtd": qtd}
+    carrinho = _carrinho()
+    existente = next((atual for atual in carrinho if atual["id_cardapio"] == item["id_cardapio"]), None)
+    if existente is None:
+        if any(atual["id_servico"] == servico.id_servico for atual in carrinho):
+            flash("Já existe um cardápio deste serviço no carrinho.", "danger")
+            return redirect(url_for("cliente.menu", _anchor="retorno-carrinho"))
+        carrinho.append(item)
+    else:
+        existente.update(item)
+    session["carrinho"] = carrinho
+    flash(f"{nome} para {qtd} pessoas está no carrinho.", "success")
+    return redirect(url_for("cliente.menu", _anchor="retorno-carrinho"))
 
 @cliente_bp.post("/carrinho/adicionar")
 def adicionar():
@@ -388,13 +564,16 @@ def adicionar():
     if (not slug_servico or id_cardapio is None or qtd_convidados is None
             or qtd_convidados < 10 or qtd_convidados > 500):
         flash("Valor(es) inválido(s).", "danger")
-        return redirect(url_for("cliente.mostrar_servico", slug=slug_servico))
+        return redirect(url_for("cliente.mostrar_servico", slug=slug_servico) if slug_servico else url_for("cliente.menu"))
 
     servico = buscar_servico_por_slug(slug_servico)
 
     cardapio = buscar_cardapio_por_id(id_cardapio)
 
-    if servico is None or cardapio is None:
+    if servico is None or cardapio is None or not any(
+        vinculo.id_cardapio == id_cardapio
+        for vinculo in listar_cardapios_do_servico(servico.id_servico) or []
+    ):
         flash("Serviço ou cardápio inválidos.", "danger")
         return redirect(url_for("cliente.mostrar_servico", slug=slug_servico))
 
@@ -499,47 +678,43 @@ def dados_perfil() -> Response:
     from security import descriptografar
     from utils import formatar_moeda
 
-    # usuario
-    usuario=buscar_usuario_por_id(session("id"))
+    id_usuario = session["id"]
+    usuario = buscar_usuario_por_id(id_usuario)
+    if usuario is None:
+        abort(404)
 
-    usuario.cpf_criptografado=descriptografar(usuario.cpf_criptografado)
-    usuario.email_criptografado=descriptografar(usuario.email_criptografado)
-
-    # pedido
-    pedido=next((p for p in listar_pedidos_por_cliente(session("id"))
-    if p.status not in ("cancelado", "concluido")), "Nenhum pedido ativo.")
-
-    pedido.valor_total = formatar_moeda(pedido.valor_total)
-
-    # detalhamento
-    cardapios=buscar_cardapios_pedido(pedido.id_pedido) or []
+    pedido = next(
+        (p for p in listar_pedidos_por_cliente(id_usuario)
+         if p.status not in ("cancelado", "concluido")),
+        None,
+    )
+    cardapios = buscar_cardapios_pedido(pedido.id_pedido) if pedido else []
     servicos = {
-        servico.nome: [cardapio.nome, formatar_moeda(cardapio.preco_base*pedido.num_convidados)]
-        for cardapio in cardapios
-        if (servico := buscar_servico_por_id(cardapio.id_servico))
+        servico.nome: [
+            cardapio.nome,
+            formatar_moeda(cardapio.preco_base * (item.qtd or pedido.num_convidados) * 100),
+        ]
+        for item in cardapios
+        if (servico := buscar_servico_por_id(item.id_servico))
+        and (cardapio := buscar_cardapio_por_id(item.id_cardapio))
     }
 
-    endereco = buscar_endereco_por_id(pedido.id_endereco)
-
-    bebidas=listar_bebidas_do_pedido(pedido.id_pedido) or []
-
-    valor_total = 0
-    for bebida in bebidas:
-        valor_total += bebida.valor_total
-    valor_total = formatar_moeda(valor_total)
+    endereco = buscar_endereco_por_id(pedido.id_endereco) if pedido else None
+    bebidas = (listar_bebidas_do_pedido(pedido.id_pedido) or []) if pedido else []
+    valor_total = formatar_moeda(sum(bebida.valor_total for bebida in bebidas) * 100)
 
     return jsonify({
         "usuario": {
             "id": usuario.id_usuario,
             "nome": usuario.nome,
-            "cpf": usuario.cpf_criptografado,
-            "email": usuario.email_criptografado,
+            "cpf": descriptografar(usuario.cpf_criptografado),
+            "email": descriptografar(usuario.email_criptografado),
         },
         "pedido": {
             "id": pedido.id_pedido,
             "status": pedido.status,
             "num_convidados": pedido.num_convidados,
-            "valor_total": pedido.valor_total,
+            "valor_total": formatar_moeda(pedido.valor_total * 100),
             "data_evento": pedido.data_evento.isoformat() if pedido.data_evento else None,
             "hora_inicio": pedido.hora_inicio.isoformat() if pedido.hora_inicio else None,
             "hora_fim": pedido.hora_fim.isoformat() if pedido.hora_fim else None,
@@ -551,7 +726,7 @@ def dados_perfil() -> Response:
                 {
                     "nome": buscar_bebida_por_id(b.id_bebida).nome,
                     "qtd": b.qtd,
-                    "valor_un": b.valor_total // b.qtd,
+                    "valor_un": b.valor_total / b.qtd,
                 }
                 for b in (bebidas or [])
             ],

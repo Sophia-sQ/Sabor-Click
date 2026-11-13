@@ -2,6 +2,8 @@
 
 from . import admin_bp
 
+from datetime import date
+
 from flask import request, url_for, Response, jsonify, render_template, flash, redirect
 
 from model.usuario_model import criar_usuario, buscar_funcionarios as listar
@@ -15,7 +17,10 @@ from security import validar_senha_forte
 @admin_bp.get("/visao-geral")
 def visao_geral():
     """Renderiza a página de visão geral do painel administrativo."""
-    return render_template("previas/funcionarios.html") # TODO: visao geral painel administrativo
+    return render_template(
+        "previas/admin.html",
+        relatorio_url=url_for("admin.gerar_relatorios_mensais"),
+    )
 
 # xxxxxxxxxxxxxxxxxxxxxxxxxx RELATÓRIOS DO MÊS xxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -36,7 +41,20 @@ def gerar_relatorios_mensais() -> Response:
             - pedidos_status (dict): quantidade de pedidos por status.
     """
     
-    import services 
+    if "inicio" in request.args or "fim" in request.args:
+        try:
+            inicio = date.fromisoformat(request.args.get("inicio", ""))
+            fim = date.fromisoformat(request.args.get("fim", ""))
+            if inicio > fim:
+                raise ValueError
+        except ValueError:
+            return jsonify(erro="Informe um intervalo de datas válido."), 400
+
+        from services.relatorios import resumo_pedidos_por_dia
+
+        return jsonify(dias=resumo_pedidos_por_dia(inicio, fim))
+
+    import services
     
     pq=services.pedidos_quantidade()
     fm=services.faturamento_periodo()

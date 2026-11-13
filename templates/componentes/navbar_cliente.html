@@ -1,0 +1,92 @@
+
+<header class="navbar" id="inicio">
+    <a class="marca" href="{{ url_for('cliente.home') }}">
+        <img
+            class="logo-marca"
+            src="{{ url_for('static', filename='images/logo-chef.png') }}"
+            width="38"
+            height="38"
+            alt=""
+        >
+        <span>Sabor &amp; Click</span>
+    </a>
+
+    <nav aria-label="Navegação principal">
+
+        <a href="{{ url_for('cliente.home') }}"
+           {% if request.endpoint == 'cliente.home' %}
+               aria-current="page"
+           {% endif %}>
+            Início
+        </a>
+
+        <a href="{{ url_for('cliente.home') }}#sobre">
+            Sobre
+        </a>
+
+        <a href="{{ url_for('cliente.home') }}#servicos">
+            Serviços
+        </a>
+
+        <a href="{{ url_for('cliente.menu') }}"
+           {% if request.endpoint == 'cliente.menu' %}
+               aria-current="page"
+           {% endif %}>
+            Menu
+        </a>
+
+        <div class="acoes-usuario">
+
+            <!-- Carrinho -->
+            <a class="link-acao"
+               href="{{ url_for('cliente.mostrar_carrinho') }}"
+               {% if request.endpoint == 'cliente.mostrar_carrinho' %}
+                   aria-current="page"
+               {% endif %}>
+
+                <img
+                    src="{{ url_for('static', filename='images/icone-carrinho.svg') }}"
+                    width="20"
+                    height="20"
+                    alt=""
+                >
+                <span>Carrinho</span>
+            </a>
+
+            <!-- Perfil ou Login -->
+            {% if session.get('id') %}
+
+                <a class="link-acao"
+                   href="{{ url_for('cliente.perfil') }}"
+                   {% if request.endpoint == 'cliente.perfil' %}
+                       aria-current="page"
+                   {% endif %}>
+
+                    <img
+                        src="{{ url_for('static', filename='images/icone-perfil.svg') }}"
+                        width="20"
+                        height="20"
+                        alt=""
+                    >
+                    <span>Minha conta</span>
+                </a>
+
+            {% else %}
+
+                <a class="link-acao"
+                   href="{{ url_for('auth.login') }}">
+
+                    <img
+                        src="{{ url_for('static', filename='images/icone-perfil.svg') }}"
+                        width="20"
+                        height="20"
+                        alt=""
+                    >
+                    <span>Entrar</span>
+                </a>
+
+            {% endif %}
+
+        </div>
+    </nav>
+</header>
