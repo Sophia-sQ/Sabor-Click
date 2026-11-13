@@ -183,9 +183,8 @@ def fazer_pedido():
     from zoneinfo import ZoneInfo
 
     # --- endereço do evento ---
-    id_endereco = request.form.get("endereco", type=int)
-    endereco = buscar_endereco_por_id(id_endereco) if id_endereco else None
-    if endereco is None or endereco.id_usuario != session.get("id"):
+    endereco = _endereco_evento_selecionado()
+    if endereco is None:
         flash("Escolha um endereço válido para o evento.", "danger")
         return redirect(url_for("cliente.mostrar_carrinho"))
 
@@ -204,10 +203,36 @@ def fazer_pedido():
     # --- carrinho (itens de cardápio) ---
     carrinho = session.get("carrinho", [])
 
-    # --- bebidas (opcionais, enviadas em JSON) ---
-    bebidas = request.get_json(silent=True)
-    if not isinstance(bebidas, list):
-        bebidas = []
+    # --- bebidas (opcionais) ---
+    # O checkout envia um campo de formulário oculto 'bebidas' com um JSON no
+    # formato {"<id_bebida>": qtd}. Cada bebida é validada no servidor (catálogo
+    # + quantidade) e o valor vem SEMPRE do banco (Bebida.valor_unitario), nunca
+    # de um preço informado pelo cliente.
+    from decimal import Decimal
+
+    try:
+        selecao_bebidas = json.loads(request.form.get("bebidas", "{}"))
+    except (TypeError, ValueError):
+        selecao_bebidas = {}
+    if not isinstance(selecao_bebidas, dict):
+        selecao_bebidas = {}
+
+    bebidas = []
+    for codigo, qtd in selecao_bebidas.items():
+        try:
+            bebida = buscar_bebida_por_id(int(codigo))
+        except (TypeError, ValueError):
+            bebida = None
+        if (bebida is None or bebida.valor_unitario is None
+                or isinstance(qtd, bool) or not isinstance(qtd, int)
+                or not 1 <= qtd <= 99):
+            flash("Confira as bebidas selecionadas antes de enviar o pedido.", "danger")
+            return redirect(url_for("cliente.mostrar_carrinho"))
+        bebidas.append({
+            "id_bebida": bebida.id_bebida,
+            "qtd": qtd,
+            "valor_total": Decimal(bebida.valor_unitario) * qtd,
+        })
 
     if not carrinho and not bebidas:
         flash("Adicione itens ao carrinho antes de confirmar.", "danger")

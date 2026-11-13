@@ -115,3 +115,79 @@ def validar_token(id_usuario: int, token_informado: str) -> bool:
     db.session.commit()
 
     return True
+
+
+def registrar_comandos(app) -> None:
+    """Registra os comandos de CLI deste módulo na aplicação Flask.
+
+    Deve ser chamada pela fábrica da aplicação (app.create_app) após o app ser
+    criado, evitando o import circular que ocorreria ao importar 'app' no topo.
+
+    Args:
+        app (Flask): instância da aplicação Flask.
+    """
+
+    @app.cli.command("token")
+    def ver_token():
+        """Exibe o token ativo (código de 6 dígitos + expiração) dos usuários da lista.
+
+        Considera apenas o administrador (ADMIN_EMAIL) e os usuários cadastrados
+        em seeds.lista_usuarios. Para cada um que tenha um token ativo,
+        reconstrói o código de seis dígitos a partir do codigo_hash por
+        força-bruta do espaço de 000000 a 999999 (viável por ser pequeno),
+        usando a chave TOKEN_SHA.
+
+        Raises:
+            RuntimeError: se a variável TOKEN_SHA não estiver configurada.
+        """
+        from datetime import timedelta
+
+        from click import secho
+
+        from security import gerar_hmac
+        from model.usuario_model import Usuario
+        from seeds import lista_usuarios
+
+        chave = env.get("TOKEN_SHA")
+
+        if not chave:
+            raise RuntimeError("A variável TOKEN_SHA não está configurada.")
+
+        chave_bytes = chave.encode("utf-8")
+
+        # Tabela hash -> código (uma única varredura reaproveitada para todos).
+        por_hash = {
+            hmac.new(chave_bytes, f"{numero:06d}".encode("utf-8"), hashlib.sha256).hexdigest(): f"{numero:06d}"
+            for numero in range(1_000_000)
+        }
+
+        # Usuários da lista: admin + cadastrados em seeds.lista_usuarios.
+        emails = [env.get("ADMIN_EMAIL")]
+        emails += [email for (_, _, email, _, _) in lista_usuarios]
+
+        for email in emails:
+            if not email:
+                continue
+
+            usuario = db.session.execute(
+                db.select(Usuario).where(Usuario.email_hmac == gerar_hmac(email=email)),
+            ).scalar_one_or_none()
+
+            if usuario is None:
+                continue
+
+            # buscar_token já valida 'ativo' e a expiração de 10 minutos.
+            registro = buscar_token(usuario.id_usuario, hoje())
+
+            if registro is None:
+                secho(f"{email}: nenhum token ativo", fg="yellow")
+                continue
+
+            codigo = por_hash.get(registro.codigo_hash, "(não encontrado)")
+            expira_em = registro.criado_em + timedelta(minutes=10)
+
+            secho(
+                f"{email}: código {codigo} · válido até {expira_em:%d/%m/%Y %H:%M:%S}",
+                fg="green",
+                bold=True,
+            )

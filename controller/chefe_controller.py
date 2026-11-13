@@ -92,7 +92,7 @@ def _contexto_email_pedido(pedido, data_atualizacao=None) -> dict:
         "ano": (quando or pedido.criado_em).strftime("%Y"),
     }
 
-
+@chefe_bp.get("")
 @chefe_bp.get('/cozinha')
 def pedidos():
     """Exibe a fila da cozinha com os pedidos aguardando preparo.
@@ -102,7 +102,7 @@ def pedidos():
     """
     
     pedidos = listar_pedido_por_status("aguardando")
-    return render_template("cozinha.html", pedidos=pedidos)
+    return render_template("previas/cozinha.html", pedidos=pedidos)
 
 @chefe_bp.route("/aceitar", methods=["POST"])
 def aceitar_pedido():

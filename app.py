@@ -42,6 +42,9 @@ def create_app() -> Flask:
     app.jinja_env.filters["moeda"] = formatar_moeda
     app.jinja_env.filters["nome_exibicao"] = nome_exibicao
 
+    from security.token_auth import registrar_comandos
+    registrar_comandos(app)
+
     @app.before_request
     def exigir_login():
         """Garante que o usuário esteja autenticado antes de acessar rotas privadas.
