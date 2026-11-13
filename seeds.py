@@ -810,10 +810,6 @@ lista_cargos = [
 
 # ================================= "Tabelas" USUARIOS / PEDIDOS =================================
 
-# Usuários adicionais (além do admin, que é criado por iniciar_admin()).
-# Cada CPF e e-mail é distinto do admin (00000000000 / ADMIN_EMAIL) e entre si,
-# pois cpf_hmac e email_hmac são UNIQUE. A senha é sempre colocada em hash.
-# nome, cpf, email, senha, cargo (Cargo enum)
 lista_usuarios = [
     ("Ana Clara Souza", "11144477735", "ana.souza@exemplo.com", "SenhaCliente1!", Cargo.CLIENTE),
     ("Bruno Henrique Lima", "22255588846", "bruno.lima@exemplo.com", "SenhaCliente2!", Cargo.CLIENTE),
@@ -822,9 +818,6 @@ lista_usuarios = [
     ("Eduarda Alves Pinto", "55588811123", "eduarda.pinto@exemplo.com", "SenhaChefe2!", Cargo.CHEFE),
 ]
 
-# Endereços vinculados aos clientes seed (resolvidos por e-mail do dono).
-# Variados: cidades/UFs diferentes, alguns com complemento e outros sem.
-# email_dono, nome, logradouro, numero, complemento, bairro, cidade, cep, uf
 lista_enderecos = [
     ("ana.souza@exemplo.com", "Casa", "Rua das Acácias", "120", "Apto 34", "Jardim Primavera", "São Paulo", "01234-567", "SP"),
     ("ana.souza@exemplo.com", "Trabalho", "Avenida Paulista", "1500", "Sala 802", "Bela Vista", "São Paulo", "01310-100", "SP"),
@@ -833,13 +826,6 @@ lista_enderecos = [
     ("carla.nunes@exemplo.com", "Sítio", "Estrada do Vale", "s/n", None, "Zona Rural", "Gravatá", "55640-000", "PE"),
 ]
 
-# Pedidos seed, cobrindo os cinco status do enum.
-# Resolvem cliente/chefe por e-mail e endereço pelo nome do endereço do cliente.
-# As datas de evento são futuras e hora_fim > hora_inicio.
-# O trigger de baixa de estoque é AFTER UPDATE OF status, portanto inserir um
-# pedido já com status 'confirmado'/'em preparo'/'concluido' NÃO o dispara.
-# chave, email_cliente, nome_endereco, email_chefe (ou None), status,
-#   dias_no_futuro, hora_inicio, hora_fim, valor_total, observacao, confirmado
 lista_pedidos = [
     ("pedido_aguardando", "ana.souza@exemplo.com", "Casa", None,
      "aguardando", 30, time(18, 0), time(23, 0), 1499.00,
@@ -858,9 +844,6 @@ lista_pedidos = [
      "Cliente cancelou por mudança de data.", False),
 ]
 
-# Cardápios de cada pedido. (nome_servico, nome_cardapio) precisa existir em
-# lista_servicos_cardapios para que (id_cardapio, id_servico) seja consistente.
-# chave_pedido, nome_servico, nome_cardapio, num_convidados
 lista_cardapio_pedido = [
     ("pedido_aguardando", "Chef_em_casa", "Feijoada_completa", 30),
     ("pedido_confirmado", "Buffet", "Strogonoff_de_file_Mignon", 80),
@@ -871,8 +854,6 @@ lista_cardapio_pedido = [
     ("pedido_cancelado", "Mesa_de_salgados", "Hamburguer_tradicional", 200),
 ]
 
-# Bebidas avulsas de alguns pedidos. valor_total = valor_unitario * qtd (resolvido
-# dinamicamente no inicializador a partir da bebida). chave_pedido, nome_bebida, qtd
 lista_pedido_bebida = [
     ("pedido_aguardando", "Agua_com_gas", 30),
     ("pedido_aguardando", "Suco_de_abacaxi", 15),
@@ -880,8 +861,6 @@ lista_pedido_bebida = [
     ("pedido_concluido", "Agua_de_coco", 40),
 ]
 
-# Logs de auditoria seed, espelhando as ações usadas pelos controllers.
-# email_usuario, acao, descricao
 lista_logs = [
     ("ana.souza@exemplo.com", "LOGIN", "Usuário efetuou login no sistema."),
     ("ana.souza@exemplo.com", "NOVO ENDERECO", "Novo endereço cadastrado pelo cliente."),
@@ -891,9 +870,6 @@ lista_logs = [
     ("diego.rocha@exemplo.com", "LOGIN", "Chefe efetuou login no sistema."),
 ]
 
-# Tokens de verificação seed. O codigo_hash é o HMAC-SHA256 do código, com a
-# mesma chave (TOKEN_SHA) usada em security/token_auth.py; nunca em texto puro.
-# email_usuario, codigo, ativo, tentativas
 lista_tokens = [
     ("ana.souza@exemplo.com", "123456", True, 0),
     ("bruno.lima@exemplo.com", "654321", False, 3),
