@@ -13,7 +13,7 @@
     </header>
     <div class="estrutura estrutura-admin">
         {% include "componentes/menu_admin.html" %}
-        <main>{% block conteudo_admin %}{% endblock %}</main>
+        <main>{% include "componentes/mensagens.html" %}{% block conteudo_admin %}{% endblock %}</main>
     </div>
     {% block dialogos_admin %}{% endblock %}
 {% endblock %}

@@ -2,13 +2,9 @@
 {% set pagina_admin = "funcionarios" %}
 {% set inicio_admin = url_for('admin.visao_geral') %}
 {% block titulo %}Funcionários | Sabor &amp; Click{% endblock %}
-{% block estilos_admin %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
-{% endblock %}
 {% block conteudo_admin %}
 <header class="intro"><h1>Funcionários</h1><p>Cadastre e consulte os funcionários da equipe.</p></header>
 <section class="card">
-    {% include "componentes/mensagens.html" %}
     <div class="cabecalho-estoque"><h2>Equipe</h2><button type="button" id="abrir-funcionario" class="cadastrar-item" aria-haspopup="dialog" aria-controls="cadastro-funcionario">Cadastrar funcionário</button></div>
     {% if funcionarios %}
     <div class="tabela">

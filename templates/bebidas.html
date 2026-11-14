@@ -9,6 +9,7 @@
 {% block conteudo %}
 <header class="navbar"><a class="marca" href="/"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" alt="" width="38" height="38">Sabor &amp; Click</a><nav aria-label="Navegação principal"><a href="{{ carrinho_url }}">Voltar ao carrinho</a></nav></header>
 <main class="bebidas-conteudo">
+{% include "componentes/mensagens.html" %}
 <section class="bebidas-intro"><div><p class="rotulo">PARA ACOMPANHAR SEU PEDIDO</p><h1>Um brinde à sua escolha.</h1><p>Escolha suas bebidas à parte e adicione a quantidade que desejar ao carrinho.</p></div></section>
 <form class="filtros-bebidas" role="search"><div><label for="buscar-bebida">Qual bebida você procura?</label><input id="buscar-bebida" type="search" placeholder="Busque pelo nome"></div><div><label for="categoria-bebida">Tipo de bebida</label><select id="categoria-bebida"><option value="">Todas as bebidas</option><option>Sem álcool</option><option>Com álcool</option></select></div></form>
 <p id="status-bebidas" role="status" aria-live="polite"></p>

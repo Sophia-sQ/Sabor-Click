@@ -2,13 +2,9 @@
 {% set pagina_admin = "logs" %}
 {% set inicio_admin = url_for('admin.visao_geral') %}
 {% block titulo %}Logs de atividade | Sabor &amp; Click{% endblock %}
-{% block estilos_admin %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
-{% endblock %}
 {% block conteudo_admin %}
 <header class="intro"><h1>Registros de atividade</h1><p>Consulte a trilha de auditoria das ações realizadas no sistema.</p></header>
 <section class="card">
-    {% include "componentes/mensagens.html" %}
     <div class="cabecalho-estoque">
         <h2>Atividades</h2>
         <form class="filtros-estoque formulario" method="get" action="{{ url_for('admin.pagina_logs') }}" role="search" aria-label="Buscar registros por ação">

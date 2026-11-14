@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
 </head>
 <body>
     <header class="navbar" id="inicio">
@@ -17,6 +18,7 @@
         <nav aria-label="Navegação principal"><a href="#inicio" aria-current="page">Início</a><a href="#sobre">Sobre</a><a href="#servicos">Serviços</a><a class="botao" href="{{ url_for('auth.login') }}">Login</a></nav>
     </header>
     <main>
+        {% include "componentes/mensagens.html" %}
         <section class="hero" aria-labelledby="titulo-home">
             <div class="hero-conteudo">
                 <p class="selo">GASTRONOMIA PARA MOMENTOS ESPECIAIS</p>

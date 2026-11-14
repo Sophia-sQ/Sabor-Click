@@ -5,7 +5,6 @@
 {% block cabecalho_admin %}<span class="identificador">PAINEL ADMINISTRATIVO</span>{% endblock %}
 {% block conteudo_admin %}
 <header class="intro catalogo-cabecalho"><div><p class="rotulo">ESTAÇÕES DE PRODUÇÃO</p><h1>Bancadas</h1></div></header>
-{% include "componentes/mensagens.html" %}
 {% if atual %}{% set acao_form = url_for('admin.atualizar_bancada_route', id_bancada=atual.id) %}{% else %}{% set acao_form = url_for('admin.criar_bancada_route') %}{% endif %}
 <section class="cadastro-catalogo"><header class="titulo-cadastro"><div><p class="rotulo">{{ 'ATUALIZE SUA BANCADA' if atual else 'AMPLIE SUAS BANCADAS' }}</p><h2>{{ 'Editar' if atual else 'Adicionar' }} bancada</h2></div>{% if atual %}<a href="{{ url_for('admin.catalogo_bancadas') }}">Cancelar edição</a>{% endif %}</header>
 <form method="post" class="formulario formulario-catalogo" action="{{ acao_form }}">

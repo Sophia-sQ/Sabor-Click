@@ -6,6 +6,7 @@
     <title>{{ 'Pedido recebido' if pedido else 'Finalizar pedido' }} | Sabor &amp; Click</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/previas.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
     <script src="{{ url_for('static', filename='js/bebidas.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/checkout.js') }}" defer></script>
 </head>
@@ -14,9 +15,7 @@
     <a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt="">Sabor &amp; Click</a>
 </header>
 <main class="estrutura">
-    {% for mensagem in get_flashed_messages(category_filter=['success', 'danger']) %}
-    <p role="status">{{ mensagem }}</p>
-    {% endfor %}
+    {% include "componentes/mensagens.html" %}
     {% if pedido %}
     <section class="card" {% if limpar_bebidas %}id="limpar-bebidas"{% endif %}>
         <h1>Pedido nº {{ pedido.id_pedido }}</h1>

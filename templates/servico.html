@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
 </head>
 <body class="pagina-menu">
 <header class="navbar">
@@ -15,6 +16,7 @@
     <nav aria-label="Navegação principal"><a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.menu') }}">Menu</a><a class="icone-acao carrinho" href="{{ url_for('cliente.mostrar_carrinho') }}" aria-label="Carrinho"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a></nav>
 </header>
 <main>
+{% include "componentes/mensagens.html" %}
 {% from 'componentes/fotos_servicos.html' import fotos_servicos %}
 <section class="menu-intro">
     {% if servico.slug in fotos_servicos %}

@@ -3,15 +3,11 @@
 {% set inicio_admin = url_for('admin.visao_geral') %}
 {% block titulo %}Estoque | Sabor &amp; Click{% endblock %}
 {% block classe_admin %} pagina-estoque{% endblock %}
-{% block estilos_admin %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
-{% endblock %}
 {% block conteudo_admin %}
 {% set nomes_ingredientes = {} %}
 {% for ingrediente in ingredientes %}{% set _ = nomes_ingredientes.update({ingrediente.id_ingrediente: ingrediente.nome|nome_exibicao}) %}{% endfor %}
 <header class="intro"><h1>Estoque do Sabor</h1><p>Consulte ingredientes e lotes.</p></header>
 <section class="card">
-    {% include "componentes/mensagens.html" %}
     <div class="cabecalho-estoque">
         <h2 id="titulo-entidade">Ingredientes</h2>
         <button type="button" class="cadastrar-item" aria-haspopup="dialog" aria-controls="cadastro-item">Cadastrar item</button>

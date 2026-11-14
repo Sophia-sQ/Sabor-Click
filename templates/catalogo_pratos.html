@@ -6,7 +6,6 @@
 {% block cabecalho_admin %}<span class="identificador">PAINEL ADMINISTRATIVO</span>{% endblock %}
 {% block conteudo_admin %}
 <header class="intro catalogo-cabecalho"><div><p class="rotulo">ESCOLHAS PARA SEUS CLIENTES</p><h1>Pratos</h1></div><a class="botao ver-catalogo" href="{{ url_for('cliente.menu') }}">Ver página do cliente ↗</a></header>
-{% include "componentes/mensagens.html" %}
 {% if atual %}{% set acao_form = url_for('admin.atualizar_prato_route', id_prato=atual.id) %}{% else %}{% set acao_form = url_for('admin.criar_prato_route') %}{% endif %}
 <section class="cadastro-catalogo"><header class="titulo-cadastro"><div><p class="rotulo">{{ 'ATUALIZE SUA OPÇÃO' if atual else 'AMPLIE SUAS OPÇÕES' }}</p><h2>{{ 'Editar' if atual else 'Adicionar' }} prato</h2></div>{% if atual %}<a href="{{ url_for('admin.catalogo_pratos') }}">Cancelar edição</a>{% endif %}</header>
 <form method="post" class="formulario formulario-catalogo" action="{{ acao_form }}" enctype="multipart/form-data">

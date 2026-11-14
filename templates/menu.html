@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
 </head>
 {% set categorias = categorias | rejectattr("id", "equalto", "sobremesas") | list %}
 {% macro moeda(centavos) %}R$ {{ '{:,.2f}'.format(centavos / 100).replace(',', '_').replace('.', ',').replace('_', '.') }}{% endmacro %}
@@ -30,14 +31,19 @@
 <main>
 <section class="menu-intro"><div class="menu-intro-texto"><p class="rotulo">SABORES QUE REÚNEM</p><h1>Menus para celebrar.</h1><p class="introducao">Boa comida, companhia especial e um evento com a sua cara. Explore nossos cardápios e encontre seus sabores favoritos.</p></div><figure class="menu-intro-foto"><img src="{{ url_for('static', filename='images/menu-encontro.jpg') }}" alt="Pessoas reunidas ao redor de uma mesa com pratos, queijos e acompanhamentos para compartilhar" width="1400" height="934" fetchpriority="high" decoding="async"></figure></section>
 <section class="menu-catalogo" aria-label="Catálogo de cardápios">
-{% for categoria_aviso, mensagem in get_flashed_messages(with_categories=true, category_filter=['success', 'danger']) %}
-<p class="detalhe-nota" id="retorno-carrinho" role="status">
-    {{ mensagem }}
-    {% if categoria_aviso == 'success' %}
-    <a href="{{ carrinho_url if carrinho_url is defined else url_for('cliente.mostrar_carrinho') }}">Ver carrinho ↗</a>
-    {% endif %}
-</p>
-{% endfor %}
+{% with mensagens = get_flashed_messages(with_categories=true) %}
+{% if mensagens %}
+<div class="mensagens-formulario" id="retorno-carrinho">
+    {% for categoria_aviso, mensagem in mensagens %}
+    {% set tipo = categoria_aviso if categoria_aviso in ['success', 'danger', 'error', 'warning', 'info'] else 'info' %}
+    <div class="mensagem-formulario mensagem-{{ tipo }}" role="{{ 'alert' if tipo in ['danger', 'error', 'warning'] else 'status' }}">
+        <span class="mensagem-simbolo" aria-hidden="true">{{ '✓' if tipo == 'success' else '!' if tipo in ['danger', 'error', 'warning'] else 'i' }}</span>
+        <p>{{ mensagem }}{% if categoria_aviso == 'success' %} <a href="{{ carrinho_url if carrinho_url is defined else url_for('cliente.mostrar_carrinho') }}">Ver carrinho ↗</a>{% endif %}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
 <form class="menu-filtros" role="search" onsubmit="return false">
 <div><label for="filtro-categoria">Tipo de cardápio</label><select id="filtro-categoria"><option value="">Todos os cardápios</option>{% for categoria in categorias %}<option value="{{ categoria.id }}">{{ categoria.nome }}</option>{% endfor %}</select></div>
 <div><label for="filtro-busca">Encontre seu sabor</label><input id="filtro-busca" type="search" placeholder="Busque um prato ou ingrediente"></div>

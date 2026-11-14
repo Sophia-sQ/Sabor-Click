@@ -2,13 +2,9 @@
 {% set pagina_admin = "logs" %}
 {% set inicio_admin = url_for('admin.visao_geral') %}
 {% block titulo %}Detalhe do registro | Sabor &amp; Click{% endblock %}
-{% block estilos_admin %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
-{% endblock %}
 {% block conteudo_admin %}
 <header class="intro"><h1>Registro de atividade</h1><p>Detalhes do registro #{{ log.id_atividade }} da trilha de auditoria.</p></header>
 <section class="card">
-    {% include "componentes/mensagens.html" %}
     <div class="cabecalho-estoque">
         <h2>{{ log.acao }}</h2>
         <a href="{{ url_for('admin.pagina_logs') }}">Voltar</a>

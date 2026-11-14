@@ -13,6 +13,7 @@
     <script src="{{ url_for('static', filename='js/bebidas.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/carrinho.js') }}" defer></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
 </head>
 <body class="pagina-carrinho">
     <header class="navbar">
@@ -27,9 +28,7 @@
     {% macro moeda(valor) %}R$ {{ '{:,.2f}'.format(valor).replace(',', '_').replace('.', ',').replace('_', '.') }}{% endmacro %}
     <main class="carrinho-conteudo">
         <header class="carrinho-cabecalho"><h1>Seu carrinho</h1><p>Revise os serviços escolhidos antes de finalizar.</p></header>
-        {% for mensagem in get_flashed_messages(category_filter=['danger']) %}
-        <p class="aviso-carrinho" role="status">{{ mensagem }}</p>
-        {% endfor %}
+        {% include "componentes/mensagens.html" %}
         <div class="carrinho-colunas">
             <section class="itens-carrinho" aria-label="Serviços escolhidos">
                 {% for item in itens %}
