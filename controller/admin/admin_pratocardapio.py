@@ -8,21 +8,22 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from utils import moeda_para_centavos
 
-from services import imagem_cardapio
+from services import imagem_cardapio, imagem_prato
 
 from model.servico_model import (
     criar_cardapio, atualizar_cardapio, buscar_cardapio_por_id,
     listar_cardapios, listar_servicos, buscar_servico_por_slug,
     associar_servico_cardapio, desassociar_servico_cardapio,
     listar_cardapios_do_servico, desativar_cardapio,
-    ServicoCardapio, Servico,
+    ServicoCardapio, Servico, Cardapio,
 )
 from model.ficha_model import (
     # Prato
-    criar_prato, buscar_prato_por_id, listar_pratos, atualizar_prato, deletar_prato,
+    criar_prato, buscar_prato_por_id, listar_pratos, atualizar_prato,
+    desativar_prato, listar_pratos_ativos,
     # Prato x cardápio
     associar_prato_cardapio, buscar_prato_cardapio, listar_pratos_por_cardapio,
-    atualizar_prato_cardapio, deletar_prato_cardapio
+    atualizar_prato_cardapio, deletar_prato_cardapio, PratoCardapio,
 )
 from database import db
 
@@ -285,15 +286,128 @@ def del_cardapio(id_cardapio):
     flash("Cardápio removido.", "success")
     return voltar
 
+# ===================== CATÁLOGO DE PRATOS (página real) =====================
+
+def _cardapios_associados_do_prato(id_prato: int) -> list[int]:
+    """Lista os ids dos cardápios atualmente associados a um prato."""
+    ids = db.session.execute(
+        db.select(PratoCardapio.id_cardapio)
+        .where(PratoCardapio.id_prato == id_prato),
+    ).scalars().all()
+    return list(ids)
+
+
+def _cardapios_catalogo() -> dict:
+    """Mapeia id_cardapio -> nome a partir dos cardápios reais do banco.
+
+    Usado para montar as checkboxes do formulário de prato (associação a
+    cardápios) e para exibir os cardápios de cada prato na listagem. Espelha
+    _servicos_catalogo do cardápio, mas chaveado por id (não por slug) porque a
+    associação prato-cardápio usa a chave composta (id_prato, id_cardapio).
+
+    Returns:
+        dict: {id_cardapio: nome} ordenado pelos cardápios cadastrados.
+    """
+    return {c.id_cardapio: c.nome for c in (listar_cardapios() or [])}
+
+
+def _itens_prato(mapa_imagens: dict) -> list:
+    """Monta a lista de pratos (todos, ativos e inativos) para o catálogo admin."""
+    itens = []
+    for prato in listar_pratos() or []:
+        itens.append({
+            "id": prato.id_prato,
+            "nome": prato.nome,
+            "descricao": prato.descricao,
+            "tipo_prato": prato.tipo_prato,
+            "tempo_preparo": prato.tempo_preparo,
+            "requer_pre_preparo": prato.requer_pre_preparo,
+            "imagem": _imagem_rel(mapa_imagens, prato.imagem_slug),
+            "cardapios": _cardapios_associados_do_prato(prato.id_prato),
+            "ativo": prato.ativo,
+        })
+    return itens
+
+
+@admin_bp.get("/pratos")
+def catalogo_pratos():
+    """Renderiza a página real de catálogo de pratos (CMS).
+
+    Lista todos os pratos (ativos e inativos, via listar_pratos), marcando os
+    inativos. Suporta ?editar=<id> (abre o formulário já preenchido) e
+    ?gerenciar=1 (abre a seção de gerenciamento), como nas demais páginas.
+    """
+    mapa = _mapa_imagens("imagens-pratos.json")
+    itens = _itens_prato(mapa)
+    cardapios_catalogo = _cardapios_catalogo()
+
+    editar = request.args.get("editar", "")
+    atual = None
+    valores = {}
+    if editar:
+        atual = next((i for i in itens if str(i["id"]) == str(editar)), None)
+        if atual:
+            valores = dict(atual)
+
+    return render_template(
+        "catalogo_pratos.html",
+        itens=itens,
+        cardapios_catalogo=cardapios_catalogo,
+        atual=atual,
+        valores=valores,
+        gerenciar=request.args.get("gerenciar") == "1",
+    )
+
+
+def _sincronizar_cardapios_do_prato(id_prato: int, ids_cardapio_enviados: list) -> None:
+    """Sincroniza PratoCardapio com os cardápios marcados (associa/desassocia).
+
+    A partir dos ids de cardápio marcados nos checkboxes, associa os novos
+    (associar_prato_cardapio com qtd padrão 1 e descricao None) e desassocia os
+    retirados (deletar_prato_cardapio), comparando com as associações atuais do
+    prato. Espelha _sincronizar_servicos do cardápio.
+
+    Nota de decisão: pratos se ligam a SERVIÇOS INDIRETAMENTE via cardápios (não
+    há tabela prato-servico no schema). Portanto associar o prato a cardápios é a
+    forma de colocá-lo em serviços -- o cardápio já carrega a associação com os
+    serviços (ServicoCardapio).
+
+    Apenas ids válidos (correspondentes a Cardapio reais) são considerados; ids
+    desconhecidos são ignorados silenciosamente.
+    """
+    validos = set()
+    for texto in dict.fromkeys(ids_cardapio_enviados):
+        try:
+            id_cardapio = int(str(texto).strip())
+        except (TypeError, ValueError):
+            continue
+        if db.session.get(Cardapio, id_cardapio) is not None:
+            validos.add(id_cardapio)
+
+    atuais = set(_cardapios_associados_do_prato(id_prato))
+
+    for id_cardapio in validos - atuais:
+        associar_prato_cardapio(id_prato, id_cardapio, 1, None)
+
+    for id_cardapio in atuais - validos:
+        deletar_prato_cardapio(id_prato, id_cardapio)
+
+
 # ========================= PRATO =========================
 
 @admin_bp.post("/servicos/pratos/criar")
 def criar_prato_route():
-    """Cria um prato a partir do formulário, validando tipo e tempo de preparo.
+    """Cria um prato a partir do formulário, com imagem e cardápios opcionais.
+
+    Valida nome/descrição/tipo/tempo de preparo, aceita upload opcional de imagem
+    e sincroniza as associações a cardápios marcadas nos checkboxes. Redireciona
+    (PRG) para a página de pratos.
 
     Returns:
-        Response: redirecionamento para a página de serviços.
+        Response: redirecionamento para o catálogo de pratos.
     """
+    voltar = redirect(url_for("admin.catalogo_pratos", gerenciar=1))
+
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     tipo_prato = request.form.get("tipo_prato", "").strip()
@@ -303,41 +417,62 @@ def criar_prato_route():
     tipos_validos = {"entrada", "acompanhamento", "prato principal", "sobremesa"}
     if not nome or not descricao or not tipo_prato or not tempo_texto:
         flash("Preencha todos os campos obrigatórios do prato.", "danger")
-        return _retorno()
+        return voltar
     if tipo_prato not in tipos_validos:
         flash("Tipo de prato inválido.", "danger")
-        return _retorno()
+        return voltar
 
     try:
         tempo_preparo = _int_form(tempo_texto)
     except ValueError:
         flash("O tempo de preparo deve ser um número inteiro.", "danger")
-        return _retorno()
+        return voltar
 
     if tempo_preparo < 0:
         flash("O tempo de preparo não pode ser negativo.", "danger")
-        return _retorno()
+        return voltar
+
+    # Imagem opcional: salva o arquivo e sincroniza docs/imagens-pratos.json.
+    imagem_slug = None
+    arquivo = request.files.get("imagem")
+    if arquivo is not None and arquivo.filename:
+        try:
+            imagem_slug = imagem_prato.salvar_imagem_prato(arquivo, nome)
+        except ValueError as erro:
+            flash(f"Imagem inválida: {erro}", "danger")
+            return voltar
 
     try:
-        criar_prato(nome, descricao, tipo_prato, tempo_preparo, requer_pre_preparo)
+        novo_id = criar_prato(nome, descricao, tipo_prato, tempo_preparo,
+                              requer_pre_preparo, imagem_slug=imagem_slug)
     except SQLAlchemyError:
         flash("Não foi possível criar o prato.", "danger")
-        return _retorno()
+        return voltar
+
+    # Sincroniza os cardápios marcados nas checkboxes (associa os novos).
+    _sincronizar_cardapios_do_prato(novo_id, request.form.getlist("cardapios"))
 
     flash("Prato criado.", "success")
-    return _retorno()
+    return voltar
 
 
 @admin_bp.post("/servicos/pratos/atualizar/<int:id_prato>")
 def atualizar_prato_route(id_prato):
-    """Atualiza um prato a partir do formulário, validando tipo e tempo.
+    """Atualiza um prato (imagem e cardápios opcionais) a partir do formulário.
 
     Args:
         id_prato (int): identificador do prato a atualizar.
 
     Returns:
-        Response: redirecionamento para a página de serviços.
+        Response: redirecionamento para o catálogo de pratos.
     """
+    voltar = redirect(url_for("admin.catalogo_pratos", gerenciar=1))
+
+    prato = buscar_prato_por_id(id_prato)
+    if prato is None:
+        flash("Prato não encontrado.", "danger")
+        return voltar
+
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     tipo_prato = request.form.get("tipo_prato", "").strip()
@@ -347,55 +482,85 @@ def atualizar_prato_route(id_prato):
     tipos_validos = {"entrada", "acompanhamento", "prato principal", "sobremesa"}
     if not nome or not descricao or not tipo_prato or not tempo_texto:
         flash("Preencha todos os campos obrigatórios do prato.", "danger")
-        return _retorno()
+        return voltar
     if tipo_prato not in tipos_validos:
         flash("Tipo de prato inválido.", "danger")
-        return _retorno()
+        return voltar
 
     try:
         tempo_preparo = _int_form(tempo_texto)
     except ValueError:
         flash("O tempo de preparo deve ser um número inteiro.", "danger")
-        return _retorno()
+        return voltar
 
     if tempo_preparo < 0:
         flash("O tempo de preparo não pode ser negativo.", "danger")
-        return _retorno()
+        return voltar
+
+    # Nova imagem é opcional: se enviada, sobrescreve a imagem atual (mantendo o
+    # mesmo slug quando já existe); se não, mantém a imagem atual.
+    imagem_slug = None
+    arquivo = request.files.get("imagem")
+    if arquivo is not None and arquivo.filename:
+        try:
+            imagem_slug = imagem_prato.atualizar_imagem_prato(
+                arquivo, nome, prato.imagem_slug)
+        except ValueError as erro:
+            flash(f"Imagem inválida: {erro}", "danger")
+            return voltar
 
     try:
         sucesso = atualizar_prato(
             id_prato=id_prato, nome=nome, descricao=descricao,
             tipo_prato=tipo_prato, tempo_preparo=tempo_preparo,
-            requer_pre_preparo=requer_pre_preparo,
+            requer_pre_preparo=requer_pre_preparo, imagem_slug=imagem_slug,
         )
     except SQLAlchemyError:
         flash("Não foi possível atualizar o prato.", "danger")
-        return _retorno()
+        return voltar
 
-    flash("Prato atualizado." if sucesso else "Prato não encontrado.",
-          "success" if sucesso else "danger")
-    return _retorno()
+    if not sucesso:
+        flash("Prato não encontrado.", "danger")
+        return voltar
+
+    # Sincroniza os cardápios marcados (associa os novos, desassocia os retirados).
+    _sincronizar_cardapios_do_prato(id_prato, request.form.getlist("cardapios"))
+
+    flash("Prato atualizado.", "success")
+    return voltar
 
 
 @admin_bp.post("/servicos/pratos/deletar/<int:id_prato>")
 def deletar_prato_route(id_prato):
-    """Exclui um prato e sinaliza o resultado via flash.
+    """Desativa (soft delete) um prato e esconde sua imagem do JSON.
+
+    Não remove fisicamente o registro (pode estar referenciado por pedidos
+    antigos, que a cozinha continua resolvendo): marca ativo=False (some das
+    listagens do admin) e retira a imagem do docs/imagens-pratos.json.
 
     Args:
-        id_prato (int): identificador do prato a excluir.
+        id_prato (int): identificador do prato a desativar.
 
     Returns:
-        Response: redirecionamento para a página de serviços.
+        Response: redirecionamento para o catálogo de pratos.
     """
-    try:
-        sucesso = deletar_prato(id_prato)
-    except SQLAlchemyError:
-        flash("Não foi possível excluir o prato. Verifique se ele está vinculado a outros registros.", "danger")
-        return _retorno()
+    voltar = redirect(url_for("admin.catalogo_pratos", gerenciar=1))
 
-    flash("Prato deletado." if sucesso else "Prato não encontrado.",
-          "success" if sucesso else "danger")
-    return _retorno()
+    prato = buscar_prato_por_id(id_prato)
+    if prato is None:
+        flash("Prato não encontrado.", "danger")
+        return voltar
+
+    slug = prato.imagem_slug
+    if not desativar_prato(id_prato):
+        flash("Prato não encontrado.", "danger")
+        return voltar
+
+    if slug:
+        imagem_prato.remover_imagem_prato(slug)
+
+    flash("Prato removido.", "success")
+    return voltar
 
 
 # ========================= PRATO-CARDÁPIO =========================
@@ -434,6 +599,7 @@ def criar_prato_cardapio_route():
     return _retorno()
 
 # essas rotas com 2 ids, ou você pega eles com a função de buscar por nome ou faz um card pronto já com os ids
+@admin_bp.post("/servicos/prato-cardapio/atualizar/<int:id_prato>/<int:id_cardapio>")
 def atualizar_prato_cardapio_route(id_prato, id_cardapio):
     """Atualiza a associação prato-cardápio (quantidade/descrição).
 

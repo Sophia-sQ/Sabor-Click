@@ -1,0 +1,38 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = 'bancada' %}
+{% block titulo %}Bancadas | Administração{% endblock %}
+{% block estilos_admin %}<link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo-admin.css') }}">{% endblock %}
+{% block cabecalho_admin %}<span class="identificador">PAINEL ADMINISTRATIVO</span>{% endblock %}
+{% block conteudo_admin %}
+<header class="intro catalogo-cabecalho"><div><p class="rotulo">ESTAÇÕES DE PRODUÇÃO</p><h1>Bancadas</h1></div></header>
+{% include "componentes/mensagens.html" %}
+{% if atual %}{% set acao_form = url_for('admin.atualizar_bancada_route', id_bancada=atual.id) %}{% else %}{% set acao_form = url_for('admin.criar_bancada_route') %}{% endif %}
+<section class="cadastro-catalogo"><header class="titulo-cadastro"><div><p class="rotulo">{{ 'ATUALIZE SUA BANCADA' if atual else 'AMPLIE SUAS BANCADAS' }}</p><h2>{{ 'Editar' if atual else 'Adicionar' }} bancada</h2></div>{% if atual %}<a href="{{ url_for('admin.catalogo_bancadas') }}">Cancelar edição</a>{% endif %}</header>
+<form method="post" class="formulario formulario-catalogo" action="{{ acao_form }}">
+<input type="hidden" name="id" value="{{ atual.id if atual else '' }}">
+<div class="campos-catalogo">
+<div><label for="nome-item">Nome</label><input id="nome-item" name="nome" required maxlength="60" value="{{ valores.get('nome','') }}" placeholder="Ex.: Bancada de grelhados"></div>
+<div class="campo-largo"><label for="descricao-item">Descrição</label><textarea id="descricao-item" name="descricao" required maxlength="1000" rows="4" placeholder="Descreva a bancada.">{{ valores.get('descricao','') }}</textarea></div>
+<fieldset class="campo-largo servicos-catalogo">
+    <legend>Serviços</legend>
+    {% set selecionados = valores.get('servicos', []) %}
+    <div class="opcoes-servicos">
+    {% for slug, dados in servicos_catalogo.items() %}
+        <label>
+            <input type="checkbox" name="servicos" value="{{ slug }}"{% if slug in selecionados %} checked{% endif %}>
+            {{ dados[0] }}
+        </label>
+    {% else %}
+        <p>Nenhum serviço cadastrado. Crie um serviço para associar esta bancada.</p>
+    {% endfor %}
+    </div>
+    <small>Marque os serviços atendidos por esta bancada.</small>
+</fieldset>
+</div>
+<div class="acoes-cadastro"><button type="submit">{{ 'Salvar alterações' if atual else 'Adicionar bancada +' }}</button>{% if atual %}<a href="{{ url_for('admin.catalogo_bancadas') }}">Cancelar</a>{% endif %}</div></form></section>
+<details class="gerenciar-catalogo"{% if gerenciar %} open{% endif %}><summary>Gerenciar bancadas existentes <span>{{ itens|length }}</span><b aria-hidden="true">⌄</b></summary><section class="catalogo-lista"><header><label for="buscar-catalogo">Buscar por nome</label><input id="buscar-catalogo" type="search" placeholder="Qual bancada você quer editar?"></header><div class="itens-catalogo">{% for item in itens %}<article class="item-catalogo{% if not item.ativo %} item-inativo{% endif %}" data-nome="{{ item.nome }}"><div><h3>{{ item.nome|nome_exibicao }}{% if not item.ativo %} <span class="rotulo-inativo">inativo</span>{% endif %}</h3>{% if item.servicos %}<small>{% for slug in item.servicos %}{{ servicos_catalogo[slug][0] if slug in servicos_catalogo else slug }}{% if not loop.last %} · {% endif %}{% endfor %}</small>{% endif %}<p>{{ item.descricao }}</p></div><div class="acoes-item"><a href="{{ url_for('admin.catalogo_bancadas', editar=item.id, gerenciar=1) }}">Editar</a>{% if item.ativo %}<button class="remover-item" type="button" data-id="{{ item.id }}" data-nome="{{ item.nome|nome_exibicao }}" data-action="{{ url_for('admin.desativar_bancada_route', id_bancada=item.id) }}">Remover</button>{% endif %}</div></article>{% endfor %}</div><p id="catalogo-vazio" hidden>Nenhuma bancada encontrada.</p></section></details>
+<dialog id="confirmar-remocao" class="dialogo-remocao"><form method="post" id="form-remocao"><input type="hidden" name="id" id="remover-id"><h2>Remover bancada?</h2><p id="remover-descricao"></p><div><button id="cancelar-remocao" type="button">Cancelar</button><button type="submit">Remover bancada</button></div></form></dialog>
+{% endblock %}
+{% block scripts_admin %}
+<script src="{{ url_for('static', filename='js/catalogo-admin.js') }}" defer></script>
+{% endblock %}

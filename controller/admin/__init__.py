@@ -69,5 +69,5 @@ def _imagem_rel(mapa: dict, slug: str | None) -> str | None:
 
 # ============================== routes ==============================
 
-from . import admin_servicos, admin_pratocardapio, admin_ingredientefichalote, admin_funcionarios, admin_bebidas, admin_lote, admin_logs, admin_pedidos
+from . import admin_servicos, admin_pratocardapio, admin_ingredientefichalote, admin_funcionarios, admin_bebidas, admin_lote, admin_logs, admin_pedidos, admin_bancada
 

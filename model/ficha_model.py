@@ -17,6 +17,12 @@ class Prato(db.Model):
     )
     tempo_preparo = db.Column(db.Integer, nullable=False)
     requer_pre_preparo = db.Column(db.Boolean, default=False, nullable=False)
+    # slug usado para resolver a imagem do prato em docs/imagens-pratos.json.
+    imagem_slug = db.Column(db.String(120), nullable=True)
+    # Soft delete: pratos "removidos" ficam ativo=False e somem das listas do
+    # admin (listar_pratos_ativos), preservando a integridade referencial dos
+    # pedidos antigos (a cozinha continua resolvendo pratos desativados).
+    ativo = db.Column(db.Boolean, nullable=False, default=True, server_default=db.text("1"))
 
 
 
@@ -117,7 +123,7 @@ class Lote(db.Model):
         self.id_ingrediente = id_ingrediente
 
 """==================CRUD PRATO============="""
-def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, requer_pre_preparo: bool = False) -> int:
+def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, requer_pre_preparo: bool = False, imagem_slug: str | None = None) -> int:
     """Cria um prato e retorna seu id.
 
     Args:
@@ -126,11 +132,13 @@ def criar_prato(nome: str, descricao: str, tipo_prato: str, tempo_preparo: int, 
         tipo_prato (str): tipo (entrada, acompanhamento, prato principal, sobremesa).
         tempo_preparo (int): tempo de preparo em minutos.
         requer_pre_preparo (bool, optional): se exige pré-preparo. Padrão: False.
+        imagem_slug (str | None, optional): slug da imagem em
+            docs/imagens-pratos.json; None quando o prato é criado sem imagem.
 
     Returns:
         int: id do prato criado.
     """
-    novo_prato = Prato(nome=nome,descricao=descricao,tipo_prato=tipo_prato,tempo_preparo=tempo_preparo,requer_pre_preparo=requer_pre_preparo,)
+    novo_prato = Prato(nome=nome,descricao=descricao,tipo_prato=tipo_prato,tempo_preparo=tempo_preparo,requer_pre_preparo=requer_pre_preparo,imagem_slug=imagem_slug,)
     db.session.add(novo_prato)
     db.session.commit()
     registrar_log("CRIACAO PRATO", f"Usuário criou o prato {novo_prato.nome}")
@@ -178,7 +186,7 @@ def buscar_pratos(busca: str = "") -> list:
     return db.session.execute(stmt).scalars().all()
 
 
-def atualizar_prato(id_prato: int, nome=None, descricao=None, tipo_prato=None, requer_pre_preparo=None, tempo_preparo=None) -> bool:
+def atualizar_prato(id_prato: int, nome=None, descricao=None, tipo_prato=None, requer_pre_preparo=None, tempo_preparo=None, imagem_slug=None, ativo=None) -> bool:
     """Atualiza os dados de um prato (campos None não são alterados).
 
     Args:
@@ -188,6 +196,10 @@ def atualizar_prato(id_prato: int, nome=None, descricao=None, tipo_prato=None, r
         tipo_prato (str | None, optional): novo tipo.
         requer_pre_preparo (bool | None, optional): nova flag de pré-preparo.
         tempo_preparo (int | None, optional): novo tempo de preparo.
+        imagem_slug (str | None, optional): novo slug de imagem; só é alterado
+            quando fornecido (não-None), seguindo o padrão dos demais campos.
+        ativo (bool | None, optional): novo estado de ativação; só é alterado
+            quando fornecido (não-None).
 
     Returns:
         bool: True se atualizado; False se o prato não existir.
@@ -205,10 +217,47 @@ def atualizar_prato(id_prato: int, nome=None, descricao=None, tipo_prato=None, r
         prato.requer_pre_preparo = requer_pre_preparo
     if tempo_preparo is not None:
         prato.tempo_preparo = tempo_preparo
+    if imagem_slug is not None:
+        prato.imagem_slug = imagem_slug
+    if ativo is not None:
+        prato.ativo = ativo
 
     db.session.commit()
     registrar_log("ATUALIZACAO PRATO", f"Usuário atualizou o prato {id_prato}")
     return True
+
+
+def desativar_prato(id_prato: int, id_usuario=None) -> bool:
+    """Desativa um prato (soft delete): seta ativo=False e persiste.
+
+    Mantém o registro no banco (preservando vínculos como pedidos antigos, que a
+    cozinha continua resolvendo) e apenas o esconde das listagens do admin
+    (listar_pratos_ativos). Espelha desativar_cardapio.
+
+    Args:
+        id_prato (int): identificador do prato.
+        id_usuario (int | None, optional): usuário responsável (para o log).
+
+    Returns:
+        bool: True se desativado; False se o prato não existir.
+    """
+    prato = db.session.get(Prato, id_prato)
+    if not prato:
+        return False
+    prato.ativo = False
+    db.session.commit()
+    registrar_log("DESATIVACAO PRATO", f"Usuário desativou o prato {id_prato}")
+    return True
+
+
+def listar_pratos_ativos() -> list[Prato] | None:
+    """Lista apenas os pratos ativos (ativo==True); None se não houver."""
+    pratos = db.session.execute(
+        db.select(Prato).where(Prato.ativo == True),  # noqa: E712
+    ).scalars().all()
+    if pratos:
+        return pratos
+    return None
 
 
 def deletar_prato(id_prato: int) -> bool:

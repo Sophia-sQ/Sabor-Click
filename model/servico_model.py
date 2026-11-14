@@ -13,7 +13,10 @@ class Bancada(db.Model):
     id_bancada = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(60), nullable=False)
     descricao = db.Column(db.Text, nullable=False)
-    
+    # Soft delete: bancadas "removidas" ficam ativo=False e somem das listas do
+    # admin (listar_bancadas_ativas), preservando a integridade referencial.
+    ativo = db.Column(db.Boolean, nullable=False, default=True, server_default=db.text("1"))
+
     def __init__(self, nome: str, descricao: str):
         self.nome = nome
         self.descricao = descricao
@@ -146,6 +149,37 @@ def atualizar_bancada(id_bancada, id_usuario: int, nome=None, descricao=None) ->
     registrar_log("ATUALIZACAO BANCADA", "Usuário atualizou bancada")
 
     return True
+
+def desativar_bancada(id_bancada, id_usuario=None) -> bool:
+    """Desativa uma bancada (soft delete): seta ativo=False e persiste.
+
+    Mantém o registro no banco (preservando vínculos como ServicoBancada) e
+    apenas o esconde das listagens do admin (listar_bancadas_ativas). Espelha
+    desativar_cardapio.
+
+    Args:
+        id_bancada: identificador da bancada.
+        id_usuario (int | None, optional): usuário responsável (para o log).
+
+    Returns:
+        bool: True se desativada; False se a bancada não existir.
+    """
+    bancada = db.session.get(Bancada, id_bancada)
+    if not bancada:
+        return False
+    bancada.ativo = False
+    db.session.commit()
+    registrar_log("DESATIVACAO BANCADA", f"Usuário desativou a bancada {id_bancada}")
+    return True
+
+def listar_bancadas_ativas() -> list[Bancada] | None:
+    """Lista apenas as bancadas ativas (ativo==True); None se não houver."""
+    bancadas = db.session.execute(
+        db.select(Bancada).where(Bancada.ativo == True),  # noqa: E712
+    ).scalars().all()
+    if bancadas:
+        return bancadas
+    return None
 
 def deletar_bancada(id_bancada, id_usuario: int) -> bool:
     """Remove uma bancada pelo id. Retorna False se não existir."""

@@ -822,6 +822,95 @@ lista_usuarios = [
     ("Eduarda Alves Pinto", "55588811123", "eduarda.pinto@exemplo.com", "SenhaChefe2!", Cargo.CHEFE),
 ]
 
+# ------------------------------------------------------------------------------
+# Expansão programática de clientes, chefes e endereços.
+#
+# Para que os relatórios do admin mostrem faturamento em vários meses, o seed
+# precisa de uma base ampla e determinística de clientes (quem faz os pedidos),
+# chefes (quem os atende) e endereços (local do evento). Os dados são gerados
+# por compreensões a partir de listas fixas, de modo que rodar o seed sempre
+# produz exatamente os mesmos registros (idempotência preservada pelas funções
+# iniciar_*, que pulam CPF/e-mail já existentes).
+#
+# Regras respeitadas:
+#   - Apenas Cargo.CLIENTE e Cargo.CHEFE (NENHUM novo ADMIN; o admin é criado só
+#     por iniciar_admin()).
+#   - CPF é string de 11 dígitos, único entre si e distinto de '00000000000'.
+#   - E-mails são únicos.
+#   - Cada endereço gerado abaixo pertence a um cliente existente, e cada par
+#     (email_cliente, nome_endereco) usado em lista_pedidos existe aqui.
+# ------------------------------------------------------------------------------
+
+# Clientes adicionais: (primeiro_nome, sobrenome, apelido_email). O apelido vira
+# o local-part do e-mail e um prefixo estável para os CPFs/endereços.
+_clientes_extra = [
+    ("Fernanda", "Oliveira Castro", "fernanda.castro"),
+    ("Gabriel", "Teixeira Ramos", "gabriel.ramos"),
+    ("Helena", "Barbosa Dias", "helena.dias"),
+    ("Igor", "Carvalho Melo", "igor.melo"),
+    ("Juliana", "Ferreira Pires", "juliana.pires"),
+    ("Kleber", "Azevedo Lopes", "kleber.lopes"),
+    ("Larissa", "Moreira Campos", "larissa.campos"),
+    ("Marcelo", "Nogueira Freitas", "marcelo.freitas"),
+    ("Natália", "Ribeiro Gomes", "natalia.gomes"),
+    ("Otávio", "Cardoso Batista", "otavio.batista"),
+    ("Patrícia", "Mendes Araújo", "patricia.araujo"),
+    ("Rafael", "Santana Peixoto", "rafael.peixoto"),
+]
+
+# Chefes adicionais atendem os pedidos; variam o vínculo cliente/chefe.
+_chefes_extra = [
+    ("Sofia", "Cunha Vasconcelos", "sofia.vasconcelos"),
+    ("Thiago", "Moraes Barros", "thiago.barros"),
+    ("Vivian", "Antunes Rocha", "vivian.rocha"),
+    ("William", "Siqueira Nunes", "william.nunes"),
+]
+
+
+def _cpf_fake(prefixo: str, indice: int) -> str:
+    """Gera um CPF fictício determinístico de 11 dígitos distinto do admin.
+
+    Não há validação de dígito verificador no caminho do seed; o requisito é
+    apenas que o CPF tenha 11 dígitos, seja único e diferente de '00000000000'.
+
+    Args:
+        prefixo (str): prefixo numérico estável (clientes/chefes usam faixas
+            diferentes para nunca colidir).
+        indice (int): posição do usuário na sua lista.
+
+    Returns:
+        str: CPF com exatamente 11 dígitos.
+    """
+    numero = f"{prefixo}{indice:06d}"
+    return numero[:11].ljust(11, "0")
+
+
+# Clientes extra viram tuplas no mesmo formato de lista_usuarios.
+lista_usuarios += [
+    (f"{nome} {sobrenome}", _cpf_fake("701", i), f"{apelido}@exemplo.com",
+     f"SenhaCliente{i + 10}!", Cargo.CLIENTE)
+    for i, (nome, sobrenome, apelido) in enumerate(_clientes_extra, start=1)
+]
+
+# Chefes extra (faixa de CPF distinta da dos clientes para garantir unicidade).
+lista_usuarios += [
+    (f"{nome} {sobrenome}", _cpf_fake("809", i), f"{apelido}@exemplo.com",
+     f"SenhaChefe{i + 10}!", Cargo.CHEFE)
+    for i, (nome, sobrenome, apelido) in enumerate(_chefes_extra, start=1)
+]
+
+# E-mails dos clientes/chefes (usados para gerar endereços e pedidos).
+_emails_clientes = [
+    "ana.souza@exemplo.com",
+    "bruno.lima@exemplo.com",
+    "carla.nunes@exemplo.com",
+] + [f"{apelido}@exemplo.com" for _, _, apelido in _clientes_extra]
+
+_emails_chefes = [
+    "diego.rocha@exemplo.com",
+    "eduarda.pinto@exemplo.com",
+] + [f"{apelido}@exemplo.com" for _, _, apelido in _chefes_extra]
+
 # Endereços vinculados aos clientes seed (resolvidos por e-mail do dono).
 # Variados: cidades/UFs diferentes, alguns com complemento e outros sem.
 # email_dono, nome, logradouro, numero, complemento, bairro, cidade, cep, uf
@@ -833,30 +922,231 @@ lista_enderecos = [
     ("carla.nunes@exemplo.com", "Sítio", "Estrada do Vale", "s/n", None, "Zona Rural", "Gravatá", "55640-000", "PE"),
 ]
 
+# Catálogo fixo de cidades/UF/bairro/logradouro usado para gerar endereços
+# variados de forma determinística (indexado pela posição do cliente/endereço).
+_locais_endereco = [
+    ("São Paulo", "SP", "Vila Mariana", "Rua Domingos de Morais", "01000-100"),
+    ("Rio de Janeiro", "RJ", "Copacabana", "Avenida Atlântica", "22000-200"),
+    ("Belo Horizonte", "MG", "Savassi", "Rua Pernambuco", "30100-300"),
+    ("Curitiba", "PR", "Batel", "Avenida do Batel", "80400-400"),
+    ("Porto Alegre", "RS", "Moinhos de Vento", "Rua Padre Chagas", "90500-500"),
+    ("Salvador", "BA", "Barra", "Avenida Oceânica", "40140-600"),
+    ("Recife", "PE", "Boa Viagem", "Avenida Boa Viagem", "51020-700"),
+    ("Fortaleza", "CE", "Meireles", "Avenida Beira Mar", "60165-800"),
+    ("Brasília", "DF", "Asa Sul", "SQS 108 Bloco B", "70347-900"),
+    ("Florianópolis", "SC", "Centro", "Rua Felipe Schmidt", "88010-000"),
+]
+
+# Para cada cliente extra geramos 2 endereços ("Casa" e "Festa"), variando
+# cidade/UF/bairro e alternando complemento preenchido/None. Como iniciar_pedidos
+# resolve o endereço por (id_usuario, nome), esses nomes são reutilizados abaixo.
+for _idx_cli, _email_cli in enumerate(_emails_clientes[3:], start=0):
+    _l_casa = _locais_endereco[_idx_cli % len(_locais_endereco)]
+    _l_festa = _locais_endereco[(_idx_cli + 3) % len(_locais_endereco)]
+    lista_enderecos.append(
+        (_email_cli, "Casa", _l_casa[3], str(100 + _idx_cli),
+         (f"Apto {10 + _idx_cli}" if _idx_cli % 2 == 0 else None),
+         _l_casa[2], _l_casa[0], _l_casa[4], _l_casa[1]),
+    )
+    lista_enderecos.append(
+        (_email_cli, "Festa", _l_festa[3], str(500 + _idx_cli),
+         (None if _idx_cli % 2 == 0 else f"Salão {_idx_cli}"),
+         _l_festa[2], _l_festa[0], _l_festa[4], _l_festa[1]),
+    )
+
 # Pedidos seed, cobrindo os cinco status do enum.
 # Resolvem cliente/chefe por e-mail e endereço pelo nome do endereço do cliente.
-# As datas de evento são futuras e hora_fim > hora_inicio.
 # O trigger de baixa de estoque é AFTER UPDATE OF status, portanto inserir um
 # pedido já com status 'confirmado'/'em preparo'/'concluido' NÃO o dispara.
-# chave, email_cliente, nome_endereco, email_chefe (ou None), status,
-#   dias_no_futuro, hora_inicio, hora_fim, valor_total, observacao, confirmado
+#
+# FORMATO (13 campos):
+#   chave, email_cliente, nome_endereco, email_chefe (ou None), status,
+#     dias_evento, hora_inicio, hora_fim, valor_total, observacao, confirmado,
+#     dias_criado, dias_confirmado
+#
+# Novidade do FEAT-002: além de dias_evento (offset em dias para data_evento,
+# que PODE SER NEGATIVO para eventos no passado), cada pedido declara:
+#   - dias_criado: quantos dias ATRÁS o pedido foi criado (criado_em = hoje() -
+#     dias_criado). Define em qual mês o pedido entra nos relatórios de volume
+#     (pedidos_quantidade/pedidos_status usam criado_em).
+#   - dias_confirmado: quantos dias ATRÁS o pedido foi confirmado (confirmado_em
+#     = hoje() - dias_confirmado), ou None quando não confirmado. Define em qual
+#     mês o pedido entra nos relatórios financeiros (faturamento usa
+#     confirmado_em). Deve ser preenchido quando confirmado=True e None quando
+#     confirmado=False, mantendo a coerência status/confirmado_em.
+# Todas as datas derivam de utils.hoje(), portanto permanecem determinísticas e
+# relativas à execução; _pedidos_por_chave() recomputa a MESMA data_evento com a
+# mesma fórmula para preservar a idempotência da dedup.
 lista_pedidos = [
     ("pedido_aguardando", "ana.souza@exemplo.com", "Casa", None,
      "aguardando", 30, time(18, 0), time(23, 0), 1499.00,
-     "Aniversário de 30 anos, preferência por pratos quentes.", False),
+     "Aniversário de 30 anos, preferência por pratos quentes.", False, 2, None),
     ("pedido_confirmado", "ana.souza@exemplo.com", "Trabalho", "diego.rocha@exemplo.com",
      "confirmado", 45, time(12, 0), time(16, 0), 2599.90,
-     "Confraternização da equipe.", True),
+     "Confraternização da equipe.", True, 5, 3),
     ("pedido_em_preparo", "bruno.lima@exemplo.com", "Casa", "eduarda.pinto@exemplo.com",
      "em preparo", 20, time(19, 30), time(23, 30), 3250.00,
-     None, True),
+     None, True, 8, 6),
     ("pedido_concluido", "carla.nunes@exemplo.com", "Casa", "diego.rocha@exemplo.com",
-     "concluido", 10, time(11, 0), time(15, 0), 1890.50,
-     "Casamento na praia.", True),
+     "concluido", -5, time(11, 0), time(15, 0), 1890.50,
+     "Casamento na praia.", True, 20, 6),
     ("pedido_cancelado", "carla.nunes@exemplo.com", "Sítio", None,
      "cancelado", 60, time(13, 0), time(18, 0), 0.00,
-     "Cliente cancelou por mudança de data.", False),
+     "Cliente cancelou por mudança de data.", False, 40, None),
 ]
+
+# ------------------------------------------------------------------------------
+# Expansão programática de pedidos distribuídos por ~12 meses no passado.
+#
+# Gera dezenas de pedidos determinísticos para que os relatórios financeiros do
+# admin exibam faturamento em vários meses distintos. A grande maioria é
+# 'concluido' com confirmado_em espalhado mês a mês (valor_total realista e
+# variado, > 0); há também 'cancelado' (valor 0.00) e, no mês corrente, alguns
+# recentes em 'aguardando'/'confirmado'/'em preparo'.
+#
+# Para cada um dos 12 meses passados (1 a 12 meses atrás) criamos pedidos
+# concluídos; os offsets em dias derivam do índice do mês (determinístico). A
+# dedup de iniciar_pedidos() usa (id_cliente, data_evento, hora_inicio,
+# hora_fim); como variamos cliente/horários por pedido, cada chave é única.
+# ------------------------------------------------------------------------------
+
+# Horários de evento variados (todos com hora_fim > hora_inicio).
+_horarios_evento = [
+    (time(11, 0), time(15, 0)),
+    (time(12, 30), time(16, 30)),
+    (time(18, 0), time(22, 0)),
+    (time(19, 30), time(23, 30)),
+    (time(10, 0), time(14, 0)),
+]
+
+# Valores base realistas (em reais) ciclados para dar variação ao faturamento.
+_valores_concluido = [1290.00, 1875.50, 2340.00, 3180.75, 2765.40, 4120.00,
+                      1990.90, 3505.25, 2450.00, 5230.80]
+
+# Observações variadas para os pedidos concluídos.
+_observacoes_concluido = [
+    "Festa de aniversário concluída com sucesso.",
+    "Evento corporativo atendido pela equipe.",
+    "Confraternização de fim de ano.",
+    "Casamento no salão de festas.",
+    "Almoço de família no fim de semana.",
+    None,
+]
+
+
+def _gerar_pedidos_passados() -> list[tuple]:
+    """Gera, de forma determinística, os pedidos seed do passado.
+
+    Produz pedidos 'concluido' espalhados ao longo de 12 meses (usando
+    dias_confirmado/dias_criado proporcionais ao mês), alguns 'cancelado' e um
+    punhado de pedidos recentes em outros status. Retorna tuplas no mesmo
+    formato de lista_pedidos (13 campos).
+
+    Returns:
+        list[tuple]: pedidos adicionais a serem concatenados em lista_pedidos.
+    """
+    gerados: list[tuple] = []
+
+    n_clientes = len(_emails_clientes)
+    n_chefes = len(_emails_chefes)
+
+    # --- Pedidos CONCLUÍDOS: 4 por mês, de 1 a 12 meses atrás. ---
+    # Para cada mês usamos dias de referência = mes * 30 (aprox.), ajustando por
+    # pequenos deslocamentos para espalhar dentro do mês. confirmado_em e
+    # criado_em caem no mesmo mês; data_evento fica próxima da confirmação (no
+    # passado), coerente com um evento já realizado.
+    contador = 0
+    for mes in range(1, 13):
+        base_dias = mes * 30
+        for k in range(4):
+            offset_dia = k * 6  # espalha 4 pedidos dentro do mês
+            dias_confirmado = base_dias - offset_dia
+            dias_criado = dias_confirmado + 7  # criado ~1 semana antes de confirmar
+            dias_evento = -(dias_confirmado - 1)  # evento ~1 dia após a confirmação (ainda no passado)
+
+            email_cliente = _emails_clientes[contador % n_clientes]
+            nome_endereco = "Casa" if (contador % 2 == 0) else "Festa"
+            # Os três primeiros clientes legados só têm os nomes de endereço
+            # originais ("Casa"/"Trabalho"/"Sítio"); para eles usamos "Casa".
+            if email_cliente in ("bruno.lima@exemplo.com", "carla.nunes@exemplo.com"):
+                nome_endereco = "Casa"
+            elif email_cliente == "ana.souza@exemplo.com":
+                nome_endereco = "Casa" if (contador % 2 == 0) else "Trabalho"
+
+            email_chefe = _emails_chefes[contador % n_chefes]
+            hora_inicio, hora_fim = _horarios_evento[contador % len(_horarios_evento)]
+            valor = _valores_concluido[contador % len(_valores_concluido)]
+            observacao = _observacoes_concluido[contador % len(_observacoes_concluido)]
+
+            gerados.append((
+                f"concluido_m{mes:02d}_{k}", email_cliente, nome_endereco, email_chefe,
+                "concluido", dias_evento, hora_inicio, hora_fim, valor,
+                observacao, True, dias_criado, dias_confirmado,
+            ))
+            contador += 1
+
+    # --- Pedidos CANCELADOS: 1 a cada 2 meses (valor 0.00, não confirmado). ---
+    for mes in range(1, 13, 2):
+        base_dias = mes * 30 - 3
+        email_cliente = _emails_clientes[contador % n_clientes]
+        nome_endereco = "Casa"
+        if email_cliente not in ("ana.souza@exemplo.com", "bruno.lima@exemplo.com",
+                                 "carla.nunes@exemplo.com"):
+            nome_endereco = "Festa" if (contador % 2 == 0) else "Casa"
+        hora_inicio, hora_fim = _horarios_evento[contador % len(_horarios_evento)]
+        gerados.append((
+            f"cancelado_m{mes:02d}", email_cliente, nome_endereco, None,
+            "cancelado", -(base_dias - 2), hora_inicio, hora_fim, 0.00,
+            "Pedido cancelado pelo cliente.", False, base_dias, None,
+        ))
+        contador += 1
+
+    # --- Pedidos RECENTES no mês corrente, cobrindo os demais status. ---
+    # data_evento futura para aguardando/confirmado/em preparo (eventos por vir);
+    # passada para os concluídos recentes. Os offsets de criado_em/confirmado_em
+    # são pequenos (1 a 12 dias) para cair no mês corrente, alimentando os
+    # relatórios de volume (pedidos_quantidade/pedidos_tipo usam criado_em) e o
+    # faturamento do mês atual (confirmado_em). Formato de cada item:
+    # (status, dias_evento, valor, obs, confirmado, dias_criado, dias_confirmado)
+    recentes = [
+        ("aguardando", 25, 1290.00, "Orçamento em análise pelo cliente.", False, 1, None),
+        ("aguardando", 18, 2140.00, "Aguardando confirmação de data.", False, 3, None),
+        ("confirmado", 28, 3360.00, "Evento confirmado para o próximo mês.", True, 4, 2),
+        ("confirmado", 15, 2580.50, "Pagamento de entrada efetuado.", True, 6, 4),
+        ("em preparo", 9, 4190.00, "Equipe montando o cardápio.", True, 10, 8),
+        ("em preparo", 6, 1760.25, "Compras de insumos em andamento.", True, 12, 9),
+        # Concluídos recentes (criados e confirmados no mês corrente): dão volume
+        # a pedidos_quantidade (concluídos por criado_em) e pedidos_tipo.
+        ("concluido", -2, 2890.00, "Evento concluído nesta semana.", True, 7, 3),
+        ("concluido", -4, 3640.50, "Buffet entregue com sucesso.", True, 9, 5),
+        ("concluido", -1, 1980.00, "Jantar executivo finalizado.", True, 2, 1),
+    ]
+    for j, (status, dias_evento, valor, obs, confirmado, dias_criado, dias_conf) in enumerate(recentes):
+        email_cliente = _emails_clientes[contador % n_clientes]
+        nome_endereco = "Casa"
+        if email_cliente not in ("ana.souza@exemplo.com", "bruno.lima@exemplo.com",
+                                 "carla.nunes@exemplo.com"):
+            nome_endereco = "Festa" if (j % 2 == 0) else "Casa"
+        email_chefe = _emails_chefes[contador % n_chefes] if confirmado else None
+        hora_inicio, hora_fim = _horarios_evento[j % len(_horarios_evento)]
+        gerados.append((
+            f"recente_{status.replace(' ', '_')}_{j}", email_cliente, nome_endereco,
+            email_chefe, status, dias_evento, hora_inicio, hora_fim, valor,
+            obs, confirmado, dias_criado, dias_conf,
+        ))
+        contador += 1
+
+    return gerados
+
+
+# Gera a lista UMA ÚNICA VEZ e reutiliza (em lista_pedidos, nas associações de
+# cardápio e nas bebidas avulsas). Isso evita recomputar a lista a cada uso e,
+# acima de tudo, garante que as CHAVES de pedido sejam idênticas entre os três
+# consumidores, preservando o casamento das associações (cardapio_pedido /
+# pedido_bebida) com os pedidos de lista_pedidos.
+_pedidos_gerados = _gerar_pedidos_passados()
+
+lista_pedidos += _pedidos_gerados
 
 # Cardápios de cada pedido. (nome_servico, nome_cardapio) precisa existir em
 # lista_servicos_cardapios para que (id_cardapio, id_servico) seja consistente.
@@ -871,6 +1161,49 @@ lista_cardapio_pedido = [
     ("pedido_cancelado", "Mesa_de_salgados", "Hamburguer_tradicional", 200),
 ]
 
+# Pares (serviço, cardápio) válidos ciclados para os pedidos gerados. Todos
+# existem em lista_servicos_cardapios, logo (id_cardapio, id_servico) é
+# consistente. Cada tupla é (nome_servico, nome_cardapio).
+_pares_servico_cardapio = [
+    ("Chef_em_casa", "Feijoada_completa"),
+    ("Buffet", "Strogonoff_de_file_Mignon"),
+    ("Chef_em_casa", "Bobo_de_camarao"),
+    ("Buffet", "Risoto_de_cogumelos_com_tiras_de_file_mignon"),
+    ("Mesa_de_salgados", "Salgados_completo"),
+    ("Mesa_de_salgados", "Hamburguer_smash"),
+    ("Bar", "Bebida_sem_alcool"),
+    ("Chef_em_casa", "Raviolli_de_queijo_ao_molho_bolonhesa"),
+    ("Buffet", "Feijoada_completa"),
+    ("Mesa_de_salgados", "Boteco_brasileiro"),
+]
+
+
+def _gerar_cardapio_pedido() -> list[tuple]:
+    """Associa um cardápio válido a cada pedido gerado programaticamente.
+
+    Usa SOMENTE pares presentes em lista_servicos_cardapios (via
+    _pares_servico_cardapio) e num_convidados > 0. Pedidos 'concluido'/recentes
+    com serviço de comida também ganham um cardápio de Bar quando par é de Bar.
+
+    Returns:
+        list[tuple]: tuplas (chave_pedido, nome_servico, nome_cardapio,
+        num_convidados) para os pedidos gerados.
+    """
+    assoc: list[tuple] = []
+    for i, pedido in enumerate(_pedidos_gerados):
+        chave = pedido[0]
+        num_convidados = 30 + (i % 8) * 15  # 30..135, sempre > 0
+        servico, cardapio = _pares_servico_cardapio[i % len(_pares_servico_cardapio)]
+        assoc.append((chave, servico, cardapio, num_convidados))
+        # A cada 3 pedidos, acrescenta um cardápio de Bar para dar variedade de
+        # serviço nos relatórios por tipo.
+        if i % 3 == 0:
+            assoc.append((chave, "Bar", "Bebida_mista", num_convidados))
+    return assoc
+
+
+lista_cardapio_pedido += _gerar_cardapio_pedido()
+
 # Bebidas avulsas de alguns pedidos. valor_total = valor_unitario * qtd (resolvido
 # dinamicamente no inicializador a partir da bebida). chave_pedido, nome_bebida, qtd
 lista_pedido_bebida = [
@@ -878,6 +1211,17 @@ lista_pedido_bebida = [
     ("pedido_aguardando", "Suco_de_abacaxi", 15),
     ("pedido_confirmado", "Refrigerante_de_guarana", 50),
     ("pedido_concluido", "Agua_de_coco", 40),
+]
+
+# Bebidas avulsas para parte dos pedidos gerados (apenas bebidas existentes em
+# lista_bebida; qtd > 0).
+_bebidas_avulsas = ["Agua_com_gas", "Suco_de_abacaxi", "Refrigerante_de_guarana",
+                    "Agua_de_coco", "Cha_preto", "Suco_de_melancia"]
+
+lista_pedido_bebida += [
+    (pedido[0], _bebidas_avulsas[i % len(_bebidas_avulsas)], 10 + (i % 5) * 10)
+    for i, pedido in enumerate(_pedidos_gerados)
+    if i % 2 == 0  # bebida avulsa em metade dos pedidos gerados
 ]
 
 # Logs de auditoria seed, espelhando as ações usadas pelos controllers.
@@ -1988,11 +2332,14 @@ def _pedidos_por_chave() -> dict:
     mapa = {}
 
     for (chave, email_cliente, nome_endereco, _email_chefe, _status,
-         dias, hora_inicio, hora_fim, _valor, _obs, _confirmado) in lista_pedidos:
+         dias, hora_inicio, hora_fim, _valor, _obs, _confirmado,
+         _dias_criado, _dias_confirmado) in lista_pedidos:
         cliente = _buscar_usuario_por_email(email_cliente)
         if not cliente:
             continue
 
+        # Mesma fórmula usada em iniciar_pedidos() para casar a dedup por
+        # (id_cliente, data_evento, hora_inicio, hora_fim).
         data_evento = (hoje() + timedelta(days=dias)).date()
 
         pedido = db.session.execute(
@@ -2028,7 +2375,8 @@ def iniciar_pedidos() -> list[Pedido]:
     pedidos = []
 
     for (chave, email_cliente, nome_endereco, email_chefe, status,
-         dias, hora_inicio, hora_fim, valor, observacao, confirmado) in lista_pedidos:
+         dias, hora_inicio, hora_fim, valor, observacao, confirmado,
+         dias_criado, dias_confirmado) in lista_pedidos:
         cliente = _buscar_usuario_por_email(email_cliente)
         if not cliente:
             continue
@@ -2064,6 +2412,16 @@ def iniciar_pedidos() -> list[Pedido]:
             if chefe:
                 id_chefe = chefe.id_usuario
 
+        # criado_em e confirmado_em derivam de hoje() menos N dias, mantendo-se
+        # SEMPRE no passado relativo à execução (determinístico e idempotente).
+        # confirmado_em só é preenchido para pedidos confirmados (dias_confirmado
+        # não-None), em DateTime no fuso America/Sao_Paulo (padrão de hoje()).
+        agora = hoje()
+        criado_em = agora - timedelta(days=dias_criado)
+        confirmado_em = None
+        if confirmado and dias_confirmado is not None:
+            confirmado_em = agora - timedelta(days=dias_confirmado)
+
         pedido = Pedido(
             id_cliente=cliente.id_usuario,
             id_endereco=endereco.id_endereco,
@@ -2074,7 +2432,8 @@ def iniciar_pedidos() -> list[Pedido]:
             hora_inicio=hora_inicio,
             hora_fim=hora_fim,
             observacao=observacao,
-            confirmado_em=(hoje() if confirmado else None),
+            criado_em=criado_em,
+            confirmado_em=confirmado_em,
         )
         pedidos.append(pedido)
 
