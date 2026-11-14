@@ -1362,7 +1362,9 @@ lista_ficha_tecnica = [
     ("Queijo", "Queijo_prato", 0.055),
 
     # Embutidos: estimativa de 50 g por pessoa + 10%.
-    ("Embutido", "Salame", 0.055),
+    ("Embutido", "Salame", 0.028),
+    ("Embutido", "Presunto", 0.027),
+
 
     # Pão: estimativa de 2 mini pães por pessoa + 10%.
     ("Pao", "Mini_paes", 2.2),
