@@ -219,6 +219,24 @@ def _backfill_colunas_catalogo() -> None:
 
     if alterou:
         db.session.commit()
+def _criar_tabelas_tolerante() -> None:
+    """Cria as tabelas de forma tolerante a 'tabela já existe'.
+
+    Em bancos libSQL/Turso o ``create_all`` pode falhar quando as tabelas já
+    foram criadas (por exemplo, quando várias instâncias serverless sobem ao
+    mesmo tempo no primeiro acesso), pois o erro 'table ... already exists' não
+    é suprimido como no SQLite local. Aqui as tabelas são criadas uma a uma com
+    ``checkfirst=True`` e eventuais erros de 'já existe' são ignorados, mantendo
+    o mesmo resultado final sem interromper a inicialização. Qualquer outro erro
+    é propagado normalmente.
+    """
+
+    for tabela in db.metadata.sorted_tables:
+        try:
+            tabela.create(bind=db.engine, checkfirst=True)
+        except SQLAlchemyError as erro:
+            if "already exists" not in str(erro).lower():
+                raise
 
 
 def init_app(app) -> None:
@@ -247,6 +265,20 @@ def init_app(app) -> None:
         
         from click import secho
         
+        _criar_tabelas_tolerante()
+        # Atualiza bancos criados antes dos campos usados no checkout.
+        for tabela, coluna, tipo in (
+            ("endereco", "uf", "VARCHAR(2)"),
+            ("cardapio_pedido", "qtd", "INTEGER"),
+        ):
+            if coluna in {campo["name"] for campo in inspect(db.engine).get_columns(tabela)}:
+                continue
+            try:
+                with db.engine.begin() as conexao:
+                    conexao.execute(text(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {tipo}"))
+            except SQLAlchemyError:
+                if coluna not in {campo["name"] for campo in inspect(db.engine).get_columns(tabela)}:
+                    raise
         criar_cargos()
         criar_admin()
         criar_estoque()

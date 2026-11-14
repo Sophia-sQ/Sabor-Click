@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from flask import (
     Blueprint,
     Response,
+    abort,
     current_app,
     flash,
     jsonify,
@@ -1047,14 +1048,9 @@ def dados_perfil() -> Response:
             formatar_moeda(cardapio.preco_base * cp.num_convidados),
         ]
 
-    endereco = buscar_endereco_por_id(pedido.id_endereco)
-
-    bebidas=listar_bebidas_do_pedido(pedido.id_pedido) or []
-
-    valor_total = 0
-    for bebida in bebidas:
-        valor_total += bebida.valor_total
-    valor_total = formatar_moeda(valor_total)
+    endereco = buscar_endereco_por_id(pedido.id_endereco) if pedido else None
+    bebidas = (listar_bebidas_do_pedido(pedido.id_pedido) or []) if pedido else []
+    valor_total = formatar_moeda(sum(bebida.valor_total for bebida in bebidas) * 100)
 
     return jsonify({
         "usuario": {
@@ -1078,7 +1074,7 @@ def dados_perfil() -> Response:
                 {
                     "nome": buscar_bebida_por_id(b.id_bebida).nome,
                     "qtd": b.qtd,
-                    "valor_un": b.valor_total // b.qtd,
+                    "valor_un": b.valor_total / b.qtd,
                 }
                 for b in (bebidas or [])
             ],

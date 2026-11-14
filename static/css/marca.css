@@ -1,7 +1,102 @@
 /* Logo oficial compartilhada pelas telas do site. */
-.logo-marca { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; vertical-align: middle; }
-.marca-com-logo { display: inline-flex; align-items: center; gap: 8px; }
-.rodape .logo-marca { filter: invert(1); }
-.marca-erro { display: inline-flex; justify-content: center; margin-bottom: 20px; }
-.marca-erro .logo-marca { width: 58px; height: 70px; }
-@media (max-width: 420px) { .marca-com-logo { gap: 6px; } .marca-com-logo .logo-marca { width: 28px; height: 34px; } }
+.logo-marca {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.marca-com-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rodape .logo-marca {
+    filter: invert(1);
+}
+
+.marca-erro {
+    display: inline-flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.marca-erro .logo-marca {
+    width: 58px;
+    height: 70px;
+}
+
+@media (max-width: 420px) {
+    .marca-com-logo {
+        gap: 6px;
+    }
+
+    .marca-com-logo .logo-marca {
+        width: 28px;
+        height: 34px;
+    }
+}
+
+.navbar nav .acoes-usuario {
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.navbar nav .link-acao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.navbar nav .link-acao img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.navbar nav .link-acao:hover {
+    color: #A94F2E;
+}
+
+.navbar nav a[aria-current="page"] {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 5px;
+}
+
+/* Responsividade */
+@media (max-width: 900px) {
+    .navbar {
+        height: auto;
+        min-height: 88px;
+        padding: 16px 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .navbar nav {
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .navbar {
+        padding: 14px 16px;
+    }
+
+    .navbar nav {
+        justify-content: flex-start;
+        gap: 12px;
+        font-size: 13px;
+    }
+
+    .navbar nav .acoes-usuario {
+        gap: 12px;
+    }
+}

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ servico.nome }} | Sabor &amp; Click</title>
@@ -10,6 +11,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
 </head>
+
 <body class="pagina-menu">
 <header class="navbar">
     <a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
