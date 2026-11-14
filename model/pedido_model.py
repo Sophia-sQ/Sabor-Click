@@ -7,7 +7,33 @@ from model.usuario_model import registrar_log
 
 from database import db, Base
 from sqlalchemy.exc import  SQLAlchemyError
-from sqlalchemy import extract
+from sqlalchemy import extract, func
+
+
+# Mapeia o nome lógico da coluna de data aceito pelas consultas de relatório
+# para o atributo real do modelo Pedido. Permite que os relatórios escolham o
+# critério de data (confirmado_em para financeiro, criado_em para volume) sem
+# expor o modelo diretamente ao chamador.
+_COLUNAS_DATA_PEDIDO = {
+    "data_evento": lambda: Pedido.data_evento,
+    "confirmado_em": lambda: Pedido.confirmado_em,
+    "criado_em": lambda: Pedido.criado_em,
+}
+
+
+def _resolver_coluna_data(coluna_data: str):
+    """Resolve o nome lógico de uma coluna de data para o atributo do Pedido.
+
+    Args:
+        coluna_data (str): 'data_evento', 'confirmado_em' ou 'criado_em'.
+
+    Returns:
+        O atributo de coluna correspondente, ou None se o nome for inválido.
+    """
+    fabrica = _COLUNAS_DATA_PEDIDO.get(coluna_data)
+    if fabrica is None:
+        return None
+    return fabrica()
 
 
 # TABELAS
@@ -340,7 +366,7 @@ def listar_pedidos_por_cliente(id_cliente: int) -> list[Pedido]:
     """Lista todos os pedidos realizados por um cliente."""
     return db.session.query(Pedido).filter_by(id_cliente=id_cliente).all()
 
-def listar_pedidos_periodo(ano, mes, dia, status=None) -> list[Pedido] | None:
+def listar_pedidos_periodo(ano, mes, dia, status=None, coluna_data="data_evento") -> list[Pedido] | None:
     """Retorna os pedidos de um status até certo dia de um mês/ano específicos.
 
     Args:
@@ -348,6 +374,13 @@ def listar_pedidos_periodo(ano, mes, dia, status=None) -> list[Pedido] | None:
         mes (int | str): mês de referência (deve ser numérico, 1 a 12).
         dia (int | str): dia de referência (deve ser numérico, 1 a 31).
         status (str | None, optional): status para filtragem. Padrão: None.
+        coluna_data (str, optional): coluna de data usada no filtro:
+            'data_evento', 'confirmado_em' ou 'criado_em'. Padrão: 'data_evento'.
+            Como confirmado_em/criado_em são DateTime, o filtro por mês/ano/dia
+            usa extract(), que compara apenas o componente de data e portanto
+            cobre o dia inteiro independentemente do horário. Pedidos cuja coluna
+            escolhida seja NULL (ex.: confirmado_em de um pedido não confirmado)
+            ficam naturalmente de fora.
 
     Returns:
         list[Pedido] | None: lista de pedidos no período (vazia se não houver);
@@ -363,16 +396,20 @@ def listar_pedidos_periodo(ano, mes, dia, status=None) -> list[Pedido] | None:
     if not 1 <= mes <= 12 or not 1 <= dia <= 31:
         return None
 
+    coluna = _resolver_coluna_data(coluna_data)
+    if coluna is None:
+        return None
+
     return db.session.execute(
         db.select(Pedido).where(
             Pedido.status==status,
-            extract("month", Pedido.data_evento) == mes,
-            extract("year", Pedido.data_evento) == ano,
-            extract("day", Pedido.data_evento) <= dia,
+            extract("month", coluna) == mes,
+            extract("year", coluna) == ano,
+            extract("day", coluna) <= dia,
         ),
     ).scalars().all()
 
-def listar_pedidos_entre_datas(ano, mes, dia, ano_final=None, mes_final=None, dia_final=None, status="concluido") -> list[Pedido] | None:
+def listar_pedidos_entre_datas(ano, mes, dia, ano_final=None, mes_final=None, dia_final=None, status="concluido", coluna_data="data_evento") -> list[Pedido] | None:
     """Retorna os pedidos de um status entre duas datas (inclusive).
 
     Quando a data final não é informada, assume a data de hoje.
@@ -385,6 +422,13 @@ def listar_pedidos_entre_datas(ano, mes, dia, ano_final=None, mes_final=None, di
         mes_final (int | str | None, optional): mês da data final.
         dia_final (int | str | None, optional): dia da data final.
         status (str, optional): status para filtragem. Padrão: "concluido".
+        coluna_data (str, optional): coluna de data usada no filtro:
+            'data_evento', 'confirmado_em' ou 'criado_em'. Padrão: 'data_evento'.
+            Como confirmado_em/criado_em são DateTime e os limites são datas, o
+            limite superior é comparado via func.date(coluna) <= data_fim para
+            cobrir o dia inteiro (não deixando de fora pedidos com horário após
+            00:00 no dia final). Pedidos cuja coluna escolhida seja NULL ficam de
+            fora naturalmente.
 
     Returns:
         list[Pedido] | None: pedidos no intervalo (vazia se não houver); None se
@@ -398,19 +442,26 @@ def listar_pedidos_entre_datas(ano, mes, dia, ano_final=None, mes_final=None, di
         dia_final=hoje().day
 
     try:
-        data_inicio = para_data(int(ano), int(mes), int(dia))
-        data_fim = para_data(int(ano_final), int(mes_final), int(dia_final))
+        # para_data espera (dia, mes, ano); passar na ordem (ano, mes, dia)
+        # montava datas inválidas (ex.: dia=2026) e fazia a função sempre
+        # retornar None, zerando os relatórios que dependem dela.
+        data_inicio = para_data(int(dia), int(mes), int(ano))
+        data_fim = para_data(int(dia_final), int(mes_final), int(ano_final))
     except (ValueError, TypeError):
         return None
 
     if data_fim < data_inicio:
         return None
 
+    coluna = _resolver_coluna_data(coluna_data)
+    if coluna is None:
+        return None
+
     return db.session.execute(
         db.select(Pedido).where(
             Pedido.status == status,
-            Pedido.data_evento >= data_inicio,
-            Pedido.data_evento <= data_fim,
+            func.date(coluna) >= data_inicio,
+            func.date(coluna) <= data_fim,
         ),
     ).scalars().all()
 
@@ -483,7 +534,7 @@ def buscar_pedido_ativo_por_chefe(id_chefe: int) -> Pedido | None:
         .first()
     )
     
-def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=None, observacao=None, valor_total=None) -> bool | None:
+def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=None, observacao=None, valor_total=None) -> bool:
     """Atualiza dados cadastrais e de status de um pedido (campos None são ignorados).
 
     Args:
@@ -495,8 +546,17 @@ def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=N
         valor_total (float | None, optional): novo valor total.
 
     Returns:
-        bool | None: True se atualizado; False se o pedido não existir; None em
-        caso de violação de integridade.
+        bool: True se atualizado; False se o pedido não existir.
+
+    Raises:
+        SQLAlchemyError: quando o commit falha (ex.: a trigger de baixa de
+            estoque aborta o pedido via RAISE(ABORT, 'Estoque insuficiente
+            para confirmar o pedido'), que chega como OperationalError, ou
+            qualquer outra violação de integridade). A sessão sofre rollback
+            antes do re-lançamento para não deixar a transação em estado sujo.
+            Antes esta função engolia o erro e retornava None, o que impedia o
+            chamador de distinguir o abort de estoque de outras falhas; agora o
+            erro é propagado para o chamador decidir a mensagem/status.
     """
     pedido = db.session.get(Pedido, id_pedido)
     if not pedido:
@@ -515,10 +575,15 @@ def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=N
 
     try:
         db.session.commit()
-        registrar_log("ATUALIZACAO PEDIDO", f"Dados do pedido {id_pedido} atualizados.")
-        return True
     except SQLAlchemyError:
-        return None
+        # Desfaz a transação pendente e propaga o erro. O chamador inspeciona
+        # a exceção (ou sua .orig) para distinguir o abort de estoque dos
+        # demais erros e devolver a mensagem/status corretos.
+        db.session.rollback()
+        raise
+
+    registrar_log("ATUALIZACAO PEDIDO", f"Dados do pedido {id_pedido} atualizados.")
+    return True
 
 def deletar_pedido(id_pedido: int) -> bool:
     """Remove um pedido pelo id. Retorna False se não existir."""

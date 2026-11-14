@@ -17,6 +17,7 @@ from flask import (
     session,
     url_for,
 )
+from sqlalchemy.exc import SQLAlchemyError
 
 from model.pedido_model import (
     atualizar_pedido,
@@ -286,7 +287,18 @@ def cancelar_pedido(id_pedido: int):
         flash("Pedido não encontrado.", "danger")
         return redirect(url_for("cliente.perfil"))
 
-    if pedido.status == "aguardando" and atualizar_pedido(id_pedido, status="cancelado"):
+    # atualizar_pedido() passou a fazer rollback e RE-LANÇAR em caso de falha no
+    # commit (antes engolia o erro e retornava None/falsy). Tratamos a exceção
+    # aqui para preservar o comportamento anterior: qualquer falha vira a
+    # mensagem de "não pôde ser cancelado" em vez de estourar um 500.
+    cancelado = False
+    if pedido.status == "aguardando":
+        try:
+            cancelado = bool(atualizar_pedido(id_pedido, status="cancelado"))
+        except SQLAlchemyError:
+            cancelado = False
+
+    if cancelado:
         registrar_log("CANCELOU PEDIDO", f"Cliente cancelou o pedido {id_pedido}.")
         flash("Pedido cancelado.", "success")
     else:
@@ -889,7 +901,7 @@ def dados_perfil() -> Response:
     # Formata o total para exibição em uma variável local; NUNCA sobrescreve a
     # coluna ORM Numeric pedido.valor_total (fazer isso faria o próximo autoflush
     # tentar persistir a string formatada na coluna numérica e quebrar a rota).
-    valor_total_formatado = formatar_moeda(pedido.valor_total)
+    valor_total_formatado = formatar_moeda(int(round(pedido.valor_total * 100)))
 
     # detalhamento
     # CardapioPedido guarda apenas id_cardapio/id_pedido/id_servico/num_convidados,

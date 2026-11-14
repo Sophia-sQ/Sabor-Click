@@ -5,23 +5,39 @@ from database import db
 
 
 def criar_trigger_baixa_estoque() -> None:
-    """Cria a view, a tabela auxiliar e a trigger de baixa de estoque.
+    """Cria a view e as triggers de baixa de estoque e descarte de lotes.
 
-    Monta a estrutura necessária para dar baixa no estoque quando um pedido é
-    confirmado:
+    Monta a estrutura necessária para controlar o estoque quando um pedido é
+    confirmado (abordagem A: estoque geral do ingrediente desacoplado dos
+    lotes):
       1. view `consumo_ingrediente_pedido`: consolida o consumo de cada
          ingrediente por pedido (pratos e bebidas somados).
-      2. tabela `baixa_lote_pedido`: guarda temporariamente a distribuição da
-         baixa entre os lotes.
-      3. trigger `baixa_estoque_pedido_confirmado`: ao mudar o status de um
-         pedido para 'confirmado', valida o estoque, distribui a baixa entre os
-         lotes (priorizando validade mais próxima) e atualiza o estoque geral.
+      2. trigger `baixa_estoque_pedido_confirmado`: ao mudar o status de um
+         pedido para 'confirmado', valida o estoque comparando apenas
+         `ingrediente.qtd` com o consumo total e, se houver saldo, dá baixa
+         somente em `ingrediente.qtd`. Não consulta nem atualiza lotes.
+      3. trigger `descartar_lotes_vencidos_ao_confirmar`: no mesmo evento,
+         zera o `qtd_inicial` dos lotes vencidos (data_validade NÃO NULA e
+         anterior a date('now')), marcando-os como descartados. Esse descarte
+         TAMBÉM reduz `ingrediente.qtd`: para cada ingrediente com lotes
+         vencidos, subtrai de `ingrediente.qtd` a soma do `qtd_inicial` dos
+         lotes vencidos descartados, com clamp em zero (MAX(0, ...)) para não
+         violar o CHECK `qtd >= 0 AND qtd_min >= 0` nem abortar a confirmação.
+         A subtração em `ingrediente.qtd` ocorre ANTES de zerar o
+         `lote.qtd_inicial`, senão a quantidade a subtrair já teria virado 0.
+         Lotes sem validade (data_validade NULL) nunca vencem; lotes válidos
+         permanecem intactos.
 
     A operação é idempotente (usa IF NOT EXISTS / DROP IF EXISTS) e executa
     dentro de uma transação com a engine do SQLAlchemy.
     """
-    
+
     with db.engine.begin() as conexao:
+
+        # Limpa a tabela auxiliar de distribuição por lote usada por versões
+        # antigas da trigger (abordagem FEFO). A baixa não distribui mais por
+        # lote, então a tabela deixa de existir.
+        conexao.execute(text("DROP TABLE IF EXISTS baixa_lote_pedido"))
 
         # 1. Calcula o consumo total de cada ingrediente por pedido.
         # Inclui pratos e bebidas e soma ingredientes repetidos.
@@ -72,23 +88,12 @@ def criar_trigger_baixa_estoque() -> None:
                 consumos.id_ingrediente
         """))
 
-        # 2. Guarda temporariamente a distribuição da baixa
-        # entre os lotes de cada pedido.
-        conexao.execute(text("""
-            CREATE TABLE IF NOT EXISTS baixa_lote_pedido (
-                id_pedido INTEGER NOT NULL,
-                id_lote INTEGER NOT NULL,
-                qtd_baixada NUMERIC(10, 3) NOT NULL,
-                PRIMARY KEY (id_pedido, id_lote)
-            )
-        """))
-
-        # Remove a trigger antiga, se existir.
+        # Remove a trigger de baixa antiga, se existir.
         conexao.execute(text("""
             DROP TRIGGER IF EXISTS baixa_estoque_pedido_confirmado
         """))
 
-        # 3. Cria a nova trigger.
+        # 2. Cria a trigger de baixa (abordagem A: só ingrediente.qtd).
         conexao.execute(text("""
             CREATE TRIGGER baixa_estoque_pedido_confirmado
             AFTER UPDATE OF status ON pedido
@@ -97,7 +102,10 @@ def criar_trigger_baixa_estoque() -> None:
                  AND OLD.status <> 'confirmado'
             BEGIN
 
-                -- VERIFICAÇÃO DO ESTOQUE GERAL E DOS LOTES
+                -- VERIFICAÇÃO DO ESTOQUE GERAL DO INGREDIENTE.
+                -- Reprova o pedido somente quando o estoque geral de algum
+                -- ingrediente é menor que o consumo total do pedido. Não
+                -- considera lotes.
                 SELECT RAISE(
                     ABORT,
                     'Estoque insuficiente para confirmar o pedido'
@@ -108,89 +116,12 @@ def criar_trigger_baixa_estoque() -> None:
                     JOIN ingrediente i
                         ON i.id_ingrediente = c.id_ingrediente
                     WHERE c.id_pedido = NEW.id_pedido
-                      AND (
-                          i.qtd < c.qtd_total
-                          OR COALESCE((
-                              SELECT SUM(l.qtd_inicial)
-                              FROM lote l
-                              WHERE l.id_ingrediente =
-                                    c.id_ingrediente
-                                AND l.qtd_inicial > 0
-                                AND (
-                                    l.data_validade IS NULL
-                                    OR l.data_validade >= date('now')
-                                )
-                          ), 0) < c.qtd_total
-                      )
+                      AND i.qtd < c.qtd_total
                 );
 
-                -- LIMPA EVENTUAIS REGISTROS ANTERIORES
-                DELETE FROM baixa_lote_pedido
-                WHERE id_pedido = NEW.id_pedido;
-
-                -- DISTRIBUI A QUANTIDADE ENTRE OS LOTES.
-                -- Lotes com validade conhecida vêm primeiro,
-                -- em ordem crescente de vencimento.
-                -- Lotes sem validade ficam por último.
-                INSERT INTO baixa_lote_pedido (
-                    id_pedido,
-                    id_lote,
-                    qtd_baixada
-                )
-                SELECT
-                    id_pedido,
-                    id_lote,
-                    qtd_baixada
-                FROM (
-                    SELECT
-                        NEW.id_pedido AS id_pedido,
-                        l.id_lote AS id_lote,
-                        MIN(
-                            l.qtd_inicial,
-                            MAX(
-                                0,
-                                c.qtd_total - (
-                                    SUM(l.qtd_inicial) OVER (
-                                        PARTITION BY l.id_ingrediente
-                                        ORDER BY
-                                            (l.data_validade IS NULL),
-                                            l.data_validade,
-                                            l.data_recebimento,
-                                            l.id_lote
-                                        ROWS BETWEEN
-                                            UNBOUNDED PRECEDING
-                                            AND CURRENT ROW
-                                    ) - l.qtd_inicial
-                                )
-                            )
-                        ) AS qtd_baixada
-                    FROM lote l
-                    JOIN consumo_ingrediente_pedido c
-                        ON c.id_ingrediente = l.id_ingrediente
-                    WHERE c.id_pedido = NEW.id_pedido
-                      AND l.qtd_inicial > 0
-                      AND (
-                          l.data_validade IS NULL
-                          OR l.data_validade >= date('now')
-                      )
-                )
-                WHERE qtd_baixada > 0;
-
-                -- ATUALIZA A QUANTIDADE RESTANTE DE CADA LOTE
-                UPDATE lote
-                SET qtd_inicial = qtd_inicial - COALESCE((
-                    SELECT SUM(b.qtd_baixada)
-                    FROM baixa_lote_pedido b
-                    WHERE b.id_pedido = NEW.id_pedido
-                      AND b.id_lote = lote.id_lote
-                ), 0)
-                WHERE id_lote IN (
-                    SELECT id_lote
-                    FROM baixa_lote_pedido
-                    WHERE id_pedido = NEW.id_pedido
-                );
-
-                -- ATUALIZA O ESTOQUE GERAL DOS INGREDIENTES
+                -- ATUALIZA O ESTOQUE GERAL DOS INGREDIENTES.
+                -- Decrementa ingrediente.qtd exatamente no consumo total do
+                -- pedido para cada ingrediente consumido.
                 UPDATE ingrediente
                 SET qtd = qtd - (
                     SELECT c.qtd_total
@@ -205,9 +136,61 @@ def criar_trigger_baixa_estoque() -> None:
                     WHERE id_pedido = NEW.id_pedido
                 );
 
-                -- LIMPA A TABELA AUXILIAR APÓS A BAIXA
-                DELETE FROM baixa_lote_pedido
-                WHERE id_pedido = NEW.id_pedido;
+            END;
+        """))
+
+        # Remove a trigger de descarte antiga, se existir.
+        conexao.execute(text("""
+            DROP TRIGGER IF EXISTS descartar_lotes_vencidos_ao_confirmar
+        """))
+
+        # 3. Cria a trigger de descarte de lotes vencidos.
+        # Reduz ingrediente.qtd pela soma do qtd_inicial dos lotes vencidos e,
+        # em seguida, zera o qtd_inicial desses lotes com validade conhecida e
+        # já vencida, marcando-os como descartados. Lotes sem validade
+        # (data_validade NULL) nunca vencem; lotes ainda válidos permanecem
+        # intactos. O UPDATE em ingrediente vem ANTES do UPDATE que zera
+        # lote.qtd_inicial, senão a quantidade a subtrair já teria virado 0.
+        conexao.execute(text("""
+            CREATE TRIGGER descartar_lotes_vencidos_ao_confirmar
+            AFTER UPDATE OF status ON pedido
+            FOR EACH ROW
+            WHEN NEW.status = 'confirmado'
+                 AND OLD.status <> 'confirmado'
+            BEGIN
+
+                -- REDUZ O ESTOQUE GERAL PELO TOTAL VENCIDO DESCARTADO.
+                -- Para cada ingrediente com lotes vencidos, subtrai de
+                -- ingrediente.qtd a soma do qtd_inicial desses lotes, com
+                -- clamp em zero (MAX) para não violar o CHECK nem abortar.
+                -- Deve rodar ANTES de zerar lote.qtd_inicial.
+                UPDATE ingrediente
+                SET qtd = MAX(
+                    0,
+                    qtd - (
+                        SELECT COALESCE(SUM(l.qtd_inicial), 0)
+                        FROM lote l
+                        WHERE l.id_ingrediente =
+                              ingrediente.id_ingrediente
+                          AND l.data_validade IS NOT NULL
+                          AND l.data_validade < date('now')
+                          AND l.qtd_inicial > 0
+                    )
+                )
+                WHERE id_ingrediente IN (
+                    SELECT l.id_ingrediente
+                    FROM lote l
+                    WHERE l.data_validade IS NOT NULL
+                      AND l.data_validade < date('now')
+                      AND l.qtd_inicial > 0
+                );
+
+                -- MARCA OS LOTES VENCIDOS COMO DESCARTADOS.
+                UPDATE lote
+                SET qtd_inicial = 0
+                WHERE data_validade IS NOT NULL
+                  AND data_validade < date('now')
+                  AND qtd_inicial > 0;
 
             END;
         """))

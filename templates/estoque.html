@@ -43,6 +43,12 @@
         <button type="reset">Limpar filtros</button>
     </form>
     <p id="estoque-contagem" role="status" aria-live="polite"></p>
+    <p class="muted" id="legenda-situacao">
+        A situação <strong>Regular/Repor</strong> compara a quantidade atual com o
+        estoque mínimo de alerta do item. Ela não reflete o consumo de um pedido
+        específico: um item pode aparecer como "Regular" aqui e ainda assim não
+        ter saldo suficiente para um pedido com muitos convidados.
+    </p>
     <div class="tabela" id="tabela-insumos">
         <table>
             <thead>

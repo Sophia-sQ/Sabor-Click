@@ -8,6 +8,7 @@
         {% for chave, titulo, caminho in [('cardapio','Cardápio',url_for('admin.catalogo_cardapio')),('bebidas','Bebidas',url_for('admin.catalogo_bebidas'))] %}
         <a href="{{ caminho }}"{% if pagina_admin == chave %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">{% if chave == 'cardapio' %}<path d="M4 3h6a3 3 0 0 1 2 3v15a4 4 0 0 0-4-2H4V3Zm16 0h-6a3 3 0 0 0-2 3v15a4 4 0 0 1 4-2h4V3Z"/>{% else %}<path d="M7 3h10l-1 8a4 4 0 0 1-8 0L7 3ZM12 15v6M8 21h8M7.5 7h9"/>{% endif %}</svg><span>{{ titulo }}</span></a>
         {% endfor %}
+        <a href="{{ url_for('admin.pagina_logs') }}"{% if pagina_admin == 'logs' %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M14 3v6h6M8 13h8M8 17h8"/></svg><span>Logs</span></a>
     </nav>
     <div class="menu-admin-rodape">
         {% if request.blueprint == 'admin' %}

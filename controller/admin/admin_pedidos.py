@@ -69,7 +69,7 @@ def _resumo_pedido_admin(pedido) -> dict:
         "status": pedido.status,
         "status_rotulo": _ROTULO_STATUS.get(pedido.status, pedido.status),
         "status_classe": _CLASSE_STATUS.get(pedido.status, ""),
-        "valor_total": formatar_moeda(pedido.valor_total),
+        "valor_total": formatar_moeda(int(round(pedido.valor_total * 100))),
         "chefe": nome_exibicao(chefe.nome) if chefe else "Aguardando chef",
     }
 

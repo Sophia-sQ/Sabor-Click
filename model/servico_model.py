@@ -143,7 +143,7 @@ def atualizar_bancada(id_bancada, id_usuario: int, nome=None, descricao=None) ->
     if descricao:
         bancada.descricao = descricao
     db.session.commit()
-    registrar_log(id_usuario,"ATUALIZACAO BANCADA", "Usuário atualizou bancada")
+    registrar_log("ATUALIZACAO BANCADA", "Usuário atualizou bancada")
 
     return True
 
@@ -154,7 +154,7 @@ def deletar_bancada(id_bancada, id_usuario: int) -> bool:
         return False
     db.session.delete(bancada)
     db.session.commit()
-    registrar_log(id_usuario,"DELETAR BANCADA", "Usuário deletou bancada")
+    registrar_log("DELETAR BANCADA", "Usuário deletou bancada")
 
     return True
 
@@ -382,7 +382,7 @@ def deletar_cardapio(id_cardapio, id_usuario: int) -> bool:
         return False
     db.session.delete(cardapio)
     db.session.commit()
-    registrar_log(id_usuario,"DELETAR CARDAPIO", "Usuário deletou cardapio")
+    registrar_log("DELETAR CARDAPIO", "Usuário deletou cardapio")
 
     return True
 
@@ -407,7 +407,7 @@ def associar_servico_bancada(id_servico, id_bancada, id_usuario: int) -> bool:
     nova_associacao = ServicoBancada(id_servico=id_servico, id_bancada=id_bancada)
     db.session.add(nova_associacao)
     db.session.commit()
-    registrar_log(id_usuario,"ASSOCIACAO SERVICO_BANCADA", "Usuário associou uma bancada a um servico")
+    registrar_log("ASSOCIACAO SERVICO_BANCADA", "Usuário associou uma bancada a um servico")
 
     return True
 
@@ -429,7 +429,7 @@ def desassociar_servico_bancada(id_servico: int, id_bancada: int, id_usuario: in
         return False
     db.session.delete(associacao)
     db.session.commit()
-    registrar_log(id_usuario,"DESASSOCIACAO SERVICO_BANCADA", "Usuário desassociou uma bancada a um servico")
+    registrar_log("DESASSOCIACAO SERVICO_BANCADA", "Usuário desassociou uma bancada a um servico")
 
     return True
 

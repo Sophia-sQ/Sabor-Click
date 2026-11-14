@@ -16,6 +16,34 @@ from triggers import criar_trigger_baixa_estoque
 
 chefe_bp = Blueprint("chefe", __name__, url_prefix="/pedido")
 
+# Texto exato do RAISE(ABORT, ...) emitido pela trigger de baixa de estoque
+# (triggers.py) quando o estoque geral de algum ingrediente é insuficiente
+# para o consumo total do pedido. O abort chega ao Python como uma
+# SQLAlchemyError (tipicamente OperationalError) cuja mensagem contém este
+# texto; é assim que distinguimos o erro de estoque de qualquer outra falha.
+_MSG_ABORT_ESTOQUE = "Estoque insuficiente para confirmar o pedido"
+
+
+def _e_erro_de_estoque(exc: Exception) -> bool:
+    """Indica se a exceção corresponde ao abort de estoque insuficiente.
+
+    Inspeciona a mensagem da própria exceção e a de sua causa de baixo nível
+    (``exc.orig``, o erro do driver sqlite3) procurando o texto do
+    RAISE(ABORT) definido na trigger de baixa de estoque. Assim, apenas o
+    abort de estoque gera a mensagem que menciona estoque; qualquer outra
+    falha cai no tratamento genérico.
+
+    Args:
+        exc (Exception): exceção capturada ao transicionar o status do pedido.
+
+    Returns:
+        bool: True se a exceção for o abort de estoque insuficiente.
+    """
+    if _MSG_ABORT_ESTOQUE in str(exc):
+        return True
+    orig = getattr(exc, "orig", None)
+    return orig is not None and _MSG_ABORT_ESTOQUE in str(orig)
+
 
 def _contexto_email_pedido(pedido, data_atualizacao=None) -> dict:
     """Monta o contexto completo para o template email_pedido.html.
@@ -62,7 +90,7 @@ def _contexto_email_pedido(pedido, data_atualizacao=None) -> dict:
         bebidas.append({
             "nome": bebida.nome if bebida else None,
             "qtd": item.qtd,
-            "subtotal": formatar_moeda(item.valor_total),
+            "subtotal": formatar_moeda(int(round(item.valor_total * 100))),
         })
 
     quando = data_atualizacao or pedido.confirmado_em
@@ -81,7 +109,7 @@ def _contexto_email_pedido(pedido, data_atualizacao=None) -> dict:
         "id": pedido.id_pedido,
         "status": pedido.status,
         "observacao": pedido.observacao,
-        "valor_total": formatar_moeda(pedido.valor_total),
+        "valor_total": formatar_moeda(int(round(pedido.valor_total * 100))),
         "data_evento": pedido.data_evento.strftime("%d/%m/%Y") if pedido.data_evento else None,
         "hora_inicio": pedido.hora_inicio.strftime("%H:%M") if pedido.hora_inicio else None,
         "hora_fim": pedido.hora_fim.strftime("%H:%M") if pedido.hora_fim else None,
@@ -126,7 +154,7 @@ def _resumo_pedido(pedido) -> dict:
         "id_pedido": pedido.id_pedido,
         "observacao": pedido.observacao,
         "criado_em": pedido.criado_em.strftime("%Hh%M") if pedido.criado_em else None,
-        "valor_total": formatar_moeda(pedido.valor_total),
+        "valor_total": formatar_moeda(int(round(pedido.valor_total * 100))),
         "data_evento": pedido.data_evento.strftime("%d/%m/%Y") if pedido.data_evento else None,
         "hora_inicio": pedido.hora_inicio.strftime("%H:%M") if pedido.hora_inicio else None,
         "hora_fim": pedido.hora_fim.strftime("%H:%M") if pedido.hora_fim else None,
@@ -195,16 +223,24 @@ def aceitar_pedido():
         return jsonify({"ok": False, "erro": "Finalize o pedido atual antes de aceitar outro"}), 409
 
     # A trigger de baixa de estoque dispara AFTER UPDATE para 'confirmado' e
-    # aborta quando o estoque é insuficiente. Surfaça o erro em vez de assumir
-    # sucesso.
+    # aborta (RAISE) quando o estoque geral de algum ingrediente é insuficiente.
+    # atualizar_pedido() faz rollback e RE-LANÇA a exceção nesse caso, então
+    # distinguimos aqui o abort de estoque de qualquer outro erro: só o abort
+    # de estoque produz uma mensagem que fala em estoque.
     criar_trigger_baixa_estoque()
     try:
         atualizado = atualizar_pedido(pedido.id_pedido, "confirmado", data_confirma, session.get("id"))
-    except Exception:
-        return jsonify({"ok": False, "erro": "Não foi possível aceitar o pedido. Verifique o estoque e tente novamente."}), 409
+    except Exception as exc:  # noqa: BLE001 - precisamos inspecionar a exceção
+        if _e_erro_de_estoque(exc):
+            return jsonify({"ok": False, "erro": "Não foi possível aceitar o pedido: estoque insuficiente para um ou mais ingredientes."}), 409
+        # Qualquer outra falha é inesperada: mensagem genérica e honesta, sem
+        # mencionar estoque, com status 500.
+        return jsonify({"ok": False, "erro": "Não foi possível aceitar o pedido. Tente novamente."}), 500
 
+    # atualizado==False significa que o pedido não existe mais (não é estoque).
+    # Já tratamos a inexistência acima, mas mantemos a guarda por segurança.
     if not atualizado:
-        return jsonify({"ok": False, "erro": "Não foi possível aceitar o pedido. Verifique o estoque e tente novamente."}), 409
+        return jsonify({"ok": False, "erro": "Pedido não encontrado."}), 404
 
     chefe = buscar_usuario_por_id(session.get("id"))
     registrar_log("ACEITOU PEDIDO.", f"Em {data_confirma}, o chefe {chefe.nome} aceitou o pedido {pedido.id_pedido}.")
@@ -257,11 +293,17 @@ def atualizar_status():
 
     data_confirma = datetime.now(ZoneInfo("America/Sao_Paulo"))
 
+    # atualizar_pedido() passou a fazer rollback e re-lançar em caso de falha no
+    # commit (antes retornava None). Este fluxo não transiciona para
+    # 'confirmado', então a trigger de baixa não dispara aqui; mantemos uma
+    # mensagem genérica e coerente para qualquer erro inesperado.
     try:
         atualizado = atualizar_pedido(pedido.id_pedido, dados["status"], data_confirma, session.get("id"))
-    except Exception:
+    except Exception:  # noqa: BLE001 - falha inesperada no commit
         return jsonify({"ok": False, "erro": "Não foi possível atualizar o pedido."}), 400
 
+    # atualizado==False indica pedido inexistente (já tratado acima); mantém a
+    # guarda para não assumir sucesso indevidamente.
     if not atualizado:
         return jsonify({"ok": False, "erro": "Não foi possível atualizar o pedido."}), 400
 

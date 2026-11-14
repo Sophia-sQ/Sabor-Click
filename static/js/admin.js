@@ -8,7 +8,9 @@
   const erro = document.getElementById('erro-periodo');
   const relatorioUrl = form.dataset.relatorioUrl;
   const estado = document.getElementById('estado-relatorio');
-  const statusRelatorio = ['aguardando', 'em preparo', 'concluido', 'cancelado'];
+  // Mapa explícito do enum Pedido.status para o índice do grupo exibido na UI:
+  // 0 = aguardando; 1 = confirmados ou em preparo; 2 = concluídos; 3 = cancelados.
+  const grupoStatus = {aguardando: 0, confirmado: 1, 'em preparo': 1, concluido: 2, cancelado: 3};
   let consulta;
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   const deslocar = (data, dias) => { const d = new Date(data); d.setDate(d.getDate() + dias); return d; };
@@ -64,12 +66,15 @@
         if (!resposta.ok || resposta.redirected) throw new Error('Relatório indisponível');
         const {dias} = await resposta.json();
         if (atual.signal.aborted) return;
-        itens = dias.map(({data, status, quantidade, receita}) => ({
-          data: lerData(data),
-          status: status === 'confirmado' ? 1 : statusRelatorio.indexOf(status),
-          quantidade,
-          receita: Number(receita),
-        }));
+        itens = dias
+          .map(({data, status, quantidade, receita}) => ({
+            data: lerData(data),
+            status: grupoStatus[status],
+            quantidade,
+            receita: Number(receita),
+          }))
+          // Descarta status desconhecidos (fora do enum) para não corromper as contagens/rosca.
+          .filter(item => item.status !== undefined);
         estado.hidden = true;
       } catch {
         if (!atual.signal.aborted) estado.textContent = 'Não foi possível carregar o relatório. Tente aplicar o período novamente.';

@@ -122,6 +122,10 @@ def verificar_token():
             session["id"] = id_pendente
             session["cargo"] = usuario.id_permissao
             flash("E-mail verificado com sucesso!", "success")
+            if session.get("cargo")==Cargo.CHEFE.value:
+                return redirect(url_for("chefe.cozinha"))
+            elif session.get("cargo")==Cargo.ADMIN.value:
+                return redirect(url_for("admin.visao_geral"))
             return redirect(url_for("cliente.mostrar_carrinho" if carrinho else "cliente.home"))
 
         erro = "Código inválido ou expirado. Tente novamente."

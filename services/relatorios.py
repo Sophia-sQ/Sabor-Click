@@ -9,24 +9,30 @@ from utils import calcular_periodo, hoje, mes_passado, ultimos_30_dias, semana_p
 
 # ================================= funções internas =================================
 
-def _pedidos_30_dias(status=None) -> list:
+def _pedidos_30_dias(status=None, coluna_data: str = "criado_em") -> list:
     """Retorna os pedidos de um status específico nos últimos 30 dias.
 
     Args:
         status (str | None, optional): status para filtragem. Padrão: None.
+        coluna_data (str, optional): coluna de data usada no filtro. Padrão:
+            'criado_em' (relatórios de volume consideram quando o pedido foi
+            criado).
 
     Returns:
         list: lista de pedidos que se enquadram no período e status.
     """
     
     data_inicio=ultimos_30_dias()
-    return listar_pedidos_entre_datas(data_inicio.year, data_inicio.month, data_inicio.day, status=status) or []
+    return listar_pedidos_entre_datas(data_inicio.year, data_inicio.month, data_inicio.day, status=status, coluna_data=coluna_data) or []
 
-def _pedidos_mensais(status: str = "concluido") -> tuple[list, list]:
+def _pedidos_mensais(status: str = "concluido", coluna_data: str = "confirmado_em") -> tuple[list, list]:
     """Retorna os pedidos do mês atual e do mês passado no mesmo período.
 
     Args:
         status (str, optional): status para filtragem. Padrão: "concluido".
+        coluna_data (str, optional): coluna de data usada no filtro. Padrão:
+            'confirmado_em' (indicadores financeiros consideram quando o pedido
+            foi confirmado). Relatórios de volume devem passar 'criado_em'.
 
     Returns:
         tuple[list, list]: (pedidos do mês atual, pedidos do mês passado).
@@ -36,19 +42,21 @@ def _pedidos_mensais(status: str = "concluido") -> tuple[list, list]:
     data_hoje = hoje()
     data_mes_passado = mes_passado()
     
-    pedidos_atual=listar_pedidos_periodo(data_hoje.year, data_hoje.month, data_hoje.day, status)
-    pedidos_anterior=listar_pedidos_periodo(data_mes_passado.year, data_mes_passado.month, calcular_periodo(1), status)
+    pedidos_atual=listar_pedidos_periodo(data_hoje.year, data_hoje.month, data_hoje.day, status, coluna_data=coluna_data)
+    pedidos_anterior=listar_pedidos_periodo(data_mes_passado.year, data_mes_passado.month, calcular_periodo(1), status, coluna_data=coluna_data)
     
     return (pedidos_atual or [], pedidos_anterior or [])
 
 def _faturamento() -> tuple[int, int]:
     """Calcula o faturamento do mês atual e do mês anterior.
 
+    Usa confirmado_em como critério de data (indicador financeiro).
+
     Returns:
         tuple[int, int]: (faturamento do mês atual, faturamento do mês anterior).
     """
     
-    pedidos=_pedidos_mensais()
+    pedidos=_pedidos_mensais(coluna_data="confirmado_em")
     
     faturamento_atual=0
     faturamento_anterior=0
@@ -64,19 +72,28 @@ def _faturamento() -> tuple[int, int]:
 # =================================== RELATÓRIOS ======================================
 
 def resumo_pedidos_por_dia(inicio: date, fim: date) -> list[dict]:
-    """Agrupa os pedidos pela data do evento e pelo status, com datas inclusivas."""
+    """Agrupa os pedidos pela data de CONFIRMAÇÃO e pelo status (datas inclusivas).
+
+    Indicador financeiro: usa Pedido.confirmado_em como critério de data. Como
+    confirmado_em é DateTime e os limites (inicio/fim) são datas, o agrupamento e
+    o filtro usam func.date(Pedido.confirmado_em) para cobrir o dia inteiro do
+    'fim' (sem perder confirmações feitas após 00:00). Pedidos não confirmados
+    têm confirmado_em NULL e ficam de fora naturalmente; a receita continua sendo
+    zerada para status != 'concluido'.
+    """
+    dia_confirmacao = func.date(Pedido.confirmado_em)
     resultados = (
         Pedido.query.with_entities(
-            Pedido.data_evento, Pedido.status, func.count(), func.sum(Pedido.valor_total)
+            dia_confirmacao, Pedido.status, func.count(), func.sum(Pedido.valor_total)
         )
-        .filter(Pedido.data_evento.between(inicio, fim))
-        .group_by(Pedido.data_evento, Pedido.status)
-        .order_by(Pedido.data_evento, Pedido.status)
+        .filter(dia_confirmacao >= inicio, dia_confirmacao <= fim)
+        .group_by(dia_confirmacao, Pedido.status)
+        .order_by(dia_confirmacao, Pedido.status)
         .all()
     )
     return [
         {
-            "data": dia.isoformat(),
+            "data": dia.isoformat() if hasattr(dia, "isoformat") else str(dia),
             "status": status,
             "quantidade": quantidade,
             "receita": str(valor) if status == "concluido" else "0",
@@ -92,7 +109,7 @@ def pedidos_quantidade() -> tuple[int, float | None]:
         tuple[int, float | None]: total de pedidos e variação percentual em
         relação ao período anterior (None quando não há base de comparação).
     """
-    pedidos=_pedidos_mensais()
+    pedidos=_pedidos_mensais(coluna_data="criado_em")
     
     n_pedidos_atual=len(pedidos[0])
     n_pedidos_anterior=len(pedidos[1])
@@ -115,7 +132,7 @@ def pedidos_tipo() -> dict:
         "Bar": 0
     }
     
-    pedidos=_pedidos_30_dias()
+    pedidos=_pedidos_30_dias(coluna_data="criado_em")
     
     for pedido in pedidos:
         cardapios=buscar_cardapios_pedido(pedido.id_pedido)
@@ -145,7 +162,10 @@ def pedidos_status() -> dict:
         "cancelado": 0
     }
 
-    pedidos=_pedidos_mensais(None)[0]
+    # Contagem por status é um indicador de volume: usa criado_em. Fosse por
+    # confirmado_em, pedidos 'aguardando'/'cancelado' (confirmado_em NULL)
+    # ficariam de fora, distorcendo a contagem.
+    pedidos=_pedidos_mensais(None, coluna_data="criado_em")[0]
     
     for pedido in pedidos:
         if pedido.status in status:
@@ -220,7 +240,8 @@ def faturamento_semanal() -> dict:
     for i in range(1, 7):
         data_inicio, data_fim=semana_passada(i)
         pedidos = listar_pedidos_entre_datas(data_inicio.year, data_inicio.month, data_inicio.day,
-                                             data_fim.year, data_fim.month, data_fim.day) or []
+                                             data_fim.year, data_fim.month, data_fim.day,
+                                             coluna_data="confirmado_em") or []
         for pedido in pedidos:
             semanas['S'+str(i)]+=pedido.valor_total or 0
     

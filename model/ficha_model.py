@@ -469,7 +469,7 @@ def atualizar_ficha_tecnica(id_prato: int, id_ingrediente: int, qtd_necessaria: 
     ficha.qtd_necessaria = qtd_necessaria
     db.session.commit()
     if id_usuario:
-        registrar_log(id_usuario, "ATUALIZACAO FICHA_TECNICA", f"Usuário atualizou ficha técnica do prato {id_prato}")
+        registrar_log("ATUALIZACAO FICHA_TECNICA", f"Usuário atualizou ficha técnica do prato {id_prato}")
     return True
 
 

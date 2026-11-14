@@ -1,0 +1,55 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "logs" %}
+{% set inicio_admin = url_for('admin.visao_geral') %}
+{% block titulo %}Logs de atividade | Sabor &amp; Click{% endblock %}
+{% block estilos_admin %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
+{% endblock %}
+{% block conteudo_admin %}
+<header class="intro"><h1>Registros de atividade</h1><p>Consulte a trilha de auditoria das ações realizadas no sistema.</p></header>
+<section class="card">
+    {% include "componentes/mensagens.html" %}
+    <div class="cabecalho-estoque">
+        <h2>Atividades</h2>
+        <form class="filtros-estoque formulario" method="get" action="{{ url_for('admin.pagina_logs') }}" role="search" aria-label="Buscar registros por ação">
+            <div>
+                <label for="busca-log">Buscar por ação</label>
+                <input id="busca-log" name="busca" type="search" placeholder="Ex.: REMOCAO ENDERECO" value="{{ busca }}">
+            </div>
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+    {% if logs %}
+    <div class="tabela">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Data/Hora</th>
+                    <th scope="col">Ação</th>
+                    <th scope="col">Descrição</th>
+                    <th scope="col" aria-label="Ações do registro"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.realizado_em.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>{{ log.acao }}</td>
+                    <td>{{ log.descricao or '—' }}</td>
+                    <td class="acoes-editar">
+                        <a href="{{ url_for('admin.detalhe_log', id_atividade=log.id_atividade) }}">Detalhes</a>
+                        <form method="post" action="{{ url_for('admin.deletar_log_route', id_atividade=log.id_atividade) }}" onsubmit="return confirm('Excluir este registro de atividade?');">
+                            <button type="submit">Excluir</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="muted">Nenhum registro de atividade.</p>
+    {% endif %}
+</section>
+<footer>Sabor &amp; Click · 2026</footer>
+{% endblock %}
