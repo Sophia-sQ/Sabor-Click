@@ -40,6 +40,9 @@
     // Pedido que está na bancada do chef (vindo de GET /pedido/preparo).
     let atual = null;
     const separados = new Set();
+    // Checkboxes de ingredientes renderizados na bancada atual. Mantidos aqui
+    // para o botão "Marcar todos" marcá-los sem reconstruir a lista.
+    let checksPreparo = [];
     // Total de pedidos concluídos nesta sessão da cozinha. O pedido concluído
     // é descartado da bancada (atual = null) para liberá-la, então a contagem
     // de "Pedidos Feitos" precisa ser acumulada aqui — não pode ser derivada do
@@ -135,7 +138,7 @@
         }
         lista.replaceChildren(...bancadas.map(bancada => {
             const item = criar('li');
-            item.append(criar('span', bancada.nome + " - "|| 'Bancada'));
+            item.append(criar('span', bancada.nome + " - " || 'Bancada'));
             if (bancada.descricao) item.append(criar('span', bancada.descricao, 'muted'));
             return item;
         }));
@@ -145,7 +148,22 @@
     function mostrarBancadaVazia() {
         el('preparo-vazio').hidden = false;
         el('preparo-conteudo').hidden = true;
+        checksPreparo = [];
+        el('marcar-todos').disabled = true;
         atualizarContadores();
+    }
+
+    // Marca de uma vez todos os ingredientes da ficha. Só tem efeito na fase de
+    // separação (status 'confirmado'), as mesmas condições em que os checkboxes
+    // ficam habilitados. Preenche o mesmo Set `separados` que os checkboxes
+    // usam e reaproveita atualizarProgresso para liberar o "Iniciar preparo".
+    function marcarTodos() {
+        if (!atual || atual.status !== 'confirmado') return;
+        checksPreparo.forEach(({check, chave}) => {
+            check.checked = true;
+            separados.add(chave);
+        });
+        atualizarProgresso(checksPreparo.length);
     }
 
     function renderizarPreparo() {
@@ -167,6 +185,7 @@
         const ingredientes = ingredientesAgregados(atual);
         const container = el('ingredientes-preparo');
         container.replaceChildren();
+        checksPreparo = [];
         ingredientes.forEach(ingrediente => {
             const chave = `${ingrediente.nome}:${ingrediente.unidade}`;
             const linha = criar('div', undefined, 'ingrediente-preparo');
@@ -183,7 +202,11 @@
             label.append(check, criar('span', ingrediente.nome));
             linha.append(label, criar('strong', `${numero(ingrediente.quantidade)} ${ingrediente.unidade}`.trim()));
             container.append(linha);
+            checksPreparo.push({check, chave});
         });
+        // "Marcar todos" só faz sentido durante a separação (status 'confirmado'),
+        // acompanhando o estado habilitado dos próprios checkboxes.
+        el('marcar-todos').disabled = atual.status !== 'confirmado';
 
         el('avancar-preparo').textContent = rotuloAvancar[atual.status] || 'Avançar';
         el('ajuda-status').textContent = ajudaStatus[atual.status] || '';
@@ -356,6 +379,7 @@
 
     el('avancar-preparo').addEventListener('click', avancarPreparo);
     el('cancelar-preparo').addEventListener('click', cancelarPreparo);
+    el('marcar-todos').addEventListener('click', marcarTodos);
 
     renderizarFila();
     carregarPreparo();

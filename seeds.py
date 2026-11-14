@@ -1346,71 +1346,81 @@ lista_ficha_tecnica = [
     ("Pudim_de_leite_condensado", "Acucar", 0.02),
 
     # Salgados
-    ("Coxinha", "Coxinha", 3.3),
-    ("Risole", "Risole", 3.3),
-    ("Quibe", "Quibe", 3.3),
-    ("Bolinha_de_queijo", "Bolinha_de_queijo", 3.3),
-    ("Empada", "Empada", 3.3),
-    ("Croquete", "Croquete", 3.3),
+    # Convencao "consumo por pessoa" (Cardapio.md secao 3). Itens contaveis
+    # (unidade "unidade") usam o inteiro exato de unidades por pessoa.
+    ("Coxinha", "Coxinha", 2),
+    ("Risole", "Risole", 2),
+    ("Quibe", "Quibe", 1),
+    ("Bolinha_de_queijo", "Bolinha_de_queijo", 2),
+    ("Empada", "Empada", 1),
+    ("Croquete", "Croquete", 1),
 
-    # Batata frita.
-    ("Batata_frita", "Batata", 0.220),
-    ("Batata_frita", "Oleo_para_fritura", 0.0055),
-    ("Batata_frita", "Sal", 0.0022),
+    # Batata frita: 200 g por pessoa (Cardapio.md). Oleo e Sal proporcionais;
+    # valores multiplos de 0.001 para que x1000 (iniciar_ficha_tecnica) de inteiro.
+    ("Batata_frita", "Batata", 0.200),
+    ("Batata_frita", "Oleo_para_fritura", 0.005),
+    ("Batata_frita", "Sal", 0.002),
 
-    # Mesa de salgados
-    ("Queijo", "Queijo_prato", 0.055),
+    # Mesa de salgados: queijo 80 g por pessoa (Cardapio.md).
+    ("Queijo", "Queijo_prato", 0.080),
 
-    # Embutidos: estimativa de 50 g por pessoa + 10%.
-    ("Embutido", "Salame", 0.055),
+    # Embutido presunto/salame: 80 g por pessoa (Cardapio.md).
+    ("Embutido", "Salame", 0.080),
 
-    # Pão: estimativa de 2 mini pães por pessoa + 10%.
-    ("Pao", "Mini_paes", 2.2),
+    # Pao de forma / mini paes: 2 unidades por pessoa (Cardapio.md).
+    ("Pao", "Mini_paes", 2),
 
-    # Doces: estimativa de 2 unidades por pessoa + 10%.
-    ("Brigadeiro", "Brigadeiro", 2.2),
-    ("Beijinho", "Beijinho", 2.2),
+    # Doces: Brigadeiro 2 un, Beijinho 1 un por pessoa (Cardapio.md).
+    ("Brigadeiro", "Brigadeiro", 2),
+    ("Beijinho", "Beijinho", 1),
 
-    # Bolo: estimativa de 100 g por pessoa + 10%.
+    # Bolo: "1 fatia" no Cardapio.md; mantem 110 g/fatia ja definido (gramagem
+    # plausivel por fatia), x1000 = 110 g.
     ("Bolo", "Bolo_comum_simples", 0.110),
 
     # Hambúrguer tradicional: quantidades do cardápio + 10%.
+    # Valores "g"/"ml" ajustados ao multiplo de 0.001 mais proximo apenas para
+    # respeitar a coluna INTEGER (x1000); semantica por pessoa preservada.
     ("Hamburguer_tradicional", "Pao_brioche", 1.1),
     ("Hamburguer_tradicional", "Carne_moida_blend_patinho_acem", 0.198),
     ("Hamburguer_tradicional", "Queijo_cheddar", 0.022),
-    ("Hamburguer_tradicional", "Alface_americana", 0.0165),
+    ("Hamburguer_tradicional", "Alface_americana", 0.017),
     ("Hamburguer_tradicional", "Tomate", 0.022),
     ("Hamburguer_tradicional", "Cebola_caramelizada", 0.033),
-    ("Hamburguer_tradicional", "Maionese_temperada", 0.0165),
-    ("Hamburguer_tradicional", "Molho_barbecue", 0.0165),
-    ("Hamburguer_tradicional", "Manteiga", 0.0055),
+    ("Hamburguer_tradicional", "Maionese_temperada", 0.017),
+    ("Hamburguer_tradicional", "Molho_barbecue", 0.017),
+    ("Hamburguer_tradicional", "Manteiga", 0.006),
     ("Hamburguer_tradicional", "Batata", 0.220),
-    ("Hamburguer_tradicional", "Molho_mostarda_e_mel", 0.0165),
+    ("Hamburguer_tradicional", "Molho_mostarda_e_mel", 0.017),
     ("Hamburguer_tradicional", "Onion_rings", 0.110),
 
     # Hambúrguer smash: quantidades do cardápio + 10%.
+    # Valores "g"/"ml" ajustados ao multiplo de 0.001 mais proximo apenas para
+    # respeitar a coluna INTEGER (x1000); semantica por pessoa preservada.
     ("Hamburguer_smash", "Pao_brioche", 1.1),
     ("Hamburguer_smash", "Carne_moida_blend_patinho_acem", 0.099),
-    ("Hamburguer_smash", "Queijo_prato", 0.0077),
+    ("Hamburguer_smash", "Queijo_prato", 0.008),
     ("Hamburguer_smash", "Queijo_cheddar", 0.022),
-    ("Hamburguer_smash", "Maionese_temperada", 0.0165),
-    ("Hamburguer_smash", "Manteiga", 0.0055),
+    ("Hamburguer_smash", "Maionese_temperada", 0.017),
+    ("Hamburguer_smash", "Manteiga", 0.006),
     ("Hamburguer_smash", "Cebola_caramelizada", 0.022),
     ("Hamburguer_smash", "Batata", 0.220),
     ("Hamburguer_smash", "Onion_rings", 0.110),
 
     # Hambúrguer mega bacon
+    # Valores "g"/"ml" ajustados ao multiplo de 0.001 mais proximo apenas para
+    # respeitar a coluna INTEGER (x1000); semantica por pessoa preservada.
     ("Hamburguer_mega_bacon", "Pao_brioche", 1.1),
     ("Hamburguer_mega_bacon", "Carne_moida_blend_patinho_acem", 0.396),
     ("Hamburguer_mega_bacon", "Bacon", 0.033),
     ("Hamburguer_mega_bacon", "Queijo_cheddar", 0.088),
-    ("Hamburguer_mega_bacon", "Alface_americana", 0.0165),
-    ("Hamburguer_mega_bacon", "Cebola_caramelizada", 0.0385),
+    ("Hamburguer_mega_bacon", "Alface_americana", 0.017),
+    ("Hamburguer_mega_bacon", "Cebola_caramelizada", 0.039),
     ("Hamburguer_mega_bacon", "Maionese_temperada", 0.022),
-    ("Hamburguer_mega_bacon", "Molho_barbecue", 0.0165),
-    ("Hamburguer_mega_bacon", "Manteiga", 0.0055),
+    ("Hamburguer_mega_bacon", "Molho_barbecue", 0.017),
+    ("Hamburguer_mega_bacon", "Manteiga", 0.006),
     ("Hamburguer_mega_bacon", "Batata", 0.220),
-    ("Hamburguer_mega_bacon", "Molho_mostarda_e_mel", 0.0165),
+    ("Hamburguer_mega_bacon", "Molho_mostarda_e_mel", 0.017),
     ("Hamburguer_mega_bacon", "Onion_rings", 0.110),
 
     # Tortilha mexicana
@@ -1425,20 +1435,24 @@ lista_ficha_tecnica = [
     ("Tortilha_mexicana", "Frango_desfiado", 0.088),
     ("Tortilha_mexicana", "Pimentao", 0.022),
 
-    # Pastel de carne: estimativa de 3 unidades + 10%.
-    ("Pastel_de_carne", "Pastel_de_carne", 3.3),
+    # Pastel de carne: 2 unidades por pessoa (Cardapio.md, Boteco Brasileiro).
+    ("Pastel_de_carne", "Pastel_de_carne", 2),
 
-    # Bolinho de bacalhau: estimativa de 3 unidades + 10%.
-    ("Bolinho_de_bacalhau", "Bolinho_de_bacalhau", 3.3),
+    # Bolinho de bacalhau: o ingrediente "Bolinho_de_bacalhau" tem unidade "g"
+    # (ingredientes_carnes), entao o seed grava em gramas (x1000). O Cardapio.md
+    # (Boteco Brasileiro) pede 2 unidades por pessoa; usamos ~60 g (0.060) como
+    # gramagem plausivel para 2 bolinhos, mantendo a unidade "g" do ingrediente
+    # em vez de troca-la. Antes era 3.3 -> 3300 g (bug: 3,3 kg por pessoa).
+    ("Bolinho_de_bacalhau", "Bolinho_de_bacalhau", 0.060),
 
     # Linguiça acebolada:
     ("Liguica_acebolada", "Linguica_acebolada", 0.110),
     ("Liguica_acebolada", "Cebola", 0.033),
 
 
-    #Pastel de queijo:
-
-    ("Pastel_de_queijo", "Pastel_de_queijo", 3.3),
+    # Pastel de queijo: nao listado explicitamente no Cardapio.md; adotamos
+    # 2 unidades por pessoa por simetria com o Pastel de carne (Boteco).
+    ("Pastel_de_queijo", "Pastel_de_queijo", 2),
 ]
 
 #prato, cardapio, quantidade (em g), descrição técnica

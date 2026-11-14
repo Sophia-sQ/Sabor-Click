@@ -299,19 +299,34 @@ def buscar_prato_cardapio(id_prato: int, id_cardapio: int) -> PratoCardapio | No
         return item
     return None
 
-def listar_pratos_por_cardapio(id_cardapio: int) -> list[PratoCardapio] | None:
-    """Lista os vínculos de prato de um cardápio; None se não houver."""
-    from seeds import cardapios_bebidas
-    from model.servico_model import buscar_cardapio_por_id
-    from model.pedido_model import BebidaCardapio
-    
-    cardapios_bebidas = [tupla[0] for tupla in cardapios_bebidas]
+def listar_bebidas_por_cardapio(id_cardapio: int) -> list["BebidaCardapio"] | None:
+    """Lista os vínculos de bebida de um cardápio; None se não houver.
 
-    if buscar_cardapio_por_id(id_cardapio) in cardapios_bebidas:
-        stmt = db.select(BebidaCardapio).where(BebidaCardapio.id_cardapio == id_cardapio)
-    else:
-        stmt = db.select(PratoCardapio).where(PratoCardapio.id_cardapio == id_cardapio)
-    
+    Usado para detectar, pelo banco, se um cardápio é de bebidas: se houver
+    ao menos um BebidaCardapio para o id_cardapio, trata-se de um cardápio de
+    bebidas.
+    """
+    from model.pedido_model import BebidaCardapio
+
+    stmt = db.select(BebidaCardapio).where(BebidaCardapio.id_cardapio == id_cardapio)
+    itens = db.session.execute(stmt).scalars().all()
+    if itens:
+        return itens
+    return None
+
+def listar_pratos_por_cardapio(id_cardapio: int) -> list[PratoCardapio] | None:
+    """Lista os vínculos de um cardápio; None se não houver.
+
+    A detecção de cardápio-de-bebidas é feita pelo banco: se existir ao menos
+    um BebidaCardapio para o id_cardapio, retorna os vínculos BebidaCardapio;
+    caso contrário retorna os vínculos PratoCardapio (comportamento idêntico ao
+    de cardápios de pratos).
+    """
+    bebidas = listar_bebidas_por_cardapio(id_cardapio)
+    if bebidas is not None:
+        return bebidas
+
+    stmt = db.select(PratoCardapio).where(PratoCardapio.id_cardapio == id_cardapio)
     itens = db.session.execute(stmt).scalars().all()
     if itens:
         return itens

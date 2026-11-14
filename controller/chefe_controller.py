@@ -487,17 +487,33 @@ def enviar_preparo():
 
         pratos_resposta = []
         for pc in listar_pratos_por_cardapio(vinculo.id_cardapio) or []:
-            prato = buscar_prato_por_id(pc.id_prato)
-            pratos_resposta.append({
-                "id_prato": pc.id_prato,
-                "nome": prato.nome if prato else None,
-                "tipo_prato": prato.tipo_prato if prato else None,
-                "tempo_preparo": prato.tempo_preparo if prato else None,
-                "requer_pre_preparo": prato.requer_pre_preparo if prato else None,
-                "qtd": pc.qtd,
-                "descricao": pc.descricao,
-                "ficha_tecnica": _ficha_prato(pc.id_prato),
-            })
+            # Um cardápio pode ser de PRATOS (itens PratoCardapio, com
+            # .id_prato/.qtd/.descricao) ou de BEBIDAS (itens BebidaCardapio,
+            # com .id_bebida e sem qtd/descricao). Distinguimos pelo atributo
+            # presente no vínculo e montamos a ficha técnica correspondente.
+            # Em ambos os casos a entrada vai em cardapios[].pratos[] com a
+            # chave 'ficha_tecnica', que é o que o JS (cozinha.js) agrega.
+            if hasattr(pc, "id_prato"):
+                prato = buscar_prato_por_id(pc.id_prato)
+                pratos_resposta.append({
+                    "id_prato": pc.id_prato,
+                    "nome": prato.nome if prato else None,
+                    "tipo_prato": prato.tipo_prato if prato else None,
+                    "tempo_preparo": prato.tempo_preparo if prato else None,
+                    "requer_pre_preparo": prato.requer_pre_preparo if prato else None,
+                    "qtd": pc.qtd,
+                    "descricao": pc.descricao,
+                    "ficha_tecnica": _ficha_prato(pc.id_prato),
+                })
+            else:
+                bebida = buscar_bebida_por_id(pc.id_bebida)
+                pratos_resposta.append({
+                    "id_bebida": pc.id_bebida,
+                    "nome": bebida.nome if bebida else None,
+                    "qtd": 1,
+                    "descricao": bebida.descricao if bebida else None,
+                    "ficha_tecnica": _ficha_bebida(pc.id_bebida),
+                })
 
         cardapios_resposta.append({
             "id_cardapio": vinculo.id_cardapio,
