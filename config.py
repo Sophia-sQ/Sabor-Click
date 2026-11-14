@@ -28,6 +28,18 @@ class Config:
     # Configura o banco de dados
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///banco.db")
 
+    # Autenticação com bancos Turso (libSQL): quando a URL for de um banco
+    # remoto libSQL, o token precisa ser entregue ao driver via connect_args,
+    # pois passá-lo apenas na query string da URL não é lido de forma confiável.
+    # Para SQLite local (sem libsql na URL) nada muda.
+    SQLALCHEMY_ENGINE_OPTIONS = {}
+    if "libsql" in SQLALCHEMY_DATABASE_URI:
+        _turso_auth_token = os.environ.get("TURSO_AUTH_TOKEN")
+        if _turso_auth_token:
+            SQLALCHEMY_ENGINE_OPTIONS = {
+                "connect_args": {"auth_token": _turso_auth_token},
+            }
+
     # --- CONFIGURAÇÕES DO FLASK-MAIL ---
     MAIL_SERVER = os.environ.get("MAIL_SERVER")
     MAIL_PORT = int(os.environ.get("MAIL_PORT"))
