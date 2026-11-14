@@ -45,14 +45,14 @@ class Ingrediente(db.Model):
     id_ingrediente = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome = db.Column(db.String(60), nullable=False)
     unidade = db.Column(db.String(10), nullable=False)  # ex: kg, g, ml, un
-    qtd = db.Column(db.Numeric(10, 3), default=0.0, nullable=False)
-    qtd_min = db.Column(db.Numeric(10, 3), default=0.0, nullable=False)
+    qtd = db.Column(db.Integer, default=0, nullable=False)
+    qtd_min = db.Column(db.Integer, default=0, nullable=False)
 
     __table_args__ = (
         db.CheckConstraint("qtd >= 0 AND qtd_min >= 0", name="ck_ingrediente_qtd"),
     )
 
-    def __init__(self, nome: str, unidade: str, qtd=0.0, qtd_min=0.0):
+    def __init__(self, nome: str, unidade: str, qtd=0, qtd_min=0):
         self.nome = nome
         self.unidade = unidade
         self.qtd = qtd
@@ -96,7 +96,7 @@ class Lote(db.Model):
     marca = db.Column(db.String(60), nullable=False)
     data_recebimento = db.Column(db.DateTime, nullable=False)
     data_validade = db.Column(db.Date, nullable=True)  # Opcional
-    qtd_inicial = db.Column(db.Numeric(10, 3), nullable=False)
+    qtd_inicial = db.Column(db.Integer, nullable=False)
 
    # Ou ingrediente ou bebida
     id_ingrediente = db.Column(db.Integer, db.ForeignKey("ingrediente.id_ingrediente"), nullable=True)
@@ -306,14 +306,17 @@ def deletar_prato_cardapio(id_prato: int, id_cardapio: int) -> bool:
 
 """==================CRUD INGREDIENTE============="""
 
-def criar_ingrediente(nome: str, unidade: str, qtd: float = 0.0, qtd_min: float = 0.0) -> int:
+def criar_ingrediente(nome: str, unidade: str, qtd: int = 0, qtd_min: int = 0) -> int:
     """Cria um ingrediente e retorna seu id.
+
+    As unidades de estoque (g, ml, unidade) são sempre inteiras, portanto
+    qtd/qtd_min são inteiros.
 
     Args:
         nome (str): nome do ingrediente.
         unidade (str): unidade de medida (ex.: kg, g, ml, un).
-        qtd (float, optional): quantidade inicial em estoque. Padrão: 0.0.
-        qtd_min (float, optional): quantidade mínima de alerta. Padrão: 0.0.
+        qtd (int, optional): quantidade inicial em estoque. Padrão: 0.
+        qtd_min (int, optional): quantidade mínima de alerta. Padrão: 0.
 
     Returns:
         int: id do ingrediente criado.
@@ -375,8 +378,8 @@ def atualizar_ingrediente(id_ingrediente: int, nome=None, unidade=None, qtd=None
         id_ingrediente (int): identificador do ingrediente.
         nome (str | None, optional): novo nome.
         unidade (str | None, optional): nova unidade.
-        qtd (float | None, optional): nova quantidade.
-        qtd_min (float | None, optional): nova quantidade mínima.
+        qtd (int | None, optional): nova quantidade.
+        qtd_min (int | None, optional): nova quantidade mínima.
 
     Returns:
         bool: True se atualizado; False se o ingrediente não existir.
@@ -483,14 +486,14 @@ def deletar_ficha_tecnica(id_prato: int, id_ingrediente: int) -> bool:
 
 """==================CRUD LOTE============="""
 
-def criar_lote(num_lote: str, marca: str, data_recebimento: datetime, qtd_inicial: float, id_ingrediente: int | None = None, id_bebida: int | None = None, data_validade=None) -> int:
+def criar_lote(num_lote: str, marca: str, data_recebimento: datetime, qtd_inicial: int, id_ingrediente: int | None = None, id_bebida: int | None = None, data_validade=None) -> int:
     """Cria um lote vinculado a um ingrediente e soma sua quantidade ao estoque.
 
     Args:
         num_lote (str): número do lote.
         marca (str): marca do produto.
         data_recebimento (datetime): data de recebimento.
-        qtd_inicial (float): quantidade inicial do lote.
+        qtd_inicial (int): quantidade inicial do lote (sempre inteira).
         id_ingrediente (int | None, optional): ingrediente vinculado.
         id_bebida (int | None, optional): bebida vinculada.
         data_validade (date | None, optional): data de validade (opcional).
@@ -498,6 +501,12 @@ def criar_lote(num_lote: str, marca: str, data_recebimento: datetime, qtd_inicia
     Returns:
         int: id do lote criado.
     """
+    # qtd_inicial é um inteiro (unidades de estoque são discretas); coage valores
+    # que possam chegar como str/float/Decimal para manter a coluna Integer consistente.
+    qtd_inicial = int(qtd_inicial)
+
+    # O modelo Lote vincula-se apenas a ingrediente (id_bebida está comentado no
+    # modelo), portanto o lote usa id_ingrediente e não id_bebida.
     novo_lote = Lote(
         num_lote=num_lote,
         marca=marca,
@@ -505,7 +514,6 @@ def criar_lote(num_lote: str, marca: str, data_recebimento: datetime, qtd_inicia
         data_validade=data_validade,
         qtd_inicial=qtd_inicial,
         id_ingrediente=id_ingrediente,
-        id_bebida=id_bebida,
     )
 
     db.session.add(novo_lote)
@@ -515,7 +523,7 @@ def criar_lote(num_lote: str, marca: str, data_recebimento: datetime, qtd_inicia
         ingrediente = db.session.get(Ingrediente, id_ingrediente)
 
         if ingrediente:
-            ingrediente.qtd = (ingrediente.qtd or 0) + qtd_inicial
+            ingrediente.qtd = int(ingrediente.qtd or 0) + qtd_inicial
 
     db.session.commit()
 
@@ -579,7 +587,7 @@ def atualizar_lote(id_lote: int, num_lote=None, marca=None, data_recebimento=Non
         marca (str | None, optional): nova marca.
         data_recebimento (datetime | None, optional): nova data de recebimento.
         data_validade (date | None, optional): nova data de validade.
-        qtd_inicial (float | None, optional): nova quantidade inicial.
+        qtd_inicial (int | None, optional): nova quantidade inicial.
         id_ingrediente (int | None, optional): novo ingrediente vinculado.
         id_bebida (int | None, optional): nova bebida vinculada.
 
@@ -694,3 +702,31 @@ def deletar_ficha_tecnica_bebida(id_bebida: int, id_ingrediente: int) -> bool:
         f"Usuário removeu o ingrediente {id_ingrediente} da ficha técnica da bebida {id_bebida}",
     )
     return True
+
+
+def volume_ml_bebida(id_bebida: int) -> int:
+    """Calcula o volume (em ml) de uma bebida a partir da sua ficha técnica.
+
+    É um valor DERIVADO (não armazenado no banco): soma qtd_necessaria de todos
+    os itens da ficha técnica da bebida cujo ingrediente tem unidade 'ml' (compara
+    de forma case-insensitive, normalizando via .strip().lower(), de modo que
+    'ml' e 'mL' contam). Ingredientes com outras unidades (g, Kg, unidade...) são
+    ignorados.
+
+    Args:
+        id_bebida (int): identificador da bebida.
+
+    Returns:
+        int: soma das quantidades em ml; 0 quando não há ficha ou nenhum
+            ingrediente em ml.
+    """
+    linhas = db.session.execute(
+        db.select(FichaTecnica_bebida.qtd_necessaria, Ingrediente.unidade)
+        .join(Ingrediente, FichaTecnica_bebida.id_ingrediente == Ingrediente.id_ingrediente)
+        .where(FichaTecnica_bebida.id_bebida == id_bebida),
+    ).all()
+    total = 0
+    for qtd_necessaria, unidade in linhas:
+        if unidade and unidade.strip().lower() == "ml":
+            total += qtd_necessaria or 0
+    return int(total)

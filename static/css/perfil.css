@@ -17,3 +17,19 @@ main{max-width:1408px;margin:auto;padding:28px 64px 80px}.caminho{font-size:12px
 #modal-sair form{margin:0}
 body:has(#modal-sair[open]){overflow:hidden}
 @media(max-width:450px){#modal-sair{padding:26px 20px}#modal-sair h2{font-size:27px}}
+
+.status{display:inline-block;background:#f6e3c8;color:#7b4518;padding:5px 10px;border-radius:30px;font-size:12px;font-weight:600}
+.status.verde{background:#e4ebdd;color:#36502f}
+.pedido{display:grid;gap:14px}
+.pedido-topo{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.pedido-topo h3{font-size:18px}
+.pedido-total{font-size:13px;color:var(--secundario)}
+.pedido-total strong{font-size:16px;color:#7d3d24}
+.pedido h4{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--secundario);margin-top:6px}
+.pedido-itens{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.pedido-itens li{display:flex;justify-content:space-between;gap:16px;font-size:13px;color:var(--texto);border-bottom:1px solid #e9ddcc;padding-bottom:8px}
+.pedido-itens li:last-child{border-bottom:0;padding-bottom:0}
+.pedido-endereco p{font-size:13px;color:var(--secundario);line-height:1.8}
+.pedido-acoes{margin:6px 0 0}
+.pedido-acoes .secundario{border-color:#b42318;color:#b42318}
+.pedido-acoes .secundario:hover{background:#f7e2df}

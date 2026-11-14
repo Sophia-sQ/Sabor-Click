@@ -1,0 +1,62 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "funcionarios" %}
+{% set inicio_admin = url_for('admin.visao_geral') %}
+{% block titulo %}Funcionários | Sabor &amp; Click{% endblock %}
+{% block estilos_admin %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
+{% endblock %}
+{% block conteudo_admin %}
+<header class="intro"><h1>Funcionários</h1><p>Cadastre e consulte os funcionários da equipe.</p></header>
+<section class="card">
+    {% include "componentes/mensagens.html" %}
+    <div class="cabecalho-estoque"><h2>Equipe</h2><button type="button" id="abrir-funcionario" class="cadastrar-item" aria-haspopup="dialog" aria-controls="cadastro-funcionario">Cadastrar funcionário</button></div>
+    {% if funcionarios %}
+    <div class="tabela">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Nome</th>
+                    <th scope="col">E-mail</th>
+                    <th scope="col">Cargo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for funcionario in funcionarios %}
+                <tr>
+                    <td>{{ funcionario.nome }}</td>
+                    <td>{{ funcionario.email }}</td>
+                    <td>{{ funcionario.cargo }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="muted">Nenhum funcionário cadastrado no momento.</p>
+    {% endif %}
+</section>
+<footer>Sabor &amp; Click · 2026</footer>
+{% endblock %}
+{% block dialogos_admin %}
+<dialog id="cadastro-funcionario" class="dialogo-estoque dialogo-cadastro" aria-labelledby="titulo-funcionario">
+    <div class="cabecalho-estoque"><h2 id="titulo-funcionario">Cadastrar funcionário</h2><button type="button" id="fechar-funcionario">Fechar</button></div>
+    <form class="formulario" method="post" action="{{ url_for('admin.cadastro') }}">
+        <small>* Campos obrigatórios</small>
+        <label for="funcionario-nome">Nome completo *</label><input id="funcionario-nome" name="nome" autocomplete="name" required maxlength="100">
+        <label for="funcionario-cpf">CPF *</label><input id="funcionario-cpf" name="cpf" inputmode="numeric" maxlength="14" required>
+        <label for="funcionario-email">E-mail *</label><input id="funcionario-email" name="email" type="email" autocomplete="email" required>
+        <label for="funcionario-cargo">Cargo</label><input id="funcionario-cargo" value="Chefe" readonly>
+        <label for="funcionario-senha">Senha provisória *</label><input id="funcionario-senha" name="senha_provisoria" type="password" autocomplete="new-password" required>
+        <label for="funcionario-senha-confirmacao">Confirmar senha *</label><input id="funcionario-senha-confirmacao" name="senha_confirmacao" type="password" autocomplete="new-password" required>
+        <button type="submit">Cadastrar funcionário</button>
+        <p id="retorno-funcionario" role="status" hidden></p>
+    </form>
+</dialog>
+{% endblock %}
+{% block scripts_admin %}
+<script>
+    const cadastroFuncionario = document.getElementById('cadastro-funcionario');
+    document.getElementById('abrir-funcionario').addEventListener('click', () => cadastroFuncionario.showModal());
+    document.getElementById('fechar-funcionario').addEventListener('click', () => cadastroFuncionario.close());
+</script>
+{% endblock %}

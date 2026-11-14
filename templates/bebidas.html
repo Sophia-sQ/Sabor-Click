@@ -15,7 +15,7 @@
 <div class="bebidas-layout"><section aria-label="Bebidas disponíveis"><div class="grade-bebidas">
 {% for bebida in bebidas %}
 <article class="card-bebida" data-id="{{ bebida.id }}" data-nome="{{ bebida.nome }}" data-categoria="{{ bebida.categoria }}">
-<img class="foto-bebida" src="{{ bebida.imagem if bebida.imagem.startswith(('https://', 'http://')) else url_for('static', filename=bebida.imagem) }}" alt="{{ bebida.nome }}" width="400" height="280" loading="lazy" decoding="async">
+{% if bebida.imagem %}<img class="foto-bebida" src="{{ bebida.imagem if bebida.imagem.startswith(('https://', 'http://')) else url_for('static', filename=bebida.imagem) }}" alt="{{ bebida.nome }}" width="400" height="280" loading="lazy" decoding="async">{% endif %}
 <span class="tipo-bebida">{{ bebida.categoria }}</span><h2>{{ bebida.nome }}</h2>
 {% if bebida.volume_ml %}<p class="volume-bebida">{{ bebida.volume_ml }} ml <span>por {{ 'dose' if bebida.categoria == 'Com álcool' else 'porção' }}</span></p>{% endif %}
 {% if bebida.descricao %}<p class="descricao-bebida">{{ bebida.descricao }}</p>{% endif %}

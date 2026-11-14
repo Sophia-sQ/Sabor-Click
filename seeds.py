@@ -261,7 +261,7 @@ ingredientes_carnes = [
         ('Frango_desfiado', 'g', 15, 3),
         ('Presunto', 'g', 9, 1),
         ('Bolinho_de_bacalhau', 'g', 15, 3),
-        ('Salame', 'Kg', 10.0, 3.0),
+        ('Salame', 'Kg', 10, 3),
 ]
 
 #nome, unidade, qtd, qtd min
@@ -275,15 +275,15 @@ ingredientes_carboidratos = [
         ('Batata_palha', 'g', 15, 3),
         ('Nhoque_de_batata_pronto', 'g', 15, 3),
         ('Ravioli_fresco_de_queijo', 'g', 15, 3),
-        ('Pao_italiano', 'Kg', 20.0, 5.0),
+        ('Pao_italiano', 'Kg', 20, 5),
         ('Pao_brioche', 'unidade', 30, 8),
-        ('Pao_de_forma', 'pacote', 10.0, 2.0),
+        ('Pao_de_forma', 'pacote', 10, 2),
         ('Mini_paes', 'unidade', 100, 25),
         ('Tortilla_de_milho', 'unidade', 50, 10),
         ('Tortilla_de_trigo', 'unidade', 50, 10),
         ('Tapioca_granulada', 'g', 15, 3),
         ('Nachos', 'g', 15, 3),
-        ('Biscoito_base', 'Kg', 15.0, 3.0),
+        ('Biscoito_base', 'Kg', 15, 3),
         ('Coxinha', 'unidade', 100, 25),
         ('Risole', 'unidade', 100, 25),
         ('Quibe', 'unidade', 100, 25),
@@ -404,7 +404,7 @@ ingredientes_bebidas_alcoolicas = [
         ('Rum_escuro', 'mL', 9, 1),
         ('Xarope_de_amendoa_orgeat', 'mL', 6, 1),
         ('Uisque_bourbon', 'mL', 9, 1),
-        ('Angostura_bitters', 'ml', 500.0, 100.0),
+        ('Angostura_bitters', 'ml', 500, 100),
         ('Uisque_de_centeio_rye', 'mL', 9, 1),
         ('Cereja_marasquino', 'g', 6, 1),
 ]
@@ -432,373 +432,373 @@ lista_ingredientes = [
 # código, fornecedor, data_entrada, quantidade, nome_ingrediente, data_validade
 lista_lotes = [
 
-    ("LOTE-ING-001", "Pamplona", datetime(2026, 10, 12), 5.0, "Pe_de_porco", datetime(2028, 1, 1)),
+    ("LOTE-ING-001", "Pamplona", datetime(2026, 10, 12), 5, "Pe_de_porco", datetime(2028, 1, 1)),
 
-    ("LOTE-ING-002", "Pamplona", datetime(2026, 10, 12), 3.0, "Rabo_de_porco", datetime(2028, 1, 2)),
+    ("LOTE-ING-002", "Pamplona", datetime(2026, 10, 12), 3, "Rabo_de_porco", datetime(2028, 1, 2)),
 
-    ("LOTE-ING-003", "Seara", datetime(2026, 10, 12), 4.0, "Costelinha_suina_defumada", datetime(2028, 1, 3)),
+    ("LOTE-ING-003", "Seara", datetime(2026, 10, 12), 4, "Costelinha_suina_defumada", datetime(2028, 1, 3)),
 
-    ("LOTE-ING-004", "Sadia", datetime(2026, 10, 12), 2.0, "Bacon", datetime(2028, 1, 4)),
+    ("LOTE-ING-004", "Sadia", datetime(2026, 10, 12), 2, "Bacon", datetime(2028, 1, 4)),
 
-    ("LOTE-ING-005", "Perdigão", datetime(2026, 10, 12), 3.0, "Linguica_calabresa", datetime(2028, 1, 5)),
+    ("LOTE-ING-005", "Perdigão", datetime(2026, 10, 12), 3, "Linguica_calabresa", datetime(2028, 1, 5)),
 
-    ("LOTE-ING-006", "Aurora", datetime(2026, 10, 12), 2.0, "Linguica_acebolada", datetime(2028, 1, 6)),
+    ("LOTE-ING-006", "Aurora", datetime(2026, 10, 12), 2, "Linguica_acebolada", datetime(2028, 1, 6)),
 
-    ("LOTE-ING-007", "Sadia", datetime(2026, 10, 12), 3.0, "Lombo_de_porco", datetime(2028, 1, 7)),
+    ("LOTE-ING-007", "Sadia", datetime(2026, 10, 12), 3, "Lombo_de_porco", datetime(2028, 1, 7)),
 
-    ("LOTE-ING-008", "Friboi", datetime(2026, 10, 12), 4.0, "Carne_seca", datetime(2028, 1, 8)),
+    ("LOTE-ING-008", "Friboi", datetime(2026, 10, 12), 4, "Carne_seca", datetime(2028, 1, 8)),
 
-    ("LOTE-ING-009", "Copacol", datetime(2026, 10, 12), 2.0, "Camarao_medio_limpo", datetime(2028, 1, 9)),
+    ("LOTE-ING-009", "Copacol", datetime(2026, 10, 12), 2, "Camarao_medio_limpo", datetime(2028, 1, 9)),
 
-    ("LOTE-ING-010", "Copacol", datetime(2026, 10, 12), 3.0, "File_de_tilapia", datetime(2028, 1, 10)),
+    ("LOTE-ING-010", "Copacol", datetime(2026, 10, 12), 3, "File_de_tilapia", datetime(2028, 1, 10)),
 
-    ("LOTE-ING-011", "Friboi", datetime(2026, 10, 12), 2.0, "File_mignon_bovino", datetime(2028, 1, 11)),
+    ("LOTE-ING-011", "Friboi", datetime(2026, 10, 12), 2, "File_mignon_bovino", datetime(2028, 1, 11)),
 
-    ("LOTE-ING-012", "Friboi", datetime(2026, 10, 12), 3.0, "Carne_moida_de_primeira", datetime(2028, 1, 12)),
+    ("LOTE-ING-012", "Friboi", datetime(2026, 10, 12), 3, "Carne_moida_de_primeira", datetime(2028, 1, 12)),
 
-    ("LOTE-ING-013", "Swift", datetime(2026, 10, 12), 3.0, "Carne_moida_blend_patinho_acem", datetime(2028, 1, 13)),
+    ("LOTE-ING-013", "Swift", datetime(2026, 10, 12), 3, "Carne_moida_blend_patinho_acem", datetime(2028, 1, 13)),
 
-    ("LOTE-ING-014", "Sadia", datetime(2026, 10, 12), 4.0, "Frango_grelhado", datetime(2028, 1, 14)),
+    ("LOTE-ING-014", "Sadia", datetime(2026, 10, 12), 4, "Frango_grelhado", datetime(2028, 1, 14)),
 
-    ("LOTE-ING-015", "Seara", datetime(2026, 10, 12), 3.0, "Frango_desfiado", datetime(2028, 1, 15)),
+    ("LOTE-ING-015", "Seara", datetime(2026, 10, 12), 3, "Frango_desfiado", datetime(2028, 1, 15)),
 
-    ("LOTE-ING-016", "Sadia", datetime(2026, 10, 12), 2.0, "Presunto", datetime(2028, 1, 16)),
+    ("LOTE-ING-016", "Sadia", datetime(2026, 10, 12), 2, "Presunto", datetime(2028, 1, 16)),
 
-    ("LOTE-ING-017", "Copacol", datetime(2026, 10, 12), 2.0, "Bolinho_de_bacalhau", datetime(2028, 1, 17)),
+    ("LOTE-ING-017", "Copacol", datetime(2026, 10, 12), 2, "Bolinho_de_bacalhau", datetime(2028, 1, 17)),
 
     # Grãos, massas, pães e salgados
 
-    ("LOTE-ING-018", "Camil", datetime(2026, 10, 12), 5.0, "Feijao_preto", datetime(2028, 1, 18)),
+    ("LOTE-ING-018", "Camil", datetime(2026, 10, 12), 5, "Feijao_preto", datetime(2028, 1, 18)),
 
-    ("LOTE-ING-019", "Camil", datetime(2026, 10, 12), 10.0, "Arroz_branco", datetime(2028, 1, 19)),
+    ("LOTE-ING-019", "Camil", datetime(2026, 10, 12), 10, "Arroz_branco", datetime(2028, 1, 19)),
 
-    ("LOTE-ING-020", "Tio João", datetime(2026, 10, 12), 5.0, "Arroz_arborio", datetime(2028, 1, 20)),
+    ("LOTE-ING-020", "Tio João", datetime(2026, 10, 12), 5, "Arroz_arborio", datetime(2028, 1, 20)),
 
-    ("LOTE-ING-021", "De Marchi", datetime(2026, 10, 12), 5.0, "Mandioca_in_natura", datetime(2028, 1, 21)),
+    ("LOTE-ING-021", "De Marchi", datetime(2026, 10, 12), 5, "Mandioca_in_natura", datetime(2028, 1, 21)),
 
-    ("LOTE-ING-022", "Yoki", datetime(2026, 10, 12), 3.0, "Farinha_de_mandioca", datetime(2028, 1, 22)),
+    ("LOTE-ING-022", "Yoki", datetime(2026, 10, 12), 3, "Farinha_de_mandioca", datetime(2028, 1, 22)),
 
-    ("LOTE-ING-023", "Bem Brasil", datetime(2026, 10, 12), 5.0, "Batata", datetime(2028, 1, 23)),
+    ("LOTE-ING-023", "Bem Brasil", datetime(2026, 10, 12), 5, "Batata", datetime(2028, 1, 23)),
 
-    ("LOTE-ING-024", "Yoki", datetime(2026, 10, 12), 2.0, "Batata_palha", datetime(2028, 1, 24)),
+    ("LOTE-ING-024", "Yoki", datetime(2026, 10, 12), 2, "Batata_palha", datetime(2028, 1, 24)),
 
-    ("LOTE-ING-025", "Nico", datetime(2026, 10, 12), 3.0, "Nhoque_de_batata_pronto", datetime(2028, 1, 25)),
+    ("LOTE-ING-025", "Nico", datetime(2026, 10, 12), 3, "Nhoque_de_batata_pronto", datetime(2028, 1, 25)),
 
-    ("LOTE-ING-026", "Massa Leve", datetime(2026, 10, 12), 3.0, "Ravioli_fresco_de_queijo", datetime(2028, 1, 26)),
+    ("LOTE-ING-026", "Massa Leve", datetime(2026, 10, 12), 3, "Ravioli_fresco_de_queijo", datetime(2028, 1, 26)),
 
-    ("LOTE-ING-027", "Wickbold", datetime(2026, 10, 12), 4.0, "Pao_italiano", datetime(2028, 1, 27)),
+    ("LOTE-ING-027", "Wickbold", datetime(2026, 10, 12), 4, "Pao_italiano", datetime(2028, 1, 27)),
 
-    ("LOTE-ING-028", "Pullman", datetime(2026, 10, 12), 3.0, "Pao_brioche", datetime(2028, 1, 28)),
+    ("LOTE-ING-028", "Pullman", datetime(2026, 10, 12), 3, "Pao_brioche", datetime(2028, 1, 28)),
 
-    ("LOTE-ING-029", "Wickbold", datetime(2026, 10, 12), 3.0, "Pao_de_forma", datetime(2028, 1, 29)),
+    ("LOTE-ING-029", "Wickbold", datetime(2026, 10, 12), 3, "Pao_de_forma", datetime(2028, 1, 29)),
 
-    ("LOTE-ING-030", "Seven Boys", datetime(2026, 10, 12), 2.0, "Mini_paes", datetime(2028, 1, 30)),
+    ("LOTE-ING-030", "Seven Boys", datetime(2026, 10, 12), 2, "Mini_paes", datetime(2028, 1, 30)),
 
-    ("LOTE-ING-031", "Rap10", datetime(2026, 10, 12), 3.0, "Tortilla_de_milho", datetime(2028, 1, 31)),
+    ("LOTE-ING-031", "Rap10", datetime(2026, 10, 12), 3, "Tortilla_de_milho", datetime(2028, 1, 31)),
 
-    ("LOTE-ING-032", "Rap10", datetime(2026, 10, 12), 3.0, "Tortilla_de_trigo", datetime(2028, 2, 1)),
+    ("LOTE-ING-032", "Rap10", datetime(2026, 10, 12), 3, "Tortilla_de_trigo", datetime(2028, 2, 1)),
 
-    ("LOTE-ING-033", "Yoki", datetime(2026, 10, 12), 2.0, "Tapioca_granulada", datetime(2028, 2, 2)),
+    ("LOTE-ING-033", "Yoki", datetime(2026, 10, 12), 2, "Tapioca_granulada", datetime(2028, 2, 2)),
 
-    ("LOTE-ING-034", "Doritos", datetime(2026, 10, 12), 2.0, "Nachos", datetime(2028, 2, 3)),
+    ("LOTE-ING-034", "Doritos", datetime(2026, 10, 12), 2, "Nachos", datetime(2028, 2, 3)),
 
-    ("LOTE-ING-035", "Marilan", datetime(2026, 10, 12), 2.0, "Biscoito_base", datetime(2028, 2, 4)),
+    ("LOTE-ING-035", "Marilan", datetime(2026, 10, 12), 2, "Biscoito_base", datetime(2028, 2, 4)),
 
-    ("LOTE-ING-036", "Seara", datetime(2026, 10, 12), 3.0, "Coxinha", datetime(2028, 2, 5)),
+    ("LOTE-ING-036", "Seara", datetime(2026, 10, 12), 3, "Coxinha", datetime(2028, 2, 5)),
 
-    ("LOTE-ING-037", "Seara", datetime(2026, 10, 12), 3.0, "Risole", datetime(2028, 2, 6)),
+    ("LOTE-ING-037", "Seara", datetime(2026, 10, 12), 3, "Risole", datetime(2028, 2, 6)),
 
-    ("LOTE-ING-038", "Seara", datetime(2026, 10, 12), 3.0, "Quibe", datetime(2028, 2, 7)),
+    ("LOTE-ING-038", "Seara", datetime(2026, 10, 12), 3, "Quibe", datetime(2028, 2, 7)),
 
-    ("LOTE-ING-039", "Seara", datetime(2026, 10, 12), 3.0, "Croquete", datetime(2028, 2, 8)),
+    ("LOTE-ING-039", "Seara", datetime(2026, 10, 12), 3, "Croquete", datetime(2028, 2, 8)),
 
-    ("LOTE-ING-040", "Forno de Minas", datetime(2026, 10, 12), 2.0, "Empada", datetime(2028, 2, 9)),
+    ("LOTE-ING-040", "Forno de Minas", datetime(2026, 10, 12), 2, "Empada", datetime(2028, 2, 9)),
 
-    ("LOTE-ING-041", "Seara", datetime(2026, 10, 12), 3.0, "Bolinha_de_queijo", datetime(2028, 2, 10)),
+    ("LOTE-ING-041", "Seara", datetime(2026, 10, 12), 3, "Bolinha_de_queijo", datetime(2028, 2, 10)),
 
-    ("LOTE-ING-042", "Aurora", datetime(2026, 10, 12), 3.0, "Pastel_de_carne", datetime(2028, 2, 11)),
+    ("LOTE-ING-042", "Aurora", datetime(2026, 10, 12), 3, "Pastel_de_carne", datetime(2028, 2, 11)),
 
     # Laticínios e ovos
 
-    ("LOTE-ING-043", "Qualy", datetime(2026, 10, 12), 2.0, "Manteiga", datetime(2028, 2, 12)),
+    ("LOTE-ING-043", "Qualy", datetime(2026, 10, 12), 2, "Manteiga", datetime(2028, 2, 12)),
 
-    ("LOTE-ING-044", "Tirolez", datetime(2026, 10, 12), 3.0, "Queijo_mucarela", datetime(2028, 2, 13)),
+    ("LOTE-ING-044", "Tirolez", datetime(2026, 10, 12), 3, "Queijo_mucarela", datetime(2028, 2, 13)),
 
-    ("LOTE-ING-045", "President", datetime(2026, 10, 12), 2.0, "Queijo_prato", datetime(2028, 2, 14)),
+    ("LOTE-ING-045", "President", datetime(2026, 10, 12), 2, "Queijo_prato", datetime(2028, 2, 14)),
 
-    ("LOTE-ING-046", "Polenghi", datetime(2026, 10, 12), 2.0, "Queijo_cheddar", datetime(2028, 2, 15)),
+    ("LOTE-ING-046", "Polenghi", datetime(2026, 10, 12), 2, "Queijo_cheddar", datetime(2028, 2, 15)),
 
-    ("LOTE-ING-047", "Tirolez", datetime(2026, 10, 12), 2.0, "Queijo_coalho", datetime(2028, 2, 16)),
+    ("LOTE-ING-047", "Tirolez", datetime(2026, 10, 12), 2, "Queijo_coalho", datetime(2028, 2, 16)),
 
-    ("LOTE-ING-048", "Vigor", datetime(2026, 10, 12), 1.0, "Queijo_ralado", datetime(2028, 2, 17)),
+    ("LOTE-ING-048", "Vigor", datetime(2026, 10, 12), 1, "Queijo_ralado", datetime(2028, 2, 17)),
 
-    ("LOTE-ING-049", "Faixa Azul", datetime(2026, 10, 12), 1.0, "Parmesao_ralado", datetime(2028, 2, 18)),
+    ("LOTE-ING-049", "Faixa Azul", datetime(2026, 10, 12), 1, "Parmesao_ralado", datetime(2028, 2, 18)),
 
-    ("LOTE-ING-050", "Nestlé", datetime(2026, 10, 12), 3.0, "Creme_de_leite", datetime(2028, 2, 19)),
+    ("LOTE-ING-050", "Nestlé", datetime(2026, 10, 12), 3, "Creme_de_leite", datetime(2028, 2, 19)),
 
-    ("LOTE-ING-051", "Moça", datetime(2026, 10, 12), 3.0, "Leite_condensado", datetime(2028, 2, 20)),
+    ("LOTE-ING-051", "Moça", datetime(2026, 10, 12), 3, "Leite_condensado", datetime(2028, 2, 20)),
 
-    ("LOTE-ING-052", "Italac", datetime(2026, 10, 12), 5.0, "Leite_integral", datetime(2028, 2, 21)),
+    ("LOTE-ING-052", "Italac", datetime(2026, 10, 12), 5, "Leite_integral", datetime(2028, 2, 21)),
 
-    ("LOTE-ING-053", "Sococo", datetime(2026, 10, 12), 3.0, "Leite_de_coco", datetime(2028, 2, 22)),
+    ("LOTE-ING-053", "Sococo", datetime(2026, 10, 12), 3, "Leite_de_coco", datetime(2028, 2, 22)),
 
-    ("LOTE-ING-054", "Nestlé", datetime(2026, 10, 12), 2.0, "Iogurte_natural", datetime(2028, 2, 23)),
+    ("LOTE-ING-054", "Nestlé", datetime(2026, 10, 12), 2, "Iogurte_natural", datetime(2028, 2, 23)),
 
-    ("LOTE-ING-055", "Philadelphia", datetime(2026, 10, 12), 2.0, "Cream_cheese", datetime(2028, 2, 24)),
+    ("LOTE-ING-055", "Philadelphia", datetime(2026, 10, 12), 2, "Cream_cheese", datetime(2028, 2, 24)),
 
-    ("LOTE-ING-056", "Mantiqueira", datetime(2026, 10, 12), 5.0, "Ovos", datetime(2028, 2, 25)),
+    ("LOTE-ING-056", "Mantiqueira", datetime(2026, 10, 12), 5, "Ovos", datetime(2028, 2, 25)),
 
     # Verduras, legumes, frutas e cogumelos
 
-    ("LOTE-ING-057", "Fazenda local", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-057", "Fazenda local", datetime(2026, 10, 12), 2,
      "Folhas_hidroponicas", datetime(2028, 2, 26)),
 
-    ("LOTE-ING-058", "Fazenda local", datetime(2026, 10, 12), 3.0,
+    ("LOTE-ING-058", "Fazenda local", datetime(2026, 10, 12), 3,
      "Folhas_variadas", datetime(2028, 2, 27)),
 
-    ("LOTE-ING-059", "Hortifruti", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-059", "Hortifruti", datetime(2026, 10, 12), 2,
      "Alface_romana", datetime(2028, 2, 28)),
 
-    ("LOTE-ING-060", "Hortifruti", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-060", "Hortifruti", datetime(2026, 10, 12), 2,
      "Alface_americana", datetime(2028, 2, 29)),
 
-    ("LOTE-ING-061", "Hortifruti", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-061", "Hortifruti", datetime(2026, 10, 12), 2,
      "Couve_manteiga", datetime(2028, 3, 1)),
 
-    ("LOTE-ING-062", "Hortifruti", datetime(2026, 10, 12), 4.0,
+    ("LOTE-ING-062", "Hortifruti", datetime(2026, 10, 12), 4,
      "Tomate", datetime(2028, 3, 2)),
 
-    ("LOTE-ING-063", "Hortifruti", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-063", "Hortifruti", datetime(2026, 10, 12), 2,
      "Tomate_cereja", datetime(2028, 3, 3)),
 
-    ("LOTE-ING-064", "Hortifruti", datetime(2026, 10, 12), 3.0,
+    ("LOTE-ING-064", "Hortifruti", datetime(2026, 10, 12), 3,
      "Cebola", datetime(2028, 3, 4)),
 
-    ("LOTE-ING-065", "Predilecta", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-065", "Predilecta", datetime(2026, 10, 12), 2,
      "Cebola_caramelizada", datetime(2028, 3, 5)),
 
-    ("LOTE-ING-066", "Hortifruti", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-066", "Hortifruti", datetime(2026, 10, 12), 2,
      "Pimentao", datetime(2028, 3, 6)),
 
-    ("LOTE-ING-067", "Hortifruti", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-067", "Hortifruti", datetime(2026, 10, 12), 1,
      "Cebolinha", datetime(2028, 3, 7)),
 
-    ("LOTE-ING-068", "Hortifruti", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-068", "Hortifruti", datetime(2026, 10, 12), 1,
      "Alho", datetime(2028, 3, 8)),
 
-    ("LOTE-ING-069", "Hortifruti", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-069", "Hortifruti", datetime(2026, 10, 12), 1,
      "Manjericao", datetime(2028, 3, 9)),
 
-    ("LOTE-ING-070", "Hortifruti", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-070", "Hortifruti", datetime(2026, 10, 12), 1,
      "Salsinha", datetime(2028, 3, 10)),
 
-    ("LOTE-ING-071", "Hortifruti", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-071", "Hortifruti", datetime(2026, 10, 12), 2,
      "Limao", datetime(2028, 3, 11)),
 
-    ("LOTE-ING-072", "Hortifruti", datetime(2026, 10, 12), 3.0,
+    ("LOTE-ING-072", "Hortifruti", datetime(2026, 10, 12), 3,
      "Laranja", datetime(2028, 3, 12)),
 
-    ("LOTE-ING-073", "Fazenda local", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-073", "Fazenda local", datetime(2026, 10, 12), 2,
      "Cogumelos_frescos", datetime(2028, 3, 13)),
 
-    ("LOTE-ING-074", "Raiola", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-074", "Raiola", datetime(2026, 10, 12), 2,
      "Champignon", datetime(2028, 3, 14)),
 
-    ("LOTE-ING-075", "Hortifruti", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-075", "Hortifruti", datetime(2026, 10, 12), 2,
      "Morango_fresco", datetime(2028, 3, 15)),
 
-    ("LOTE-ING-076", "Hortifruti", datetime(2026, 10, 12), 4.0,
+    ("LOTE-ING-076", "Hortifruti", datetime(2026, 10, 12), 4,
      "Frutas_frescas_in_natura", datetime(2028, 3, 16)),
 
-    ("LOTE-ING-077", "De Marchi", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-077", "De Marchi", datetime(2026, 10, 12), 2,
      "Frutas_vermelhas_congeladas", datetime(2028, 3, 17)),
 
-    ("LOTE-ING-078", "Agtal", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-078", "Agtal", datetime(2026, 10, 12), 1,
      "Nozes", datetime(2028, 3, 18)),
 
     # Óleos, temperos, molhos e outros produtos
 
-    ("LOTE-ING-079", "Liza", datetime(2026, 10, 12), 5.0,
+    ("LOTE-ING-079", "Liza", datetime(2026, 10, 12), 5,
      "Oleo_de_soja", datetime(2028, 3, 19)),
 
-    ("LOTE-ING-080", "Soya", datetime(2026, 10, 12), 10.0,
+    ("LOTE-ING-080", "Soya", datetime(2026, 10, 12), 10,
      "Oleo_para_fritura", datetime(2028, 3, 20)),
 
-    ("LOTE-ING-081", "Cisne", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-081", "Cisne", datetime(2026, 10, 12), 2,
      "Sal", datetime(2028, 3, 21)),
 
-    ("LOTE-ING-082", "Kitano", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-082", "Kitano", datetime(2026, 10, 12), 1,
      "Temperos", datetime(2028, 3, 22)),
 
-    ("LOTE-ING-083", "Castelo", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-083", "Castelo", datetime(2026, 10, 12), 2,
      "Vinagre", datetime(2028, 3, 23)),
 
-    ("LOTE-ING-084", "Gallo", datetime(2026, 10, 12), 3.0,
+    ("LOTE-ING-084", "Gallo", datetime(2026, 10, 12), 3,
      "Azeite", datetime(2028, 3, 24)),
 
-    ("LOTE-ING-085", "Cepêra", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-085", "Cepêra", datetime(2026, 10, 12), 2,
      "Azeite_de_dende", datetime(2028, 3, 25)),
 
-    ("LOTE-ING-086", "Tabasco", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-086", "Tabasco", datetime(2026, 10, 12), 1,
      "Molho_de_pimenta", datetime(2028, 3, 26)),
 
-    ("LOTE-ING-087", "Queensberry", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-087", "Queensberry", datetime(2026, 10, 12), 2,
      "Geleia_de_pimenta", datetime(2028, 3, 27)),
 
-    ("LOTE-ING-088", "La Pastina", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-088", "La Pastina", datetime(2026, 10, 12), 1,
      "Alcaparras", datetime(2028, 3, 28)),
 
-    ("LOTE-ING-089", "Pomarola", datetime(2026, 10, 12), 4.0,
+    ("LOTE-ING-089", "Pomarola", datetime(2026, 10, 12), 4,
      "Molho_de_tomate", datetime(2028, 3, 29)),
 
-    ("LOTE-ING-090", "Heinz", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-090", "Heinz", datetime(2026, 10, 12), 2,
      "Catchup", datetime(2028, 3, 30)),
 
-    ("LOTE-ING-091", "Hemmer", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-091", "Hemmer", datetime(2026, 10, 12), 2,
      "Mostarda", datetime(2028, 3, 31)),
 
-    ("LOTE-ING-092", "Hellmann's", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-092", "Hellmann's", datetime(2026, 10, 12), 2,
      "Molho_mostarda_e_mel", datetime(2028, 4, 1)),
 
-    ("LOTE-ING-093", "Hellmann's", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-093", "Hellmann's", datetime(2026, 10, 12), 2,
      "Molho_Caesar", datetime(2028, 4, 2)),
 
-    ("LOTE-ING-094", "Marilan", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-094", "Marilan", datetime(2026, 10, 12), 1,
      "Croutons", datetime(2028, 4, 3)),
 
-    ("LOTE-ING-095", "Hellmann's", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-095", "Hellmann's", datetime(2026, 10, 12), 2,
      "Maionese_temperada", datetime(2028, 4, 4)),
 
-    ("LOTE-ING-096", "Hunt's", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-096", "Hunt's", datetime(2026, 10, 12), 2,
      "Molho_barbecue", datetime(2028, 4, 5)),
 
-    ("LOTE-ING-097", "Aurora", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-097", "Aurora", datetime(2026, 10, 12), 2,
      "Vinho_branco", datetime(2028, 4, 6)),
 
-    ("LOTE-ING-098", "Sadia", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-098", "Sadia", datetime(2026, 10, 12), 2,
      "Guacamole", datetime(2028, 4, 7)),
 
-    ("LOTE-ING-099", "Dr. Oetker", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-099", "Dr. Oetker", datetime(2026, 10, 12), 2,
      "Gelatina", datetime(2028, 4, 8)),
 
-    ("LOTE-ING-100", "Nestlé", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-100", "Nestlé", datetime(2026, 10, 12), 2,
      "Chocolate_meio_amargo", datetime(2028, 4, 9)),
 
-    ("LOTE-ING-101", "Mel Santa Bárbara", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-101", "Mel Santa Bárbara", datetime(2026, 10, 12), 1,
      "Mel", datetime(2028, 4, 10)),
 
-    ("LOTE-ING-102", "Raiola", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-102", "Raiola", datetime(2026, 10, 12), 2,
      "Azeitona", datetime(2028, 4, 11)),
 
     # Bebidas sem álcool e xaropes
 
-    ("LOTE-ING-103", "Sucos Massa", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-103", "Sucos Massa", datetime(2026, 10, 12), 2,
      "Suco_de_limao", datetime(2028, 4, 12)),
 
-    ("LOTE-ING-104", "Monin", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-104", "Monin", datetime(2026, 10, 12), 1,
      "Xarope_de_groselha_framboesa", datetime(2028, 4, 13)),
 
-    ("LOTE-ING-105", "Schweppes", datetime(2026, 10, 12), 6.0,
+    ("LOTE-ING-105", "Schweppes", datetime(2026, 10, 12), 6,
      "Agua_com_gas", datetime(2028, 4, 14)),
 
-    ("LOTE-ING-106", "Finest Call", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-106", "Finest Call", datetime(2026, 10, 12), 1,
      "Xarope_simples_de_acucar", datetime(2028, 4, 15)),
 
-    ("LOTE-ING-107", "Maguary", datetime(2026, 10, 12), 3.0,
+    ("LOTE-ING-107", "Maguary", datetime(2026, 10, 12), 3,
      "Suco_de_abacaxi", datetime(2028, 4, 16)),
 
-    ("LOTE-ING-108", "Monin", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-108", "Monin", datetime(2026, 10, 12), 1,
      "Xarope_de_maca_verde", datetime(2028, 4, 17)),
 
-    ("LOTE-ING-109", "De Marchi", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-109", "De Marchi", datetime(2026, 10, 12), 2,
      "Polpa_de_frutas_vermelhas", datetime(2028, 4, 18)),
 
-    ("LOTE-ING-110", "Del Valle", datetime(2026, 10, 12), 3.0,
+    ("LOTE-ING-110", "Del Valle", datetime(2026, 10, 12), 3,
      "Suco_de_laranja", datetime(2028, 4, 19)),
 
-    ("LOTE-ING-111", "Guaraná Antarctica", datetime(2026, 10, 12), 6.0,
+    ("LOTE-ING-111", "Guaraná Antarctica", datetime(2026, 10, 12), 6,
      "Refrigerante_de_guarana", datetime(2028, 4, 20)),
 
-    ("LOTE-ING-112", "Lipton", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-112", "Lipton", datetime(2026, 10, 12), 2,
      "Cha_preto", datetime(2028, 4, 21)),
 
-    ("LOTE-ING-113", "Monin", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-113", "Monin", datetime(2026, 10, 12), 1,
      "Xarope_de_pessego", datetime(2028, 4, 22)),
 
-    ("LOTE-ING-114", "Monin", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-114", "Monin", datetime(2026, 10, 12), 1,
      "Xarope_de_grenadine", datetime(2028, 4, 23)),
 
-    ("LOTE-ING-115", "Sococo", datetime(2026, 10, 12), 3.0,
+    ("LOTE-ING-115", "Sococo", datetime(2026, 10, 12), 3,
      "Agua_de_coco", datetime(2028, 4, 24)),
 
-    ("LOTE-ING-116", "Maguary", datetime(2026, 10, 12), 3.0,
+    ("LOTE-ING-116", "Maguary", datetime(2026, 10, 12), 3,
      "Suco_de_maracuja", datetime(2028, 4, 25)),
 
-    ("LOTE-ING-117", "Monin", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-117", "Monin", datetime(2026, 10, 12), 1,
      "Xarope_de baunilha", datetime(2028, 4, 26)),
 
-    ("LOTE-ING-118", "Maguary", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-118", "Maguary", datetime(2026, 10, 12), 2,
      "Suco_de_melancia", datetime(2028, 4, 27)),
 
-    ("LOTE-ING-119", "Maguary", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-119", "Maguary", datetime(2026, 10, 12), 1,
      "Suco_de_gengibre", datetime(2028, 4, 28)),
 
     # Bebidas alcoólicas e ingredientes de coquetelaria
 
-    ("LOTE-ING-120", "Cachaça 51", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-120", "Cachaça 51", datetime(2026, 10, 12), 2,
      "Cachaca", datetime(2028, 4, 29)),
 
-    ("LOTE-ING-121", "José Cuervo", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-121", "José Cuervo", datetime(2026, 10, 12), 1,
      "Tequila", datetime(2028, 4, 30)),
 
-    ("LOTE-ING-122", "Cointreau", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-122", "Cointreau", datetime(2026, 10, 12), 1,
      "Cointreau_triple_sec", datetime(2028, 5, 1)),
 
-    ("LOTE-ING-123", "Tanqueray", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-123", "Tanqueray", datetime(2026, 10, 12), 2,
      "Gin", datetime(2028, 5, 2)),
 
-    ("LOTE-ING-124", "Campari", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-124", "Campari", datetime(2026, 10, 12), 1,
      "Campari", datetime(2028, 5, 3)),
 
-    ("LOTE-ING-125", "Martini", datetime(2026, 10, 12), 1.0,
+    ("LOTE-ING-125", "Martini", datetime(2026, 10, 12), 1,
      "Vermute_tinto", datetime(2028, 5, 4)),
 
-    ("LOTE-ING-126", "Absolut", datetime(2026, 10, 12), 2.0,
+    ("LOTE-ING-126", "Absolut", datetime(2026, 10, 12), 2,
      "Vodka", datetime(2028, 5, 5)),
 
-    ("LOTE-ING-127", "Fever-Tree", datetime(2026, 10, 12), 3.0, "Ginger_beer", datetime(2028, 5, 6)),
+    ("LOTE-ING-127", "Fever-Tree", datetime(2026, 10, 12), 3, "Ginger_beer", datetime(2028, 5, 6)),
 
-    ("LOTE-ING-128", "Ocean Spray", datetime(2026, 10, 12), 2.0, "Suco_de_cranberry", datetime(2028, 5, 7)),
+    ("LOTE-ING-128", "Ocean Spray", datetime(2026, 10, 12), 2, "Suco_de_cranberry", datetime(2028, 5, 7)),
 
-    ("LOTE-ING-129", "Bacardi", datetime(2026, 10, 12), 1.0, "Rum_branco", datetime(2028, 5, 8)),
+    ("LOTE-ING-129", "Bacardi", datetime(2026, 10, 12), 1, "Rum_branco", datetime(2028, 5, 8)),
 
-    ("LOTE-ING-130", "Bacardi", datetime(2026, 10, 12), 1.0, "Rum_escuro", datetime(2028, 5, 9)),
+    ("LOTE-ING-130", "Bacardi", datetime(2026, 10, 12), 1, "Rum_escuro", datetime(2028, 5, 9)),
 
-    ("LOTE-ING-131", "Monin", datetime(2026, 10, 12), 1.0, "Xarope_de_amendoa_orgeat", datetime(2028, 5, 10)),
+    ("LOTE-ING-131", "Monin", datetime(2026, 10, 12), 1, "Xarope_de_amendoa_orgeat", datetime(2028, 5, 10)),
 
-    ("LOTE-ING-132", "Jim Beam", datetime(2026, 10, 12), 1.0, "Uisque_bourbon", datetime(2028, 5, 11)),
+    ("LOTE-ING-132", "Jim Beam", datetime(2026, 10, 12), 1, "Uisque_bourbon", datetime(2028, 5, 11)),
 
-    ("LOTE-ING-133", "Angostura", datetime(2026, 10, 12), 1.0, "Angostura_bitters", datetime(2028, 5, 12)),
+    ("LOTE-ING-133", "Angostura", datetime(2026, 10, 12), 1, "Angostura_bitters", datetime(2028, 5, 12)),
 
-    ("LOTE-ING-134", "Bulleit", datetime(2026, 10, 12), 1.0, "Uisque_de_centeio_rye", datetime(2028, 5, 13)),
+    ("LOTE-ING-134", "Bulleit", datetime(2026, 10, 12), 1, "Uisque_de_centeio_rye", datetime(2028, 5, 13)),
 
-    ("LOTE-ING-135", "Luxardo", datetime(2026, 10, 12), 1.0, "Cereja_marasquino", datetime(2028, 5, 14)),
+    ("LOTE-ING-135", "Luxardo", datetime(2026, 10, 12), 1, "Cereja_marasquino", datetime(2028, 5, 14)),
 
     # Outros itens
 
-    ("LOTE-ING-136", "McCain", datetime(2026, 10, 12), 3.0, "Onion_rings", datetime(2028, 5, 15)),
+    ("LOTE-ING-136", "McCain", datetime(2026, 10, 12), 3, "Onion_rings", datetime(2028, 5, 15)),
 
-    ("LOTE-ING-137", "Nestlé", datetime(2026, 10, 12), 2.0, "Brigadeiro", datetime(2028, 5, 16)),
+    ("LOTE-ING-137", "Nestlé", datetime(2026, 10, 12), 2, "Brigadeiro", datetime(2028, 5, 16)),
 
-    ("LOTE-ING-138", "Nestlé", datetime(2026, 10, 12), 2.0, "Beijinho", datetime(2028, 5, 17)),
+    ("LOTE-ING-138", "Nestlé", datetime(2026, 10, 12), 2, "Beijinho", datetime(2028, 5, 17)),
 
-    ("LOTE-ING-139", "Pullman", datetime(2026, 10, 12), 2.0, "Bolo_comum_simples", datetime(2028, 5, 18)),
+    ("LOTE-ING-139", "Pullman", datetime(2026, 10, 12), 2, "Bolo_comum_simples", datetime(2028, 5, 18)),
     
-    ("LOTE-ING-140", "Sadia", datetime(2026, 10, 12), 3.0, "Pastel_de_queijo", datetime(2028, 6, 20)),
+    ("LOTE-ING-140", "Sadia", datetime(2026, 10, 12), 3, "Pastel_de_queijo", datetime(2028, 6, 20)),
 
-    ("LOTE-ING-141", "Sadia", datetime(2026, 10, 12), 2.0, "Salame", datetime(2028, 7, 15)),
+    ("LOTE-ING-141", "Sadia", datetime(2026, 10, 12), 2, "Salame", datetime(2028, 7, 15)),
 
-    ("LOTE-ING-142", "Nature", datetime(2026, 10, 11), 2.0, "Folha_de_hortela", datetime(2028,4,1))
+    ("LOTE-ING-142", "Nature", datetime(2026, 10, 11), 2, "Folha_de_hortela", datetime(2028,4,1))
 ]
 
 #id, nome
@@ -810,6 +810,10 @@ lista_cargos = [
 
 # ================================= "Tabelas" USUARIOS / PEDIDOS =================================
 
+# Usuários adicionais (além do admin, que é criado por iniciar_admin()).
+# Cada CPF e e-mail é distinto do admin (00000000000 / ADMIN_EMAIL) e entre si,
+# pois cpf_hmac e email_hmac são UNIQUE. A senha é sempre colocada em hash.
+# nome, cpf, email, senha, cargo (Cargo enum)
 lista_usuarios = [
     ("Ana Clara Souza", "11144477735", "ana.souza@exemplo.com", "SenhaCliente1!", Cargo.CLIENTE),
     ("Bruno Henrique Lima", "22255588846", "bruno.lima@exemplo.com", "SenhaCliente2!", Cargo.CLIENTE),
@@ -818,6 +822,9 @@ lista_usuarios = [
     ("Eduarda Alves Pinto", "55588811123", "eduarda.pinto@exemplo.com", "SenhaChefe2!", Cargo.CHEFE),
 ]
 
+# Endereços vinculados aos clientes seed (resolvidos por e-mail do dono).
+# Variados: cidades/UFs diferentes, alguns com complemento e outros sem.
+# email_dono, nome, logradouro, numero, complemento, bairro, cidade, cep, uf
 lista_enderecos = [
     ("ana.souza@exemplo.com", "Casa", "Rua das Acácias", "120", "Apto 34", "Jardim Primavera", "São Paulo", "01234-567", "SP"),
     ("ana.souza@exemplo.com", "Trabalho", "Avenida Paulista", "1500", "Sala 802", "Bela Vista", "São Paulo", "01310-100", "SP"),
@@ -826,6 +833,13 @@ lista_enderecos = [
     ("carla.nunes@exemplo.com", "Sítio", "Estrada do Vale", "s/n", None, "Zona Rural", "Gravatá", "55640-000", "PE"),
 ]
 
+# Pedidos seed, cobrindo os cinco status do enum.
+# Resolvem cliente/chefe por e-mail e endereço pelo nome do endereço do cliente.
+# As datas de evento são futuras e hora_fim > hora_inicio.
+# O trigger de baixa de estoque é AFTER UPDATE OF status, portanto inserir um
+# pedido já com status 'confirmado'/'em preparo'/'concluido' NÃO o dispara.
+# chave, email_cliente, nome_endereco, email_chefe (ou None), status,
+#   dias_no_futuro, hora_inicio, hora_fim, valor_total, observacao, confirmado
 lista_pedidos = [
     ("pedido_aguardando", "ana.souza@exemplo.com", "Casa", None,
      "aguardando", 30, time(18, 0), time(23, 0), 1499.00,
@@ -844,6 +858,9 @@ lista_pedidos = [
      "Cliente cancelou por mudança de data.", False),
 ]
 
+# Cardápios de cada pedido. (nome_servico, nome_cardapio) precisa existir em
+# lista_servicos_cardapios para que (id_cardapio, id_servico) seja consistente.
+# chave_pedido, nome_servico, nome_cardapio, num_convidados
 lista_cardapio_pedido = [
     ("pedido_aguardando", "Chef_em_casa", "Feijoada_completa", 30),
     ("pedido_confirmado", "Buffet", "Strogonoff_de_file_Mignon", 80),
@@ -854,6 +871,8 @@ lista_cardapio_pedido = [
     ("pedido_cancelado", "Mesa_de_salgados", "Hamburguer_tradicional", 200),
 ]
 
+# Bebidas avulsas de alguns pedidos. valor_total = valor_unitario * qtd (resolvido
+# dinamicamente no inicializador a partir da bebida). chave_pedido, nome_bebida, qtd
 lista_pedido_bebida = [
     ("pedido_aguardando", "Agua_com_gas", 30),
     ("pedido_aguardando", "Suco_de_abacaxi", 15),
@@ -861,6 +880,8 @@ lista_pedido_bebida = [
     ("pedido_concluido", "Agua_de_coco", 40),
 ]
 
+# Logs de auditoria seed, espelhando as ações usadas pelos controllers.
+# email_usuario, acao, descricao
 lista_logs = [
     ("ana.souza@exemplo.com", "LOGIN", "Usuário efetuou login no sistema."),
     ("ana.souza@exemplo.com", "NOVO ENDERECO", "Novo endereço cadastrado pelo cliente."),
@@ -870,6 +891,9 @@ lista_logs = [
     ("diego.rocha@exemplo.com", "LOGIN", "Chefe efetuou login no sistema."),
 ]
 
+# Tokens de verificação seed. O codigo_hash é o HMAC-SHA256 do código, com a
+# mesma chave (TOKEN_SHA) usada em security/token_auth.py; nunca em texto puro.
+# email_usuario, codigo, ativo, tentativas
 lista_tokens = [
     ("ana.souza@exemplo.com", "123456", True, 0),
     ("bruno.lima@exemplo.com", "654321", False, 3),

@@ -127,6 +127,9 @@ def _categorias_do_menu() -> list:
 
     por_categoria = {secao["id"]: [] for secao in _SECOES_MENU}
     for cardapio in listar_cardapios() or []:
+        # Cardápios desativados (soft delete) não aparecem para o cliente.
+        if not getattr(cardapio, "ativo", True):
+            continue
         categoria = _categoria_do_cardapio(cardapio.id_cardapio)
         if categoria is None:
             continue
@@ -294,9 +297,47 @@ def cancelar_pedido(id_pedido: int):
 # =========================== BEBIDA ===========================
 
 def _catalogo_bebidas():
+    """Monta o catálogo de bebidas da página pública a partir do banco.
+
+    Inclui as avulsas seed e QUALQUER bebida ativa criada pelo admin. A imagem
+    é resolvida como nas páginas de menu/serviço: lê o campo 'arquivo' de
+    docs/imagens-bebidas.json pelo slug (que carrega a extensão real) e remove
+    o prefixo 'static/'. O volume é o derivado da ficha técnica (nunca
+    armazenado). Sem dependência da prévia.
+    """
+    import json
+    from pathlib import Path
+
     from services import formatar_bebidas
-    return formatar_bebidas([dict(id=b.id_bebida, nome=b.nome,
-        descricao=b.descricao, preco=b.valor_unitario) for b in listar_bebidas()])
+    from model.pedido_model import listar_bebidas_ativas
+    from model.ficha_model import volume_ml_bebida
+
+    # Registro de imagens das bebidas (pode não existir se nada foi enviado).
+    base = Path(current_app.root_path)
+    try:
+        with open(base / "docs" / "imagens-bebidas.json", encoding="utf-8") as arq:
+            imagens = json.load(arq)
+    except (FileNotFoundError, json.JSONDecodeError):
+        imagens = {}
+
+    def _imagem_rel(slug):
+        if not slug:
+            return None
+        arquivo = (imagens.get(slug) or {}).get("arquivo")
+        if arquivo and arquivo.startswith("static/"):
+            return arquivo[len("static/"):]
+        return arquivo
+
+    registros = []
+    for b in listar_bebidas_ativas() or []:
+        registros.append(dict(
+            id=b.id_bebida, nome=b.nome, descricao=b.descricao,
+            preco=b.valor_unitario,
+            imagem_slug=b.imagem_slug,
+            imagem_rel=_imagem_rel(b.imagem_slug),
+            volume_ml=volume_ml_bebida(b.id_bebida) or None,
+        ))
+    return formatar_bebidas(registros, incluir_todos=True)
 
 
 @cliente_bp.get("/bebidas")
@@ -513,6 +554,9 @@ def mostrar_servico(slug):
     for associacao in associacoes:
         cardapio = buscar_cardapio_por_id(associacao.id_cardapio)
         if cardapio is None:
+            continue
+        # Cardápios desativados (soft delete) não aparecem para o cliente.
+        if not getattr(cardapio, "ativo", True):
             continue
 
         slug_img = _slug_imagem_do_cardapio(cardapio)
@@ -811,13 +855,18 @@ def dados_perfil() -> Response:
         Response: JSON com 'usuario', 'pedido', 'servicos', 'bebidas' e 'endereco'.
     """
     from security import descriptografar
-    from utils import formatar_moeda
+    from utils import formatar_moeda, nome_exibicao
 
     # usuario
     usuario=buscar_usuario_por_id(session.get("id"))
 
-    usuario.cpf_criptografado=descriptografar(usuario.cpf_criptografado)
-    usuario.email_criptografado=descriptografar(usuario.email_criptografado)
+    # Protege contra sessão sem usuário válido (buscar_usuario_por_id -> None):
+    # sem este guarda, o acesso a usuario.cpf_criptografado abaixo quebraria.
+    if usuario is None:
+        return redirect(url_for("auth.login"))
+
+    cpf = descriptografar(usuario.cpf_criptografado)
+    email = descriptografar(usuario.email_criptografado)
 
     # pedido
     pedido=next((p for p in listar_pedidos_por_cliente(session.get("id"))
@@ -828,8 +877,8 @@ def dados_perfil() -> Response:
             "usuario": {
                 "id": usuario.id_usuario,
                 "nome": usuario.nome,
-                "cpf": usuario.cpf_criptografado,
-                "email": usuario.email_criptografado,
+                "cpf": cpf,
+                "email": email,
             },
             "pedido": None,
             "servicos": {},
@@ -837,15 +886,27 @@ def dados_perfil() -> Response:
             "endereco": None,
         })
 
-    pedido.valor_total = formatar_moeda(pedido.valor_total)
+    # Formata o total para exibição em uma variável local; NUNCA sobrescreve a
+    # coluna ORM Numeric pedido.valor_total (fazer isso faria o próximo autoflush
+    # tentar persistir a string formatada na coluna numérica e quebrar a rota).
+    valor_total_formatado = formatar_moeda(pedido.valor_total)
 
     # detalhamento
+    # CardapioPedido guarda apenas id_cardapio/id_pedido/id_servico/num_convidados,
+    # então nome e preco_base vêm do Cardapio real (buscar_cardapio_por_id) e o
+    # serviço (chave do dict) do Servico real. Linhas órfãs (Cardapio/Servico
+    # inexistentes) são ignoradas para não quebrar a rota.
     cardapios=buscar_cardapios_pedido(pedido.id_pedido) or []
-    servicos = {
-        servico.nome: [cardapio.nome, formatar_moeda(cardapio.preco_base*cardapio.num_convidados)]
-        for cardapio in cardapios
-        if (servico := buscar_servico_por_id(cardapio.id_servico))
-    }
+    servicos = {}
+    for cp in cardapios:
+        servico = buscar_servico_por_id(cp.id_servico)
+        cardapio = buscar_cardapio_por_id(cp.id_cardapio)
+        if servico is None or cardapio is None:
+            continue
+        servicos[servico.nome] = [
+            nome_exibicao(cardapio.nome),
+            formatar_moeda(cardapio.preco_base * cp.num_convidados),
+        ]
 
     endereco = buscar_endereco_por_id(pedido.id_endereco)
 
@@ -860,13 +921,13 @@ def dados_perfil() -> Response:
         "usuario": {
             "id": usuario.id_usuario,
             "nome": usuario.nome,
-            "cpf": usuario.cpf_criptografado,
-            "email": usuario.email_criptografado,
+            "cpf": cpf,
+            "email": email,
         },
         "pedido": {
             "id": pedido.id_pedido,
             "status": pedido.status,
-            "valor_total": pedido.valor_total,
+            "valor_total": valor_total_formatado,
             "data_evento": pedido.data_evento.isoformat() if pedido.data_evento else None,
             "hora_inicio": pedido.hora_inicio.isoformat() if pedido.hora_inicio else None,
             "hora_fim": pedido.hora_fim.isoformat() if pedido.hora_fim else None,

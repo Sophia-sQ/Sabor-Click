@@ -1,116 +1,290 @@
-/* Prévia do frontend: dados ilustrativos em memória, sem chamadas ao backend. */
+/* Tela da cozinha (chef): lê a fila do bloco JSON e conversa com o backend
+   real para aceitar pedidos e avançar o status por transições válidas. */
 (() => {
     'use strict';
-    const fichas = {
-        arroz: {nome: 'Arroz branco', tempo: 25, prePreparo: false, ingredientes: [
-            {id: 1, nome: 'Arroz', unidade: 'g', quantidade: 100},
-            {id: 2, nome: 'Água', unidade: 'ml', quantidade: 200}
-        ]},
-        frango: {nome: 'Frango grelhado', tempo: 30, prePreparo: true, ingredientes: [
-            {id: 3, nome: 'Filé de frango', unidade: 'g', quantidade: 150},
-            {id: 4, nome: 'Azeite', unidade: 'ml', quantidade: 10}
-        ]},
-        suco: {nome: 'Suco de laranja', tempo: 10, prePreparo: false, ingredientes: [
-            {id: 5, nome: 'Laranja', unidade: 'un', quantidade: 3}
-        ]}
-    };
-    const pedidos = [
-        {id: 104, recebido: '12h00', status: 'aguardando', observacao: 'Enviar talheres.', itens: [{ficha: 'arroz', quantidade: 2}, {ficha: 'frango', quantidade: 2}, {ficha: 'suco', quantidade: 2}]},
-        {id: 105, recebido: '12h10', status: 'aguardando', observacao: 'Sem observações.', itens: [{ficha: 'arroz', quantidade: 3}, {ficha: 'frango', quantidade: 3}]},
-        {id: 106, recebido: '12h15', status: 'aguardando', observacao: 'Sem observações.', itens: [{ficha: 'suco', quantidade: 4}]}
-    ];
-    const estados = {aguardando: 'Aguardando chef', confirmado: 'Aceito', 'em preparo': 'Em preparo', concluido: 'Concluído'};
-    const separados = new Map();
-    let selecionado = null;
+
     const el = id => document.getElementById(id);
     const criar = (tag, texto, classe) => {
         const node = document.createElement(tag);
-        if (texto !== undefined) node.textContent = texto;
+        if (texto !== undefined && texto !== null) node.textContent = texto;
         if (classe) node.className = classe;
         return node;
     };
     const numero = valor => new Intl.NumberFormat('pt-BR', {maximumFractionDigits: 3}).format(valor);
-    const chave = ingrediente => `${ingrediente.id}:${ingrediente.unidade}`;
-    const totais = pedido => {
-        const soma = new Map();
-        pedido.itens.forEach(item => fichas[item.ficha].ingredientes.forEach(ingrediente => {
-            const id = chave(ingrediente);
-            if (!soma.has(id)) soma.set(id, {...ingrediente, quantidade: 0});
-            soma.get(id).quantidade += ingrediente.quantidade * item.quantidade;
-        }));
-        return [...soma.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+    // Rótulos amigáveis de status e a próxima transição válida do fluxo do chef.
+    const estados = {
+        aguardando: 'Aguardando chef',
+        confirmado: 'Aceito',
+        'em preparo': 'Em preparo',
+        concluido: 'Concluído',
+        cancelado: 'Cancelado',
     };
+    // confirmado -> em preparo -> concluido (somente transições válidas).
+    const proximoStatus = {confirmado: 'em preparo', 'em preparo': 'concluido'};
+    const rotuloAvancar = {confirmado: 'Iniciar preparo', 'em preparo': 'Concluir preparo', concluido: 'Preparo concluído'};
+    const ajudaStatus = {
+        confirmado: 'Separe os ingredientes e inicie o preparo quando estiver pronto.',
+        'em preparo': 'Conclua quando todos os itens do pedido estiverem prontos.',
+        concluido: 'Este pedido já saiu da fila de preparo.',
+    };
+
+    // Fila de pedidos aguardando, lida do bloco JSON renderizado pelo servidor.
+    let fila = [];
+    try {
+        fila = JSON.parse(el('pedidos-cozinha').textContent) || [];
+    } catch (erro) {
+        fila = [];
+    }
+
+    // Pedido que está na bancada do chef (vindo de GET /pedido/preparo).
+    let atual = null;
+    const separados = new Set();
+
+    function definirMensagem(texto) {
+        el('mensagem-cozinha').textContent = texto || '';
+    }
+
+    // ------- FILA (pedidos aguardando) -------
     function renderizarFila() {
-        el('fila-pedidos').replaceChildren();
-        pedidos.forEach(pedido => {
-            const card = criar('article', undefined, `card pedido-cozinha${pedido === selecionado ? ' selecionado' : ''}`);
-            card.append(criar('span', estados[pedido.status], `status${pedido.status === 'concluido' ? ' verde' : ''}`), criar('span', pedido.recebido, 'pedido-momento'), criar('h3', `Pedido #${pedido.id}`));
-            card.append(criar('p', pedido.itens.map(item => `${item.quantidade} × ${fichas[item.ficha].nome}`).join(' · ')), criar('p', pedido.observacao, 'muted'));
-            const botao = criar('button', pedido.status === 'aguardando' ? 'Aceitar pedido' : 'Ver ficha de preparo', pedido.status === 'aguardando' ? '' : 'ver-ficha');
-            botao.type = 'button';
-            botao.setAttribute('aria-label', `${botao.textContent} #${pedido.id}`);
-            botao.setAttribute('aria-controls', 'preparo-conteudo');
-            botao.addEventListener('click', () => {
-                if (pedido.status === 'aguardando') {
-                    pedido.status = 'confirmado';
-                    separados.set(pedido.id, new Set());
-                    el('mensagem-cozinha').textContent = `Pedido #${pedido.id} aceito nesta prévia. Confira os itens necessários.`;
+        const container = el('fila-pedidos');
+        container.replaceChildren();
+
+        if (!fila.length) {
+            const vazio = criar('p', 'Nenhum pedido aguardando no momento.', 'vazio');
+            container.append(vazio);
+        } else {
+            fila.forEach(pedido => {
+                const card = criar('article', undefined, 'card pedido-cozinha');
+                card.append(criar('span', estados.aguardando, 'status'));
+                if (pedido.criado_em) card.append(criar('span', pedido.criado_em, 'pedido-momento'));
+                card.append(criar('h3', `Pedido #${pedido.id_pedido}`));
+                if (Array.isArray(pedido.itens) && pedido.itens.length) {
+                    card.append(criar('p', pedido.itens.join(' · ')));
                 }
-                selecionado = pedido;
-                renderizarFila();
-                renderizarPreparo();
-                el('pedido-selecionado').focus();
+                const detalhes = [];
+                if (pedido.num_convidados) detalhes.push(`${pedido.num_convidados} convidado(s)`);
+                if (pedido.data_evento) detalhes.push(pedido.data_evento);
+                if (pedido.valor_total) detalhes.push(pedido.valor_total);
+                if (detalhes.length) card.append(criar('p', detalhes.join(' · '), 'muted'));
+                if (pedido.observacao) card.append(criar('p', pedido.observacao, 'muted'));
+
+                const botao = criar('button', 'Aceitar pedido');
+                botao.type = 'button';
+                botao.setAttribute('aria-label', `Aceitar pedido #${pedido.id_pedido}`);
+                botao.setAttribute('aria-controls', 'preparo-conteudo');
+                botao.addEventListener('click', () => aceitarPedido(pedido.id_pedido, botao));
+                card.append(botao);
+
+                container.append(card);
             });
-            card.append(botao);
-            el('fila-pedidos').append(card);
+        }
+        atualizarContadores();
+    }
+
+    function atualizarContadores() {
+        el('total-aguardando').textContent = fila.length;
+        el('total-preparo').textContent = (atual && ['confirmado', 'em preparo'].includes(atual.status)) ? 1 : 0;
+        el('total-concluido').textContent = (atual && atual.status === 'concluido') ? 1 : 0;
+    }
+
+    // ------- BANCADA DE PREPARO (pedido atual do chef) -------
+    function ingredientesAgregados(pedido) {
+        const soma = new Map();
+        const acumular = ficha => (ficha || []).forEach(ingrediente => {
+            const nome = ingrediente.nome || ingrediente.ingrediente || 'Ingrediente';
+            const unidade = ingrediente.unidade || '';
+            const chave = `${ingrediente.id_ingrediente}:${unidade}`;
+            const qtd = Number(ingrediente.qtd_necessaria) || 0;
+            if (!soma.has(chave)) soma.set(chave, {nome, unidade, quantidade: 0});
+            soma.get(chave).quantidade += qtd;
         });
-        el('total-aguardando').textContent = pedidos.filter(p => p.status === 'aguardando').length;
-        el('total-preparo').textContent = pedidos.filter(p => ['confirmado', 'em preparo'].includes(p.status)).length;
-        el('total-concluido').textContent = pedidos.filter(p => p.status === 'concluido').length;
+        (pedido.cardapios || []).forEach(cardapio => (cardapio.pratos || []).forEach(prato => acumular(prato.ficha_tecnica)));
+        (pedido.bebidas || []).forEach(bebida => acumular(bebida.ficha_tecnica));
+        return [...soma.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
     }
-    function atualizarProgresso() {
-        const total = totais(selecionado).length;
-        const marcados = separados.get(selecionado.id).size;
-        el('progresso-separacao').textContent = `${marcados} de ${total} separados`;
-        el('avancar-preparo').disabled = selecionado.status === 'concluido' || (selecionado.status === 'confirmado' && marcados !== total);
+
+    function itensDoPedido(pedido) {
+        const itens = [];
+        (pedido.cardapios || []).forEach(cardapio => (cardapio.pratos || []).forEach(prato => {
+            itens.push(`${prato.qtd || 1} × ${prato.nome || 'Prato'}`);
+        }));
+        (pedido.bebidas || []).forEach(bebida => {
+            itens.push(`${bebida.qtd || 1} × ${bebida.nome || 'Bebida'}`);
+        });
+        return itens;
     }
+
+    function mostrarBancadaVazia() {
+        el('preparo-vazio').hidden = false;
+        el('preparo-conteudo').hidden = true;
+        atualizarContadores();
+    }
+
     function renderizarPreparo() {
-        const pedido = selecionado;
+        if (!atual) {
+            mostrarBancadaVazia();
+            return;
+        }
         el('preparo-vazio').hidden = true;
         el('preparo-conteudo').hidden = false;
-        el('pedido-selecionado').textContent = `Pedido #${pedido.id}`;
-        el('resumo-preparo').textContent = `${estados[pedido.status]} · Recebido às ${pedido.recebido} · Responsável: você (prévia)`;
-        el('observacao-preparo').textContent = `Observação: ${pedido.observacao}`;
-        el('itens-pedido').replaceChildren(...pedido.itens.map(item => criar('li', `${item.quantidade} × ${fichas[item.ficha].nome}`)));
-        el('ingredientes-preparo').replaceChildren();
-        totais(pedido).forEach(ingrediente => {
+
+        el('pedido-selecionado').textContent = `Pedido #${atual.id_pedido}`;
+        el('resumo-preparo').textContent = `${estados[atual.status] || atual.status} · Responsável: você`;
+        el('observacao-preparo').textContent = atual.observacao ? `Observação: ${atual.observacao}` : '';
+
+        el('itens-pedido').replaceChildren(...itensDoPedido(atual).map(texto => criar('li', texto)));
+
+        const ingredientes = ingredientesAgregados(atual);
+        const container = el('ingredientes-preparo');
+        container.replaceChildren();
+        ingredientes.forEach(ingrediente => {
+            const chave = `${ingrediente.nome}:${ingrediente.unidade}`;
             const linha = criar('div', undefined, 'ingrediente-preparo');
             const label = criar('label');
             const check = criar('input');
             check.type = 'checkbox';
-            check.checked = separados.get(pedido.id).has(chave(ingrediente));
-            check.disabled = pedido.status !== 'confirmado';
+            check.checked = separados.has(chave);
+            check.disabled = atual.status !== 'confirmado';
             check.addEventListener('change', () => {
-                const marcados = separados.get(pedido.id);
-                if (check.checked) marcados.add(chave(ingrediente));
-                else marcados.delete(chave(ingrediente));
-                atualizarProgresso();
+                if (check.checked) separados.add(chave);
+                else separados.delete(chave);
+                atualizarProgresso(ingredientes.length);
             });
             label.append(check, criar('span', ingrediente.nome));
-            linha.append(label, criar('strong', `${numero(ingrediente.quantidade)} ${ingrediente.unidade}`));
-            el('ingredientes-preparo').append(linha);
+            linha.append(label, criar('strong', `${numero(ingrediente.quantidade)} ${ingrediente.unidade}`.trim()));
+            container.append(linha);
         });
-        el('avancar-preparo').textContent = {confirmado: 'Iniciar preparo', 'em preparo': 'Concluir preparo', concluido: 'Preparo concluído'}[pedido.status];
-        el('ajuda-status').textContent = {confirmado: 'Separe todos os ingredientes para iniciar o preparo.', 'em preparo': 'Conclua quando todos os itens do pedido estiverem prontos.', concluido: 'Este pedido já saiu da fila de preparo.'}[pedido.status];
-        atualizarProgresso();
+
+        el('avancar-preparo').textContent = rotuloAvancar[atual.status] || 'Avançar';
+        el('ajuda-status').textContent = ajudaStatus[atual.status] || '';
+        atualizarProgresso(ingredientes.length);
+        atualizarContadores();
     }
-    el('avancar-preparo').addEventListener('click', () => {
-        if (!selecionado || el('avancar-preparo').disabled) return;
-        selecionado.status = selecionado.status === 'confirmado' ? 'em preparo' : 'concluido';
-        el('mensagem-cozinha').textContent = `Pedido #${selecionado.id}: ${estados[selecionado.status].toLowerCase()} nesta prévia.`;
-        renderizarFila();
-        renderizarPreparo();
-        el('pedido-selecionado').focus();
-    });
+
+    function atualizarProgresso(total) {
+        el('progresso-separacao').textContent = `${separados.size} de ${total} separados`;
+        const avancar = el('avancar-preparo');
+        if (!atual || !proximoStatus[atual.status]) {
+            avancar.disabled = true;
+            return;
+        }
+        // Só libera iniciar o preparo quando todos os ingredientes forem separados.
+        avancar.disabled = atual.status === 'confirmado' && separados.size !== total;
+    }
+
+    // Rebusca a fila de 'aguardando' do servidor e re-renderiza os cards.
+    // Usado após concluir um pedido, quando a bancada é liberada e novos
+    // pedidos da fila voltam a poder ser aceitos.
+    async function carregarFila() {
+        try {
+            const resposta = await fetch('/pedido/cozinha/fila', {headers: {Accept: 'application/json'}});
+            if (resposta.redirected || !resposta.headers.get('content-type')?.includes('application/json')) {
+                throw new Error('Sua sessão expirou. Entre na sua conta e tente novamente.');
+            }
+            if (!resposta.ok) throw new Error('Não foi possível atualizar a fila de pedidos.');
+            fila = await resposta.json() || [];
+            renderizarFila();
+        } catch (erro) {
+            definirMensagem(erro.message || 'Não foi possível atualizar a fila de pedidos.');
+        }
+    }
+
+    async function carregarPreparo() {
+        try {
+            const resposta = await fetch('/pedido/preparo', {headers: {Accept: 'application/json'}});
+            if (resposta.status === 404) {
+                atual = null;
+                mostrarBancadaVazia();
+                return;
+            }
+            if (resposta.redirected || !resposta.headers.get('content-type')?.includes('application/json')) {
+                throw new Error('Sua sessão expirou. Entre na sua conta e tente novamente.');
+            }
+            if (!resposta.ok) throw new Error('Não foi possível carregar o pedido atual.');
+            atual = await resposta.json();
+            separados.clear();
+            renderizarPreparo();
+        } catch (erro) {
+            atual = null;
+            mostrarBancadaVazia();
+            definirMensagem(erro.message || 'Não foi possível carregar o pedido atual.');
+        }
+    }
+
+    // ------- AÇÕES (aceitar / avançar) -------
+    async function aceitarPedido(idPedido, botao) {
+        if (botao) botao.disabled = true;
+        definirMensagem('');
+        try {
+            const resposta = await fetch('/pedido/aceitar', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: idPedido}),
+            });
+            if (resposta.redirected || !resposta.headers.get('content-type')?.includes('application/json')) {
+                throw new Error('Sua sessão expirou. Entre na sua conta e tente novamente.');
+            }
+            const dados = await resposta.json();
+            if (!resposta.ok || !dados.ok) {
+                throw new Error(dados.erro || 'Não foi possível aceitar o pedido.');
+            }
+            // Remove da fila local e recarrega a bancada a partir do servidor.
+            fila = fila.filter(pedido => pedido.id_pedido !== idPedido);
+            renderizarFila();
+            await carregarPreparo();
+            definirMensagem(`Pedido #${idPedido} aceito. Confira os itens necessários.`);
+            el('pedido-selecionado').focus();
+        } catch (erro) {
+            definirMensagem(erro.message || 'Não foi possível aceitar o pedido.');
+            if (botao) botao.disabled = false;
+        }
+    }
+
+    async function avancarPreparo() {
+        if (!atual) return;
+        const alvo = proximoStatus[atual.status];
+        if (!alvo) return;
+        const botao = el('avancar-preparo');
+        botao.disabled = true;
+        definirMensagem('');
+        try {
+            const resposta = await fetch('/pedido/atualizar', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: atual.id_pedido, status: alvo}),
+            });
+            if (resposta.redirected || !resposta.headers.get('content-type')?.includes('application/json')) {
+                throw new Error('Sua sessão expirou. Entre na sua conta e tente novamente.');
+            }
+            const dados = await resposta.json();
+            if (!resposta.ok || !dados.ok) {
+                throw new Error(dados.erro || 'Não foi possível atualizar o pedido.');
+            }
+            const statusFinal = dados.status || alvo;
+            if (statusFinal === 'em preparo') separados.clear();
+            if (statusFinal === 'concluido') {
+                // Pedido concluído: libera a bancada e rebusca a fila do servidor
+                // para que novos pedidos 'aguardando' voltem a poder ser aceitos.
+                const idConcluido = atual.id_pedido;
+                atual = null;
+                separados.clear();
+                mostrarBancadaVazia();
+                definirMensagem(`Pedido #${idConcluido}: ${(estados[statusFinal] || statusFinal).toLowerCase()}.`);
+                await carregarFila();
+            } else {
+                atual.status = statusFinal;
+                definirMensagem(`Pedido #${atual.id_pedido}: ${(estados[statusFinal] || statusFinal).toLowerCase()}.`);
+                renderizarPreparo();
+            }
+        } catch (erro) {
+            definirMensagem(erro.message || 'Não foi possível atualizar o pedido.');
+            renderizarPreparo();
+        }
+    }
+
+    el('avancar-preparo').addEventListener('click', avancarPreparo);
+
     renderizarFila();
+    carregarPreparo();
 })();

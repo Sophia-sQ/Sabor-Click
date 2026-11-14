@@ -1,10 +1,8 @@
 """Rotas administrativas de pratos, cardápios e suas associações."""
 
-from . import admin_bp, _retorno, _bool_form, _int_form
+from . import admin_bp, _retorno, _bool_form, _int_form, _mapa_imagens, _imagem_rel
 
-from decimal import Decimal, InvalidOperation
-
-from flask import request, flash
+from flask import request, flash, redirect, render_template, url_for
 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -12,7 +10,13 @@ from utils import moeda_para_centavos
 
 from services import imagem_cardapio
 
-from model.servico_model import criar_cardapio, atualizar_cardapio, deletar_cardapio
+from model.servico_model import (
+    criar_cardapio, atualizar_cardapio, buscar_cardapio_por_id,
+    listar_cardapios, listar_servicos, buscar_servico_por_slug,
+    associar_servico_cardapio, desassociar_servico_cardapio,
+    listar_cardapios_do_servico, desativar_cardapio,
+    ServicoCardapio, Servico,
+)
 from model.ficha_model import (
     # Prato
     criar_prato, buscar_prato_por_id, listar_pratos, atualizar_prato, deletar_prato,
@@ -20,6 +24,118 @@ from model.ficha_model import (
     associar_prato_cardapio, buscar_prato_cardapio, listar_pratos_por_cardapio,
     atualizar_prato_cardapio, deletar_prato_cardapio
 )
+from database import db
+
+
+# ===================== CATÁLOGO DE CARDÁPIOS (página real) =====================
+
+def _servicos_catalogo() -> dict:
+    """Mapeia slug -> (nome, categoria) a partir dos serviços reais do banco.
+
+    Usado tanto para montar as checkboxes do formulário quanto para exibir os
+    serviços associados a cada cardápio na listagem. A categoria é mantida como
+    None (não há categoria por serviço no banco), preservando o formato de tupla
+    que o template espera (slug -> (nome, categoria)).
+
+    Returns:
+        dict: {slug: (nome, None)} ordenado pelos serviços cadastrados.
+    """
+    return {s.slug: (s.nome, None) for s in (listar_servicos() or [])}
+
+
+def _slugs_associados(id_cardapio: int) -> list:
+    """Lista os slugs dos serviços atualmente associados a um cardápio."""
+    slugs = db.session.execute(
+        db.select(Servico.slug)
+        .join(ServicoCardapio, Servico.id_servico == ServicoCardapio.id_servico)
+        .where(ServicoCardapio.id_cardapio == id_cardapio),
+    ).scalars().all()
+    return list(slugs)
+
+
+def _itens_cardapio(mapa_imagens: dict) -> list:
+    """Monta a lista de cardápios (todos, ativos e inativos) para o catálogo admin."""
+    itens = []
+    for cardapio in listar_cardapios() or []:
+        itens.append({
+            "id": cardapio.id_cardapio,
+            "nome": cardapio.nome,
+            "descricao": cardapio.descricao,
+            # Categoria do cardápio não é armazenada; os serviços associados a
+            # representam. O template usa 'categoria' apenas para o rótulo da
+            # listagem, então deixamos o primeiro serviço associado (ou vazio).
+            "categoria": "",
+            "preco": cardapio.preco_base / 100,  # exibição em R$
+            "imagem": _imagem_rel(mapa_imagens, _slug_imagem(cardapio)),
+            "servicos": _slugs_associados(cardapio.id_cardapio),
+            "ativo": cardapio.ativo,
+        })
+    return itens
+
+
+def _slug_imagem(cardapio):
+    """Resolve o slug de imagem de um cardápio (prioriza o imagem_slug do banco)."""
+    from controller.cliente_controller import _slug_imagem_do_cardapio
+    return _slug_imagem_do_cardapio(cardapio)
+
+
+@admin_bp.get("/cardapio")
+def catalogo_cardapio():
+    """Renderiza a página real de catálogo de cardápios (CMS)."""
+    mapa = _mapa_imagens("imagens-menu.json")
+    itens = _itens_cardapio(mapa)
+    servicos_catalogo = _servicos_catalogo()
+    opcoes = [("", "Cardápio")]
+
+    editar = request.args.get("editar", "")
+    atual = None
+    valores = {}
+    if editar:
+        try:
+            atual = next((i for i in itens if str(i["id"]) == str(editar)), None)
+        except ValueError:
+            atual = None
+        if atual:
+            valores = dict(atual)
+
+    return render_template(
+        "catalogo_admin.html",
+        tipo="cardapio",
+        itens=itens,
+        opcoes=opcoes,
+        servicos_catalogo=servicos_catalogo,
+        atual=atual,
+        valores=valores,
+        gerenciar=request.args.get("gerenciar") == "1",
+    )
+
+
+def _sincronizar_servicos(id_cardapio: int, slugs_enviados: list) -> None:
+    """Sincroniza ServicoCardapio com os slugs marcados (associa/desassocia).
+
+    Apenas slugs válidos (correspondentes a Servico.slug reais) são considerados;
+    slugs desconhecidos são ignorados silenciosamente.
+    """
+    validos = {}
+    for slug in dict.fromkeys(slugs_enviados):
+        servico = buscar_servico_por_slug(slug)
+        if servico is not None:
+            validos[slug] = servico.id_servico
+
+    atuais = set(_slugs_associados(id_cardapio))
+    desejados = set(validos.keys())
+
+    for slug in desejados - atuais:
+        associar_servico_cardapio(validos[slug], id_cardapio, id_usuario=None)
+
+    atuais_por_slug = {}
+    for slug in atuais:
+        servico = buscar_servico_por_slug(slug)
+        if servico is not None:
+            atuais_por_slug[slug] = servico.id_servico
+    for slug in atuais - desejados:
+        if slug in atuais_por_slug:
+            desassociar_servico_cardapio(atuais_por_slug[slug], id_cardapio, id_usuario=None)
 # ========================= CRIAR CARDÁPIO =========================
 @admin_bp.post("/servicos/criar_cardapio")
 def c_cardapio():
@@ -30,13 +146,15 @@ def c_cardapio():
     Returns:
         Response: redirecionamento para a página de serviços.
     """
+    voltar = redirect(url_for("admin.catalogo_cardapio", gerenciar=1))
+
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     preco_texto = request.form.get("preco_base", "").strip()
 
     if not nome or not descricao or not preco_texto:
         flash("Preencha todos os campos.", "danger")
-        return _retorno()
+        return voltar
     
     # preco_base é armazenado em CENTAVOS (inteiro); converte o texto digitado
     # (ex.: "149,90" / "149.90") para centavos.
@@ -44,11 +162,11 @@ def c_cardapio():
         preco_base = moeda_para_centavos(preco_texto)
     except ValueError:
         flash("Preço inválido.", "danger")
-        return _retorno()
+        return voltar
 
     if preco_base < 0:
         flash("O preço deve ser válido e não negativo.", "danger")
-        return _retorno()
+        return voltar
 
     # Imagem é opcional: se enviada, salva o arquivo e atualiza o JSON de imagens,
     # obtendo o slug persistido no cardápio; se não, o cardápio é criado sem imagem.
@@ -59,12 +177,15 @@ def c_cardapio():
             imagem_slug = imagem_cardapio.salvar_imagem_cardapio(arquivo, nome)
         except ValueError as erro:
             flash(f"Imagem inválida: {erro}", "danger")
-            return _retorno()
+            return voltar
 
-    criar_cardapio(nome=nome, descricao=descricao, preco_base=preco_base, imagem_slug=imagem_slug)
+    novo_id = criar_cardapio(nome=nome, descricao=descricao, preco_base=preco_base, imagem_slug=imagem_slug)
+
+    # Sincroniza os serviços marcados nas checkboxes na tabela de associação.
+    _sincronizar_servicos(novo_id, request.form.getlist("servicos"))
 
     flash("Cardápio criado.", "success")
-    return _retorno()
+    return redirect(url_for("admin.catalogo_cardapio", gerenciar=1))
 
 # ========================= ATUALIZAR CARDÁPIO =========================
 @admin_bp.post("/servicos/atualizar_cardapio/<int:id_cardapio>")
@@ -77,51 +198,92 @@ def at_cardapio(id_cardapio):
     Returns:
         Response: redirecionamento para a página de serviços.
     """
+    voltar = redirect(url_for("admin.catalogo_cardapio", gerenciar=1))
+
+    cardapio = buscar_cardapio_por_id(id_cardapio)
+    if cardapio is None:
+        flash("Cardápio não encontrado.", "danger")
+        return voltar
+
     nome = request.form.get("nome", "").strip()
     descricao = request.form.get("descricao", "").strip()
     preco_texto = request.form.get("preco_base", "").strip()
 
     if not nome or not descricao or not preco_texto:
         flash("Preencha todos os campos.", "danger")
-        return _retorno()
+        return voltar
 
+    # preco_base é armazenado em CENTAVOS (inteiro), igual à criação. O código
+    # anterior gravava um Decimal de reais (bug latente); agora converte para
+    # centavos via moeda_para_centavos.
     try:
-        preco_base = Decimal(preco_texto.replace(",", "."))
-    except InvalidOperation:
+        preco_base = moeda_para_centavos(preco_texto)
+    except ValueError:
         flash("Preço inválido.", "danger")
-        return _retorno()
+        return voltar
 
-    if not preco_base.is_finite() or preco_base < 0:
+    if preco_base < 0:
         flash("O preço deve ser válido e não negativo.", "danger")
-        return _retorno()
-    
-    sucesso = atualizar_cardapio(id_cardapio=id_cardapio, nome=nome, descricao=descricao, preco_base=preco_base,)
+        return voltar
+
+    # Nova imagem é opcional na edição: se enviada, sobrescreve a imagem atual
+    # (mantendo o mesmo slug quando já existe) e persiste o slug no cardápio.
+    imagem_slug = None
+    arquivo = request.files.get("imagem")
+    if arquivo is not None and arquivo.filename:
+        try:
+            imagem_slug = imagem_cardapio.atualizar_imagem_cardapio(
+                arquivo, nome, cardapio.imagem_slug)
+        except ValueError as erro:
+            flash(f"Imagem inválida: {erro}", "danger")
+            return voltar
+
+    sucesso = atualizar_cardapio(
+        id_cardapio=id_cardapio, nome=nome, descricao=descricao,
+        preco_base=preco_base, imagem_slug=imagem_slug)
 
     if not sucesso:
         flash("Cardápio não encontrado.", "danger")
-        return _retorno()
+        return voltar
+
+    # Sincroniza os serviços marcados (associa os novos, desassocia os retirados).
+    _sincronizar_servicos(id_cardapio, request.form.getlist("servicos"))
 
     flash("Cardápio atualizado.", "success")
-    return _retorno()
+    return voltar
 
-# ========================= DELETAR CARDÁPIO =========================
+# ========================= REMOVER CARDÁPIO (SOFT DELETE) =========================
 @admin_bp.route("/deletar_cardapio/<int:id_cardapio>", methods=("POST",))
 def del_cardapio(id_cardapio):
-    """Exclui um cardápio e sinaliza o resultado via flash.
+    """Desativa (soft delete) um cardápio e esconde sua imagem do JSON.
+
+    Não remove fisicamente o registro (pode estar referenciado por pedidos):
+    apenas marca ativo=False (some das listagens do cliente) e retira a imagem
+    do docs/imagens-menu.json.
 
     Args:
-        id_cardapio (int): identificador do cardápio a excluir.
+        id_cardapio (int): identificador do cardápio a desativar.
 
     Returns:
-        Response: redirecionamento para a página de serviços.
+        Response: redirecionamento para o catálogo de cardápios.
     """
-    sucesso = deletar_cardapio(id_cardapio=id_cardapio)
+    voltar = redirect(url_for("admin.catalogo_cardapio", gerenciar=1))
 
-    if not sucesso:
+    cardapio = buscar_cardapio_por_id(id_cardapio)
+    if cardapio is None:
         flash("Cardápio não encontrado.", "danger")
+        return voltar
 
-    flash("Cardápio deletado.", "success")
-    return _retorno()
+    slug = cardapio.imagem_slug
+    if not desativar_cardapio(id_cardapio):
+        flash("Cardápio não encontrado.", "danger")
+        return voltar
+
+    if slug:
+        imagem_cardapio.remover_imagem_cardapio(slug)
+
+    flash("Cardápio removido.", "success")
+    return voltar
 
 # ========================= PRATO =========================
 

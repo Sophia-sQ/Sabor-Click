@@ -33,12 +33,14 @@ def criar_ingrediente_route():
     if not nome or not unidade or not qtd_texto or not qtd_min_texto:
         flash("Preencha nome, unidade, quantidade e quantidade mínima.", "danger")
         return _retorno()
+    # As quantidades de estoque são inteiras (g, ml, unidade); _int_form rejeita
+    # entradas não inteiras (ValueError), evitando 500.
     try:
-        qtd, qtd_min = _decimal_form(qtd_texto), _decimal_form(qtd_min_texto)
-    except InvalidOperation:
+        qtd, qtd_min = _int_form(qtd_texto), _int_form(qtd_min_texto)
+    except ValueError:
         flash("Quantidade inválida.", "danger")
         return _retorno()
-    if not qtd.is_finite() or not qtd_min.is_finite() or qtd < 0 or qtd_min < 0:
+    if qtd < 0 or qtd_min < 0:
         flash("As quantidades devem ser válidas e não negativas.", "danger")
         return _retorno()
 
@@ -74,12 +76,14 @@ def atualizar_ingrediente_route(id_ingrediente):
     if not nome or not unidade or not qtd_texto or not qtd_min_texto:
         flash("Preencha todos os campos do ingrediente.", "danger")
         return _retorno()
+    # As quantidades de estoque são inteiras (g, ml, unidade); _int_form rejeita
+    # entradas não inteiras (ValueError), evitando 500.
     try:
-        qtd, qtd_min = _decimal_form(qtd_texto), _decimal_form(qtd_min_texto)
-    except InvalidOperation:
+        qtd, qtd_min = _int_form(qtd_texto), _int_form(qtd_min_texto)
+    except ValueError:
         flash("Quantidade inválida.", "danger")
         return _retorno()
-    if not qtd.is_finite() or not qtd_min.is_finite() or qtd < 0 or qtd_min < 0:
+    if qtd < 0 or qtd_min < 0:
         flash("As quantidades devem ser válidas e não negativas.", "danger")
         return _retorno()
 

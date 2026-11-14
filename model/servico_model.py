@@ -63,6 +63,9 @@ class Cardapio(db.Model):
     # _CARDAPIO_POR_ID); os 18 cardápios seed continuam resolvíveis via fallback
     # pelo dicionário _CARDAPIO_POR_ID no controller do cliente.
     imagem_slug = db.Column(db.String(120), nullable=True)
+    # Soft delete: cardápios "removidos" ficam ativo=False e somem das listas do
+    # cliente (listar_cardapios_ativos), preservando a integridade referencial.
+    ativo = db.Column(db.Boolean, nullable=False, default=True, server_default=db.text("1"))
 
     __table_args__ = (
         db.CheckConstraint("preco_base >= 0", name="ck_cardapio_preco"),
@@ -306,7 +309,7 @@ def listar_cardapios() -> list[Cardapio] | None:
         return cardapios
     return None
 
-def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, preco_base=None, imagem_slug=None) -> bool:
+def atualizar_cardapio(id_cardapio, id_usuario=None, nome=None, descricao=None, preco_base=None, imagem_slug=None, ativo=None) -> bool:
     """Atualiza os dados de um cardápio (campos None não são alterados).
 
     Args:
@@ -317,6 +320,8 @@ def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, 
         preco_base (optional): novo preço-base.
         imagem_slug (str | None, optional): novo slug de imagem; só é alterado
             quando fornecido (não-None), seguindo o padrão dos demais campos.
+        ativo (bool | None, optional): novo estado de ativação; só é alterado
+            quando fornecido (não-None).
 
     Returns:
         bool: True se atualizado; False se o cardápio não existir.
@@ -332,10 +337,43 @@ def atualizar_cardapio(id_cardapio, id_usuario: int, nome=None, descricao=None, 
         cardapio.preco_base = preco_base
     if imagem_slug is not None:
         cardapio.imagem_slug = imagem_slug
+    if ativo is not None:
+        cardapio.ativo = ativo
     db.session.commit()
-    registrar_log(id_usuario,"ATUALIZACAO CARDAPIO", "Usuário atualizou cardapio")
+    registrar_log("ATUALIZACAO CARDAPIO", "Usuário atualizou cardapio")
 
     return True
+
+def desativar_cardapio(id_cardapio, id_usuario=None) -> bool:
+    """Desativa um cardápio (soft delete): seta ativo=False e persiste.
+
+    Mantém o registro no banco (preservando vínculos como pedidos antigos) e
+    apenas o esconde das listagens voltadas ao cliente. Semelhante ao padrão de
+    desativação de usuário.
+
+    Args:
+        id_cardapio: identificador do cardápio.
+        id_usuario (int | None, optional): usuário responsável (para o log).
+
+    Returns:
+        bool: True se desativado; False se o cardápio não existir.
+    """
+    cardapio = db.session.get(Cardapio, id_cardapio)
+    if not cardapio:
+        return False
+    cardapio.ativo = False
+    db.session.commit()
+    registrar_log("DESATIVACAO CARDAPIO", f"Usuário desativou cardapio {id_cardapio}")
+    return True
+
+def listar_cardapios_ativos() -> list[Cardapio] | None:
+    """Lista apenas os cardápios ativos (ativo==True); None se não houver."""
+    cardapios = db.session.execute(
+        db.select(Cardapio).where(Cardapio.ativo == True),  # noqa: E712
+    ).scalars().all()
+    if cardapios:
+        return cardapios
+    return None
 
 def deletar_cardapio(id_cardapio, id_usuario: int) -> bool:
     """Remove um cardápio pelo id. Retorna False se não existir."""
@@ -425,10 +463,12 @@ def associar_servico_cardapio(id_servico, id_cardapio, descricao=None, id_usuari
     associacao = db.session.get(ServicoCardapio, (id_servico, id_cardapio))
     if associacao:
         return False
-    nova_associacao = ServicoCardapio(id_servico=id_servico, id_cardapio=id_cardapio,descricao=descricao)
+    # ServicoCardapio não possui coluna 'descricao'; o parâmetro é aceito por
+    # compatibilidade com chamadores antigos, mas não é persistido.
+    nova_associacao = ServicoCardapio(id_servico=id_servico, id_cardapio=id_cardapio)
     db.session.add(nova_associacao)
     db.session.commit()
-    registrar_log(id_usuario,"ASSOCIACAO SERVICO_CARDAPIO", "Usuário associou um cardapio a um servico")
+    registrar_log("ASSOCIACAO SERVICO_CARDAPIO", "Usuário associou um cardapio a um servico")
 
     return True
 
@@ -448,7 +488,7 @@ def desassociar_servico_cardapio(id_servico, id_cardapio, id_usuario: int) -> bo
         return False
     db.session.delete(associacao)
     db.session.commit()
-    registrar_log(id_usuario,"DESASSOCIACAO SERVICO_CARDAPIO", "Usuário desassociou um cardapio a um servico")
+    registrar_log("DESASSOCIACAO SERVICO_CARDAPIO", "Usuário desassociou um cardapio a um servico")
 
     return True
 

@@ -23,7 +23,51 @@ def _bool_form(valor) -> bool:
     """Converte texto de formulário em booleano (1/true/on/sim/yes -> True)."""
     return valor.strip().lower() in {"1", "true", "on", "sim", "yes"}
 
+
+def _mapa_imagens(nome_json: str) -> dict:
+    """Carrega docs/<nome_json> (registro de imagens), tolerando ausência.
+
+    Args:
+        nome_json (str): nome do arquivo em docs/ (ex.: "imagens-menu.json").
+
+    Returns:
+        dict: dicionário slug -> metadados da imagem (vazio se o arquivo não
+            existir ou estiver corrompido).
+    """
+    import json
+    import os
+    from flask import current_app
+
+    caminho = os.path.join(current_app.root_path, "docs", nome_json)
+    try:
+        with open(caminho, encoding="utf-8") as arq:
+            return json.load(arq)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _imagem_rel(mapa: dict, slug: str | None) -> str | None:
+    """Resolve o caminho relativo a static/ da imagem de um slug.
+
+    Lê o campo 'arquivo' do registro (ex.: 'static/images/menu/feijoada.jpg') e
+    remove o prefixo 'static/' para uso com url_for('static', filename=...),
+    exatamente como fazem as páginas do cliente.
+
+    Args:
+        mapa (dict): dicionário de imagens (de _mapa_imagens).
+        slug (str | None): slug da imagem.
+
+    Returns:
+        str | None: caminho relativo (ex.: 'images/menu/feijoada.jpg') ou None.
+    """
+    if not slug:
+        return None
+    arquivo = (mapa.get(slug) or {}).get("arquivo")
+    if arquivo and arquivo.startswith("static/"):
+        return arquivo[len("static/"):]
+    return arquivo
+
 # ============================== routes ==============================
 
-from . import admin_servicos, admin_pratocardapio, admin_ingredientefichalote, admin_funcionarios, admin_bebidas, admin_lote, admin_logs
+from . import admin_servicos, admin_pratocardapio, admin_ingredientefichalote, admin_funcionarios, admin_bebidas, admin_lote, admin_logs, admin_pedidos
 

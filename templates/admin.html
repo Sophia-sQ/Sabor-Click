@@ -1,0 +1,23 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = 'geral' %}
+{% set inicio_admin = url_for('admin.visao_geral') %}
+{% block titulo %}Visão geral | Sabor &amp; Click{% endblock %}
+{% block classe_admin %} pagina-dashboard{% endblock %}
+{% block estilos_admin %}<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">{% endblock %}
+{% block cabecalho_admin %}<span class="identificador">PAINEL ADMINISTRATIVO</span>{% endblock %}
+{% block conteudo_admin %}
+<header class="intro dashboard-boas-vindas"><div><p class="rotulo">SEU NEGÓCIO, EM UM OLHAR</p><h1>Bem-vindo de volta<span>.</span></h1></div><details class="seletor-periodo"><summary class="periodo-dashboard"><span id="periodo-atual">Últimas 6 semanas</span><span aria-hidden="true">⌄</span></summary><form id="form-periodo" class="painel-periodo" data-relatorio-url="{{ relatorio_url }}"><label for="periodo-opcao">Período de análise</label><select id="periodo-opcao"><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="42" selected>Últimas 6 semanas</option><option value="mes">Este mês</option><option value="anterior">Mês passado</option><option value="personalizado">Personalizado</option></select><div id="datas-periodo" hidden><label for="periodo-inicio">Data inicial</label><input id="periodo-inicio" type="date"><label for="periodo-fim">Data final</label><input id="periodo-fim" type="date"></div><p id="erro-periodo" role="alert" hidden></p><button type="submit">Aplicar período</button></form></details></header>
+<p id="estado-relatorio" role="status">Carregando relatório…</p>
+<div class="dashboard-layout"><div class="dashboard-principal">
+<section aria-labelledby="titulo-visao"><div class="secao-titulo"><h2 id="titulo-visao">Visão geral</h2></div>
+<div class="cartoes-financeiros"><article class="cartao-financeiro cartao-escuro"><div class="cartao-topo"><span>Faturamento do período</span></div><strong>—</strong><div class="cartao-base"><span class="selo-cartao">RECEITAS</span></div><svg class="curva-cartao" viewBox="0 0 300 90" aria-hidden="true"><path d="M0 80C40 90 40 40 80 55S130 80 160 35S220 65 250 20S280 25 300 0"/></svg></article>
+</div>
+</section>
+<nav class="atalhos-dashboard" aria-label="Acessos rápidos">{% for simbolo, nome, destino in [('↗','Pedidos',url_for('admin.pagina_pedidos')),('♧','Funcionários',url_for('admin.funcionarios')),('▦','Estoque',url_for('admin.pagina_servicos')),('⌂','Ver site','/')] %}<a href="{{ destino }}"><span aria-hidden="true">{{ simbolo }}</span>{{ nome }}<b aria-hidden="true">↗</b></a>{% endfor %}</nav>
+<section class="evolucao-dashboard" aria-labelledby="titulo-evolucao"><header class="secao-titulo"><div><h2 id="titulo-evolucao">Receita no período</h2></div><span class="legenda-receita"><i></i> Faturamento</span></header><div class="grafico-barras" role="img" aria-label="Receita no período"></div></section>
+</div><aside class="dashboard-lateral">
+<section class="painel-status" aria-labelledby="titulo-status"><header class="secao-titulo"><h2 id="titulo-status">Pedidos do período</h2><span class="selo-periodo">6 semanas</span></header><div class="grafico-rosca sem-dados" role="img" aria-label="Carregando pedidos"><div><small>Total de pedidos</small><strong>—</strong><span>no período</span></div></div><ul class="lista-status">{% for classe, nome in [('aguardando','Aguardando'),('preparo','Confirmados ou em preparo'),('concluido','Concluídos'),('cancelado','Cancelados')] %}<li><span><i class="{{ classe }}"></i>{{ nome }}</span><strong>—</strong></li>{% endfor %}</ul></section>
+</aside></div>
+{% endblock %}
+
+{% block scripts_admin %}<script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>{% endblock %}

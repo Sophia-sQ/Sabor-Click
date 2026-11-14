@@ -82,6 +82,78 @@ def salvar_imagem_cardapio(arquivo_storage, nome_cardapio: str) -> str:
         ValueError: se o arquivo estiver vazio, tiver extensão não suportada ou
             exceder o tamanho máximo permitido.
     """
+    slug, _ = _gravar_imagem(arquivo_storage, nome_cardapio, slug_atual=None)
+    return slug
+
+
+def atualizar_imagem_cardapio(arquivo_storage, nome_cardapio: str, slug_atual: str | None) -> str:
+    """Grava uma nova imagem de cardápio mantendo o JSON consistente.
+
+    Quando ``slug_atual`` é informado, a nova imagem sobrescreve a entrada e o
+    arquivo daquele slug (mantendo o mesmo slug, apenas trocando a extensão caso
+    o novo arquivo tenha outra). Quando ``slug_atual`` é None, comporta-se como
+    uma criação (gera um slug novo e único). Reaproveita a mesma validação de
+    salvar_imagem_cardapio (extensão, 5 MB) e a escrita atômica do JSON.
+
+    Args:
+        arquivo_storage: objeto FileStorage vindo de request.files.
+        nome_cardapio (str): nome do cardápio (base do slug novo e título).
+        slug_atual (str | None): slug já existente a ser atualizado, ou None.
+
+    Returns:
+        str: o slug gravado (igual a ``slug_atual`` quando este foi informado).
+
+    Raises:
+        ValueError: mesmas condições de salvar_imagem_cardapio.
+    """
+    slug, _ = _gravar_imagem(arquivo_storage, nome_cardapio, slug_atual=slug_atual)
+    return slug
+
+
+def remover_imagem_cardapio(slug: str) -> None:
+    """Remove a entrada de ``slug`` de docs/imagens-menu.json (soft hide).
+
+    Esconde a imagem dos clientes retirando a chave do JSON de forma atômica. É
+    um no-op quando o slug não está presente e não falha se o arquivo de imagem
+    não existir (mantém o foco em manter o JSON consistente). O arquivo físico é
+    removido quando encontrado, mas sua ausência é tolerada.
+
+    Args:
+        slug (str): slug cujo registro deve ser removido do JSON.
+    """
+    if not slug:
+        return
+
+    caminho_json = _caminho_json()
+    try:
+        with open(caminho_json, encoding="utf-8") as arq:
+            imagens = json.load(arq)
+    except FileNotFoundError:
+        return
+
+    if slug not in imagens:
+        return
+
+    imagens.pop(slug, None)
+    _escrever_json_atomico(caminho_json, imagens)
+
+    # Remove o arquivo físico se existir (não obrigatório para esconder do cliente).
+    pasta_destino = _pasta_menu_abs()
+    if os.path.isdir(pasta_destino):
+        for existente in os.listdir(pasta_destino):
+            if os.path.splitext(existente)[0] == slug:
+                try:
+                    os.remove(os.path.join(pasta_destino, existente))
+                except OSError:
+                    pass
+
+
+def _gravar_imagem(arquivo_storage, nome_cardapio: str, slug_atual: str | None) -> tuple[str, str]:
+    """Valida e grava a imagem + entrada no JSON (lógica comum a criar/atualizar).
+
+    Returns:
+        tuple[str, str]: (slug gravado, nome do arquivo gravado).
+    """
     if arquivo_storage is None or not getattr(arquivo_storage, "filename", ""):
         raise ValueError("Nenhum arquivo de imagem foi enviado.")
 
@@ -103,15 +175,26 @@ def salvar_imagem_cardapio(arquivo_storage, nome_cardapio: str) -> str:
     pasta_destino = _pasta_menu_abs()
     os.makedirs(pasta_destino, exist_ok=True)
 
-    # Slugs já em uso: chaves do JSON + nomes de arquivo (sem extensão) na pasta.
-    slugs_existentes = set(imagens.keys())
-    for existente in os.listdir(pasta_destino):
-        slugs_existentes.add(os.path.splitext(existente)[0])
+    if slug_atual:
+        # Atualização: mantém o mesmo slug; remove arquivos antigos do slug para
+        # não deixar extensões órfãs quando a nova imagem tiver outro formato.
+        slug = slug_atual
+        for existente in os.listdir(pasta_destino):
+            if os.path.splitext(existente)[0] == slug:
+                try:
+                    os.remove(os.path.join(pasta_destino, existente))
+                except OSError:
+                    pass
+    else:
+        # Criação: slug novo e único (contra o JSON e os arquivos existentes).
+        slugs_existentes = set(imagens.keys())
+        for existente in os.listdir(pasta_destino):
+            slugs_existentes.add(os.path.splitext(existente)[0])
 
-    from utils import gerar_slug, slug_unico
+        from utils import gerar_slug, slug_unico
 
-    base = gerar_slug(nome_cardapio) or "cardapio"
-    slug = slug_unico(base, slugs_existentes)
+        base = gerar_slug(nome_cardapio) or "cardapio"
+        slug = slug_unico(base, slugs_existentes)
 
     nome_arquivo = f"{slug}.{extensao}"
     caminho_imagem = os.path.join(pasta_destino, nome_arquivo)
@@ -134,7 +217,7 @@ def salvar_imagem_cardapio(arquivo_storage, nome_cardapio: str) -> str:
 
     _escrever_json_atomico(caminho_json, imagens)
 
-    return slug
+    return slug, nome_arquivo
 
 
 def _escrever_json_atomico(caminho_json: str, imagens: dict) -> None:

@@ -20,7 +20,7 @@ def _pedidos_30_dias(status=None) -> list:
     """
     
     data_inicio=ultimos_30_dias()
-    return listar_pedidos_entre_datas(data_inicio.year, data_inicio.month, data_inicio.day, status=status)
+    return listar_pedidos_entre_datas(data_inicio.year, data_inicio.month, data_inicio.day, status=status) or []
 
 def _pedidos_mensais(status: str = "concluido") -> tuple[list, list]:
     """Retorna os pedidos do mês atual e do mês passado no mesmo período.
@@ -39,7 +39,7 @@ def _pedidos_mensais(status: str = "concluido") -> tuple[list, list]:
     pedidos_atual=listar_pedidos_periodo(data_hoje.year, data_hoje.month, data_hoje.day, status)
     pedidos_anterior=listar_pedidos_periodo(data_mes_passado.year, data_mes_passado.month, calcular_periodo(1), status)
     
-    return (pedidos_atual, pedidos_anterior)
+    return (pedidos_atual or [], pedidos_anterior or [])
 
 def _faturamento() -> tuple[int, int]:
     """Calcula o faturamento do mês atual e do mês anterior.
@@ -54,10 +54,10 @@ def _faturamento() -> tuple[int, int]:
     faturamento_anterior=0
     
     for pedido in pedidos[0]:
-        faturamento_atual+=pedido.valor_total
+        faturamento_atual+=pedido.valor_total or 0
     
     for pedido in pedidos[1]:
-        faturamento_anterior+=pedido.valor_total
+        faturamento_anterior+=pedido.valor_total or 0
     
     return (faturamento_atual, faturamento_anterior)
 
@@ -119,9 +119,15 @@ def pedidos_tipo() -> dict:
     
     for pedido in pedidos:
         cardapios=buscar_cardapios_pedido(pedido.id_pedido)
+        if not cardapios:
+            continue
         for cardapio in cardapios:
+            servico=buscar_servico_por_id(cardapio.id_servico)
+            if servico is None:
+                continue
             # servico [nome do servico] += 1
-            servicos[buscar_servico_por_id(cardapio.id_servico).nome]+=1
+            if servico.nome in servicos:
+                servicos[servico.nome]+=1
 
     return servicos
 
@@ -142,7 +148,8 @@ def pedidos_status() -> dict:
     pedidos=_pedidos_mensais(None)[0]
     
     for pedido in pedidos:
-        status[pedido.status]+=1
+        if pedido.status in status:
+            status[pedido.status]+=1
         
     return status
 
@@ -193,8 +200,6 @@ def ticket_medio_periodo() -> tuple[int, float]:
     
     porcentagem = (((media_atual - media_anterior) * 100/ media_anterior) if media_anterior > 0 else 0)
     
-    porcentagem=((media_atual-media_anterior)*100)/media_anterior
-    
     return (media_atual, porcentagem)
 
 def faturamento_semanal() -> dict:
@@ -215,8 +220,8 @@ def faturamento_semanal() -> dict:
     for i in range(1, 7):
         data_inicio, data_fim=semana_passada(i)
         pedidos = listar_pedidos_entre_datas(data_inicio.year, data_inicio.month, data_inicio.day,
-                                             data_fim.year, data_fim.month, data_fim.day)
+                                             data_fim.year, data_fim.month, data_fim.day) or []
         for pedido in pedidos:
-            semanas['S'+str(i)]+=pedido.valor_total
+            semanas['S'+str(i)]+=pedido.valor_total or 0
     
     return semanas

@@ -18,7 +18,7 @@ from security import validar_senha_forte
 def visao_geral():
     """Renderiza a página de visão geral do painel administrativo."""
     return render_template(
-        "previas/admin.html",
+        "admin.html",
         relatorio_url=url_for("admin.gerar_relatorios_mensais"),
     )
 
@@ -86,8 +86,22 @@ def gerar_relatorios_mensais() -> Response:
 @admin_bp.get('/funcionarios')
 def funcionarios():
     """Renderiza a lista de funcionários, com filtro opcional por nome (query 'busca')."""
+    from security import descriptografar
+
     busca = request.args.get("busca", "")
-    return render_template('funcionarios.html', funcionarios=listar(busca), busca=busca)
+
+    funcionarios = [
+        {
+            "id": usuario.id_usuario,
+            "nome": usuario.nome,
+            "email": descriptografar(usuario.email_criptografado),
+            "salario": usuario.salario,
+            "cargo": "Chefe",
+        }
+        for usuario in listar(busca)
+    ]
+
+    return render_template('funcionarios.html', funcionarios=funcionarios, busca=busca)
 
 @admin_bp.get("/funcionarios/relatorio")
 def dados_funcionarios() -> Response:
@@ -109,8 +123,8 @@ def dados_funcionarios() -> Response:
 # xxxxxxxxxxxxxxxxxxxxxxxxxxx cadastro xxxxxxxxxxxxxxxxxxxxxxxxxxx
 @admin_bp.get("/cadastrar-funcionario")
 def cadastrar_funcionario():
-    """Renderiza o formulário de cadastro de funcionário."""
-    return redirect(url_for('admin.cadastrar_funcionario'))
+    """Redireciona para a lista de funcionários (o cadastro é um diálogo dessa página)."""
+    return redirect(url_for('admin.funcionarios'))
 
 @admin_bp.post("/cadastrar-funcionario/cadastro")
 def cadastro():
@@ -120,8 +134,8 @@ def cadastro():
     resultado via flash.
 
     Returns:
-        Response | str: redirecionamento em caso de erro de validação; template
-        renderizado em caso de sucesso.
+        Response: redirecionamento para a lista de funcionários (padrão PRG),
+        tanto em caso de erro quanto de sucesso.
     """
     nome=request.form.get("nome", "").strip()
     cpf=request.form.get("cpf", "").strip()
@@ -130,24 +144,29 @@ def cadastro():
     senha_comfirma=request.form.get("senha_confirmacao", "")
 
     # estabelece qual o formato de um email válido
-    regex=r"^['A-Za-z0-9._%+-']+@[A-Za-z0-9.-]+\.['A-Za-z']{2,}$"
+    regex=r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 
-    # validação de email, cpf e senha com variáveis booleanas
+    # validação de nome, email, cpf e senha com variáveis booleanas
+    nome_invalido = (not nome or len(nome) > 100)
     email_invalido = (not fullmatch(regex, email))
     cpf = cpf.replace(".", "").replace("-", "")
     cpf_invalido = ((len(cpf) != 11 or not cpf.isdigit()))
 
     senha_invalida = not validar_senha_forte(senha)
 
-    if email_invalido or cpf_invalido or senha_invalida:  
-        flash(f"E-mail, cpf ou senha inválidos.", 'danger')
-        return redirect(url_for(''))
+    if nome_invalido or email_invalido or cpf_invalido or senha_invalida:
+        flash(f"Nome, e-mail, cpf ou senha inválidos.", 'danger')
+        return redirect(url_for('admin.funcionarios'))
     elif senha!=senha_comfirma:
         flash(f"Senha provisória e de confirmação são diferentes.", 'danger')
-        return redirect(url_for('admin.cadastrar_funcionario'))
-    
-    criar_usuario(cpf, nome, email, senha, Cargo.CHEFE.value)
+        return redirect(url_for('admin.funcionarios'))
 
-    flash("novo funcionaria cadastrado", "success")
-    return render_template('admin.cadastrar_funcionario')
+    novo_id = criar_usuario(cpf, nome, email, senha, Cargo.CHEFE.value)
+
+    if novo_id is None:
+        flash("CPF ou e-mail ja cadastrado.", "danger")
+        return redirect(url_for('admin.funcionarios'))
+
+    flash("Funcionario cadastrado com sucesso.", "success")
+    return redirect(url_for('admin.funcionarios'))
 

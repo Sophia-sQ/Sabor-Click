@@ -162,6 +162,63 @@ def criar_logs_e_tokens() -> None:
     db.session.add_all(iniciar_logs())
     db.session.add_all(iniciar_tokens())
 
+# VERIFICAÇÃO DA INICIALIZAÇÃO DO BANCO
+def status_inicializacao() -> dict:
+    """Verifica se os comandos 'seed' e 'dummy' já foram executados.
+
+    A checagem é feita diretamente no banco (único estado que persiste entre as
+    execuções dos comandos). Usa a existência de registros-sentinela:
+      - 'seed': cria os cargos (nivel_permissao); se houver ao menos um, o seed
+        já rodou.
+      - 'dummy': cria os pedidos de simulação; se houver ao menos um, o dummy já
+        rodou.
+
+    Não realiza commit nem altera dados.
+
+    Returns:
+        dict: {"seed": bool, "dummy": bool} indicando se cada comando já foi
+        inicializado.
+    """
+    from model.usuario_model import NivelPermissao
+    from model.pedido_model import Pedido
+
+    seed_ok = db.session.query(NivelPermissao.query.exists()).scalar()
+    dummy_ok = db.session.query(Pedido.query.exists()).scalar()
+
+    return {"seed": bool(seed_ok), "dummy": bool(dummy_ok)}
+
+def _backfill_colunas_catalogo() -> None:
+    """Adiciona colunas novas do catálogo em bancos SQLite já existentes.
+
+    Migração ad-hoc idempotente: usa o inspector para descobrir as colunas atuais
+    de 'cardapio' e 'bebida' e só executa ALTER TABLE ADD COLUMN para as que ainda
+    não existem, permitindo que bancos antigos subam sem precisar recriar as
+    tabelas (db.create_all não altera tabelas já criadas). Linhas existentes
+    recebem ativo=1 (default), mantendo-as ativas após a atualização.
+
+    Deve ser chamada dentro de um app_context e apenas para o dialeto sqlite.
+    """
+    inspetor = inspect(db.engine)
+
+    migracoes = (
+        ("cardapio", "ativo", "ALTER TABLE cardapio ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT 1"),
+        ("bebida", "ativo", "ALTER TABLE bebida ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT 1"),
+        ("bebida", "imagem_slug", "ALTER TABLE bebida ADD COLUMN imagem_slug VARCHAR(120)"),
+    )
+
+    alterou = False
+    for tabela, coluna, ddl in migracoes:
+        if not inspetor.has_table(tabela):
+            continue
+        colunas = {c["name"] for c in inspetor.get_columns(tabela)}
+        if coluna not in colunas:
+            db.session.execute(text(ddl))
+            alterou = True
+
+    if alterou:
+        db.session.commit()
+
+
 def init_app(app) -> None:
     """Inicializa o banco de dados na aplicação Flask.
 
@@ -180,6 +237,7 @@ def init_app(app) -> None:
         if db.engine.dialect.name == "sqlite":
             from triggers import criar_trigger_baixa_estoque
             criar_trigger_baixa_estoque()
+            _backfill_colunas_catalogo()
         
     @app.cli.command("seed")
     def seed_command():
@@ -191,24 +249,11 @@ def init_app(app) -> None:
         criar_admin()
         criar_estoque()
         try:
-            # Estoque, cargos e admin precisam estar persistidos antes de
-            # usuários/pedidos resolverem suas dependências (FKs).
             db.session.commit()
 
-            # USUÁRIOS (dependem dos cargos)
             criar_usuarios()
-            db.session.commit()
-
-            # ENDEREÇOS (dependem dos usuários)
             criar_enderecos()
-            db.session.commit()
-
-            # PEDIDOS + associações (dependem de usuários, endereços,
-            # cardápios, serviços e bebidas)
             criar_pedidos()
-            db.session.commit()
-
-            # LOGS e TOKENS (dependem dos usuários)
             criar_logs_e_tokens()
             db.session.commit()
 

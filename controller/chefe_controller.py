@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, request, session, jsonify, flash, 
 from model.ficha_model import listar_ficha_tecnica_por_bebida, listar_ficha_tecnica_por_prato, listar_pratos_por_cardapio
 from model.pedido_model import (buscar_cardapios_pedido, listar_bebidas_do_pedido, buscar_bebida_por_id, 
                                 atualizar_pedido, buscar_pedido_por_id, listar_pedido_por_status, 
-                                buscar_pedido_por_chefe)
+                                buscar_pedido_ativo_por_chefe)
 from model.servico_model import buscar_cardapio_por_id
 from model.usuario_model import buscar_usuario_por_id, buscar_endereco_por_id, registrar_log
 
@@ -92,7 +92,49 @@ def _contexto_email_pedido(pedido, data_atualizacao=None) -> dict:
         "ano": (quando or pedido.criado_em).strftime("%Y"),
     }
 
-@chefe_bp.get("")
+
+def _resumo_pedido(pedido) -> dict:
+    """Serializa um pedido da fila para o bloco JSON consumido pela cozinha.
+
+    Expõe apenas os campos necessários para renderizar os cards da fila e os
+    contadores, sem vazar dados sensíveis. O nº de convidados é agregado dos
+    cardápios do pedido e o resumo de itens é montado a partir dos cardápios e
+    bebidas vinculados.
+
+    Args:
+        pedido: objeto Pedido aguardando preparo.
+
+    Returns:
+        dict: dados serializados do pedido.
+    """
+    from utils import formatar_moeda
+
+    num_convidados = 0
+    itens = []
+    for vinculo in buscar_cardapios_pedido(pedido.id_pedido) or []:
+        num_convidados += vinculo.num_convidados or 0
+        cardapio = buscar_cardapio_por_id(vinculo.id_cardapio)
+        if cardapio and cardapio.nome:
+            itens.append(f"{vinculo.num_convidados} × {cardapio.nome}")
+
+    for item in listar_bebidas_do_pedido(pedido.id_pedido) or []:
+        bebida = buscar_bebida_por_id(item.id_bebida)
+        if bebida and bebida.nome:
+            itens.append(f"{item.qtd} × {bebida.nome}")
+
+    return {
+        "id_pedido": pedido.id_pedido,
+        "observacao": pedido.observacao,
+        "criado_em": pedido.criado_em.strftime("%Hh%M") if pedido.criado_em else None,
+        "valor_total": formatar_moeda(pedido.valor_total),
+        "data_evento": pedido.data_evento.strftime("%d/%m/%Y") if pedido.data_evento else None,
+        "hora_inicio": pedido.hora_inicio.strftime("%H:%M") if pedido.hora_inicio else None,
+        "hora_fim": pedido.hora_fim.strftime("%H:%M") if pedido.hora_fim else None,
+        "num_convidados": num_convidados,
+        "itens": itens,
+    }
+
+
 @chefe_bp.get('/cozinha')
 def pedidos():
     """Exibe a fila da cozinha com os pedidos aguardando preparo.
@@ -100,9 +142,27 @@ def pedidos():
     Returns:
         str: template "cozinha.html" renderizado com os pedidos aguardando.
     """
-    
+
     pedidos = listar_pedido_por_status("aguardando")
-    return render_template("previas/cozinha.html", pedidos=pedidos)
+    pedidos_dados = [_resumo_pedido(pedido) for pedido in pedidos]
+    return render_template("cozinha.html", pedidos_dados=pedidos_dados)
+
+
+@chefe_bp.get("/cozinha/fila")
+def fila_cozinha():
+    """Devolve, em JSON, a fila de pedidos 'aguardando' da cozinha.
+
+    Endpoint somente leitura consumido pela tela da cozinha para rebuscar a
+    fila do servidor (ex.: após concluir um pedido e liberar a bancada),
+    reaproveitando ``_resumo_pedido`` para não expor campos sensíveis. O hook
+    de autenticação do before_request redireciona usuários não autenticados;
+    o JS trata esse caso pelo guard de redirect/content-type.
+
+    Returns:
+        Response: JSON com a lista dos pedidos aguardando (campos seguros).
+    """
+    return jsonify([_resumo_pedido(pedido) for pedido in listar_pedido_por_status("aguardando")])
+
 
 @chefe_bp.route("/aceitar", methods=["POST"])
 def aceitar_pedido():
@@ -112,38 +172,53 @@ def aceitar_pedido():
     registra a ação e envia e-mail de confirmação ao cliente.
 
     Returns:
-        str: template da página de pedidos renderizado.
+        Response: JSON com o resultado do aceite. Em sucesso, {'ok': True, ...};
+        nos caminhos de falha (sem permissão, pedido inexistente, guarda de
+        pedido único, abortos de estoque) retorna JSON de erro com status 4xx.
     """
-    from model.cargos import Cargo
-    
-    if buscar_usuario_por_id(session['id']).id_permissao < Cargo.CHEFE.value:
-        return abort(403)
-        
-    dados=request.get_json(silent=True)
-    pedido=buscar_pedido_por_id(dados["id"])
-    data_confirma=datetime.now(ZoneInfo("America/Sao_Paulo"))
-    
-    em_andamento = buscar_pedido_por_chefe(session.get('id'), "aguardando") != None
-    
-    if em_andamento:
-        flash("Finalize o pedido atual antes de aceitar outro", "danger")
-        return redirect(url_for("chefe.pedidos"))
-    atualizar_pedido(pedido.id_pedido, "confirmado", data_confirma, session.get("id"))
-    chefe=buscar_usuario_por_id(session.get("id"))
-    registrar_log("ACEITOU PEDIDO.", f"Em {data_confirma}, o chefe {chefe.nome} aceitou o pedido {pedido.id_pedido}.")
-    data_confirma=data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
+    dados = request.get_json(silent=True) or {}
+    pedido = buscar_pedido_por_id(dados.get("id"))
+    if not pedido:
+        return jsonify({"ok": False, "erro": "Pedido não encontrado."}), 404
+
+    # Só aceitamos pedidos que ainda estão na fila (aguardando). Isso evita
+    # reaproveitar/reconfirmar um pedido já em andamento ou encerrado.
+    if pedido.status != "aguardando":
+        return jsonify({"ok": False, "erro": "Este pedido não está mais disponível para aceite."}), 409
+
+    data_confirma = datetime.now(ZoneInfo("America/Sao_Paulo"))
+
+    # Garante que o chefe só mantenha UM pedido ativo por vez. A consulta já
+    # ignora pedidos encerrados ('concluido'/'cancelado') e prioriza o ativo
+    # mais recente, então um pedido antigo concluído não bloqueia o aceite.
+    if buscar_pedido_ativo_por_chefe(session.get("id")) is not None:
+        return jsonify({"ok": False, "erro": "Finalize o pedido atual antes de aceitar outro"}), 409
+
+    # A trigger de baixa de estoque dispara AFTER UPDATE para 'confirmado' e
+    # aborta quando o estoque é insuficiente. Surfaça o erro em vez de assumir
+    # sucesso.
     criar_trigger_baixa_estoque()
+    try:
+        atualizado = atualizar_pedido(pedido.id_pedido, "confirmado", data_confirma, session.get("id"))
+    except Exception:
+        return jsonify({"ok": False, "erro": "Não foi possível aceitar o pedido. Verifique o estoque e tente novamente."}), 409
 
+    if not atualizado:
+        return jsonify({"ok": False, "erro": "Não foi possível aceitar o pedido. Verifique o estoque e tente novamente."}), 409
 
-    cliente=buscar_usuario_por_id(pedido.id_cliente)
+    chefe = buscar_usuario_por_id(session.get("id"))
+    registrar_log("ACEITOU PEDIDO.", f"Em {data_confirma}, o chefe {chefe.nome} aceitou o pedido {pedido.id_pedido}.")
+    data_confirma = data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
+
+    cliente = buscar_usuario_por_id(pedido.id_cliente)
     enviar_email_nao_responda(
         "Seu pedido foi aceito.",
-        cliente.email,
+        cliente.email_criptografado,
         "Seu pedido foi aceito.",
         render_template("email_pedido.html", **_contexto_email_pedido(pedido, data_confirma)),
     )
 
-    return render_template("pagina do pedido.html")
+    return jsonify({"ok": True, "id": pedido.id_pedido, "status": "confirmado"})
 
 @chefe_bp.route("/atualizar", methods=["GET", "POST"])
 def atualizar_status():
@@ -153,46 +228,60 @@ def atualizar_status():
     atualiza o pedido, registra o log e envia o e-mail.
 
     Returns:
-        str: template da página de pedidos renderizado.
+        Response: no GET, redireciona para a tela da cozinha. No POST, retorna
+        JSON com o resultado da atualização ({'ok': True, ...}) ou JSON de erro
+        com status 4xx em caso de status inválido ou falha na atualização.
     """
     if request.method == "GET":
-        return render_template("pagina de pedidos.html")
+        return redirect(url_for("chefe.pedidos"))
 
-    dados=request.get_json(silent=True)
-    pedido=buscar_pedido_por_id(dados["id"])
-    
+    dados = request.get_json(silent=True) or {}
+    pedido = buscar_pedido_por_id(dados.get("id"))
+    if not pedido:
+        return jsonify({"ok": False, "erro": "Pedido não encontrado."}), 404
+
     from model.pedido_model import Pedido
     valores_aceitos = list(Pedido.status.type.enums)
-    
-    if dados["status"] not in valores_aceitos:
-        flash("Valor de status inválido.", "danger")
-        return redirect(url_for(request.endpoint))
-    
-    data_confirma=datetime.now(ZoneInfo("America/Sao_Paulo"))
-    
+
+    novo_status = dados.get("status")
+    if novo_status not in valores_aceitos:
+        return jsonify({"ok": False, "erro": "Valor de status inválido."}), 400
+
+    # Reforça, no servidor, a única transição válida do fluxo do chef:
+    # confirmado -> 'em preparo' -> concluido. O JS já respeita esse passo a
+    # passo, mas o servidor não pode confiar no cliente: um POST forjado não
+    # pode pular etapas (ex.: confirmado -> concluido direto).
+    transicoes_validas = {"confirmado": "em preparo", "em preparo": "concluido"}
+    if transicoes_validas.get(pedido.status) != novo_status:
+        return jsonify({"ok": False, "erro": "Transição de status não permitida."}), 409
+
+    data_confirma = datetime.now(ZoneInfo("America/Sao_Paulo"))
+
     try:
-        atualizar_pedido(pedido.id_pedido, dados["status"], data_confirma, session.get("id"))
-    except:
-        flash("Insira valores válidos.", "danger")
-        return redirect(url_for(request.endpoint))
-    
-    chefe=buscar_usuario_por_id(session.get("id"))
-    
+        atualizado = atualizar_pedido(pedido.id_pedido, dados["status"], data_confirma, session.get("id"))
+    except Exception:
+        return jsonify({"ok": False, "erro": "Não foi possível atualizar o pedido."}), 400
+
+    if not atualizado:
+        return jsonify({"ok": False, "erro": "Não foi possível atualizar o pedido."}), 400
+
+    chefe = buscar_usuario_por_id(session.get("id"))
+
     if not chefe:
         return abort(400)
-    
-    registrar_log("ACEITOU PEDIDO.", f"Em {data_confirma}, o chefe {chefe.nome} atualizou o pedido {pedido.id_pedido} para '{dados['status']}'.")
-    data_confirma=data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
 
-    cliente=buscar_usuario_por_id(pedido.id_cliente)
+    registrar_log("ACEITOU PEDIDO.", f"Em {data_confirma}, o chefe {chefe.nome} atualizou o pedido {pedido.id_pedido} para '{dados['status']}'.")
+    data_confirma = data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
+
+    cliente = buscar_usuario_por_id(pedido.id_cliente)
     enviar_email_nao_responda(
         "Seu pedido recebeu uma atualização.",
-        cliente.email,
+        cliente.email_criptografado,
         f"Seu pedido está {dados['status']}.",
         render_template("email_pedido.html", **_contexto_email_pedido(pedido, data_confirma)),
     )
 
-    return render_template("pagina de pedidos.html")
+    return jsonify({"ok": True, "id": pedido.id_pedido, "status": dados["status"]})
 
 @chefe_bp.get("/preparo")
 def enviar_preparo():
@@ -204,7 +293,7 @@ def enviar_preparo():
     """
     from model.ficha_model import buscar_ingrediente_por_id, buscar_prato_por_id
 
-    pedido = buscar_pedido_por_chefe(session["id"])
+    pedido = buscar_pedido_ativo_por_chefe(session["id"])
     if not pedido:
         return jsonify({"erro": "Nenhum pedido em preparo."}), 404
 

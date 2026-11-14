@@ -18,8 +18,7 @@ class Pedido(db.Model):
     id_pedido = db.Column(db.Integer, primary_key=True, autoincrement=True)
     observacao = db.Column(db.Text, nullable=True)  # Opcional
     status = db.Column(
-        db.Enum("aguardando", "confirmado", "em preparo", "concluido", "cancelado", 
-                name="status_pedido"),default="aguardando",nullable=False)
+        db.Enum("aguardando", "confirmado", "em preparo", "concluido", "cancelado", name="status_pedido"),default="aguardando",nullable=False)
     confirmado_em = db.Column(db.DateTime, nullable=True)
     criado_em = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("America/Sao_Paulo")), nullable=False)
     valor_total = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
@@ -30,6 +29,8 @@ class Pedido(db.Model):
     id_cliente = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=False)
     id_endereco = db.Column(db.Integer, db.ForeignKey("endereco.id_endereco"), nullable=False)
     id_chefe = db.Column(db.Integer, db.ForeignKey("usuario.id_usuario"), nullable=True)
+    #id_servico = db.Column(db.Integer, db.ForeignKey("servico.id_servico"), nullable=False)
+    #id_cardapio = db.Column(db.Integer, db.ForeignKey("cardapio.id_cardapio"), nullable=False)
 
     __table_args__ = (
         db.CheckConstraint("valor_total >= 0", name="ck_pedido_valor"),
@@ -43,15 +44,24 @@ class Bebida(db.Model):
     nome = db.Column(db.String(60), nullable=False)
     descricao = db.Column(db.Text, nullable=False)
     valor_unitario = db.Column(db.Numeric(10, 2), nullable=False)
+    # slug usado para resolver a imagem da bebida em docs/imagens-bebidas.json;
+    # None quando a bebida não tem imagem enviada pelo admin (as avulsas seed
+    # continuam resolvíveis via fallback por nome em services.bebidas_data).
+    imagem_slug = db.Column(db.String(120), nullable=True)
+    # Soft delete: bebidas "removidas" ficam ativo=False e somem das listagens do
+    # cliente (listar_bebidas_ativas), preservando a integridade referencial.
+    ativo = db.Column(db.Boolean, nullable=False, default=True, server_default=db.text("1"))
 
     __table_args__ = (
         db.CheckConstraint("valor_unitario >= 0", name="ck_bebida_valor"),
     )
     
-    def __init__(self, nome: str, descricao: str, valor_unitario):
+    def __init__(self, nome: str, descricao: str, valor_unitario, imagem_slug=None, ativo=True):
         self.nome = nome
         self.descricao = descricao
         self.valor_unitario = valor_unitario
+        self.imagem_slug = imagem_slug
+        self.ativo = ativo
 
 
 class PedidoBebida(db.Model):
@@ -106,18 +116,20 @@ class CardapioPedido(db.Model):
 # ======================================================
 
 # CRUD BEBIDA
-def criar_bebida(nome: str, descricao: str, valor_unitario: float) -> Bebida:
+def criar_bebida(nome: str, descricao: str, valor_unitario: float, imagem_slug=None) -> Bebida:
     """Cria uma bebida e registra o log da operação.
 
     Args:
         nome (str): nome da bebida.
         descricao (str): descrição da bebida.
         valor_unitario (float): valor unitário.
+        imagem_slug (str | None, optional): slug da imagem em
+            docs/imagens-bebidas.json; None quando a bebida é criada sem imagem.
 
     Returns:
         Bebida: a bebida criada.
     """
-    bebida = Bebida(nome=nome, descricao=descricao, valor_unitario=valor_unitario)
+    bebida = Bebida(nome=nome, descricao=descricao, valor_unitario=valor_unitario, imagem_slug=imagem_slug)
     db.session.add(bebida)
     db.session.commit()
     registrar_log("CRIACAO BEBIDA", f"Usuário criou a bebida {bebida.nome}")
@@ -158,7 +170,7 @@ def buscar_bebidas(busca: str = "") -> list:
     return db.session.execute(stmt).scalars().all()
 
 
-def atualizar_bebida(id_bebida: int, nome=None, descricao=None, valor_unitario=None) -> bool:
+def atualizar_bebida(id_bebida: int, nome=None, descricao=None, valor_unitario=None, imagem_slug=None, ativo=None) -> bool:
     """Atualiza os dados de uma bebida (campos None não são alterados).
 
     Args:
@@ -166,6 +178,10 @@ def atualizar_bebida(id_bebida: int, nome=None, descricao=None, valor_unitario=N
         nome (str | None, optional): novo nome.
         descricao (str | None, optional): nova descrição.
         valor_unitario (float | None, optional): novo valor unitário.
+        imagem_slug (str | None, optional): novo slug de imagem; só é alterado
+            quando fornecido (não-None).
+        ativo (bool | None, optional): novo estado de ativação; só é alterado
+            quando fornecido (não-None).
 
     Returns:
         bool: True se atualizada; False se a bebida não existir.
@@ -181,9 +197,39 @@ def atualizar_bebida(id_bebida: int, nome=None, descricao=None, valor_unitario=N
         bebida.descricao = descricao
     if valor_unitario is not None:
         bebida.valor_unitario = valor_unitario
+    if imagem_slug is not None:
+        bebida.imagem_slug = imagem_slug
+    if ativo is not None:
+        bebida.ativo = ativo
     db.session.commit()
     registrar_log("ATUALIZACAO BEBIDA", f"Usuário atualizou a bebida {id_bebida}")
     return True
+
+def desativar_bebida(id_bebida: int) -> bool:
+    """Desativa uma bebida (soft delete): seta ativo=False e persiste.
+
+    Mantém o registro no banco (preservando vínculos como pedidos antigos) e
+    apenas o esconde das listagens voltadas ao cliente.
+
+    Args:
+        id_bebida (int): identificador da bebida.
+
+    Returns:
+        bool: True se desativada; False se a bebida não existir.
+    """
+    bebida = db.session.get(Bebida, id_bebida)
+    if not bebida:
+        return False
+    bebida.ativo = False
+    db.session.commit()
+    registrar_log("DESATIVACAO BEBIDA", f"Usuario desativou bebida {bebida.nome}")
+    return True
+
+def listar_bebidas_ativas() -> list[Bebida]:
+    """Lista apenas as bebidas ativas (ativo==True)."""
+    return db.session.execute(
+        db.select(Bebida).where(Bebida.ativo == True),  # noqa: E712
+    ).scalars().all()
 
 def deletar_bebida(id_bebida: int) -> bool:
     """Remove uma bebida pelo id. Retorna False se não existir."""
@@ -380,6 +426,26 @@ def listar_pedido_por_status(status: str = "aguardando") -> list[Pedido]:
     
     return db.session.query(Pedido).filter_by(status=status).all()
 
+def listar_pedidos_em_andamento() -> list[Pedido]:
+    """Lista os pedidos em andamento (ativos sendo trabalhados).
+
+    Considera "em andamento" os pedidos cujo status é 'confirmado' ou
+    'em preparo': já aceitos pela cozinha e ainda não encerrados. Pedidos
+    'aguardando' continuam na fila (ainda não aceitos) e 'concluido'/'cancelado'
+    já estão finalizados, por isso ficam de fora. A ordenação prioriza a data do
+    evento mais próxima e, em empate, a ordem de criação.
+
+    Returns:
+        list[Pedido]: pedidos em andamento ordenados por data do evento e criação.
+    """
+
+    return (
+        db.session.query(Pedido)
+        .filter(Pedido.status.in_(("confirmado", "em preparo")))
+        .order_by(Pedido.data_evento.asc(), Pedido.criado_em.asc())
+        .all()
+    )
+
 def buscar_pedido_por_chefe(id_chefe: int) -> Pedido | None:
     """Monta a consulta dos pedidos atribuídos a um chefe.
 
@@ -391,6 +457,31 @@ def buscar_pedido_por_chefe(id_chefe: int) -> Pedido | None:
     """
     
     return db.session.query(Pedido).filter_by(id_chefe=id_chefe).first()
+
+
+def buscar_pedido_ativo_por_chefe(id_chefe: int) -> Pedido | None:
+    """Retorna o pedido ATIVO mais recente atribuído a um chefe.
+
+    Diferente de ``buscar_pedido_por_chefe`` (que devolve o primeiro pedido sem
+    ordenação nem filtro de status), esta consulta ignora pedidos já encerrados
+    ('concluido'/'cancelado') e, havendo mais de um ativo, prioriza o mais
+    recente (``criado_em``/``id_pedido`` desc). Assim um chefe que já concluiu um
+    pedido antigo não fica preso a ele nem o vê na bancada de preparo.
+
+    Args:
+        id_chefe (int): identificador do chefe responsável.
+
+    Returns:
+        Pedido | None: pedido ativo mais recente do chefe; None se não houver.
+    """
+
+    return (
+        db.session.query(Pedido)
+        .filter(Pedido.id_chefe == id_chefe)
+        .filter(Pedido.status.notin_(("concluido", "cancelado")))
+        .order_by(Pedido.criado_em.desc(), Pedido.id_pedido.desc())
+        .first()
+    )
     
 def atualizar_pedido(id_pedido: int, status=None, confirmado_em=None, id_chefe=None, observacao=None, valor_total=None) -> bool | None:
     """Atualiza dados cadastrais e de status de um pedido (campos None são ignorados).

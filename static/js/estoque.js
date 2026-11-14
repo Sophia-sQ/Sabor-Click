@@ -1,44 +1,54 @@
+// ===================== Edição de ingrediente =====================
+// O formulário POSTa para /admin/servicos/ingredientes/atualizar/<id>. A ação é
+// definida a partir do data-url do botão clicado e os campos são pré-preenchidos
+// pelos data-* da linha; o envio é real (PRG no backend), sem mock no cliente.
 const dialogoItem = document.getElementById("editar-item");
 const formItem = document.getElementById("form-editar-item");
 const nomeItem = document.getElementById("editar-nome");
 const quantidadeItem = document.getElementById("editar-quantidade");
 const minimoItem = document.getElementById("editar-minimo");
 const unidadeItem = document.getElementById("editar-unidade");
-let linhaItem;
-let botaoItem;
 
 document.querySelectorAll(".editar-estoque").forEach((botao) => {
   botao.addEventListener("click", () => {
-    botaoItem = botao;
-    linhaItem = botao.closest("tr");
-    const celulas = linhaItem.cells;
-    nomeItem.value = celulas[0].textContent.trim();
-    quantidadeItem.value = parseFloat(celulas[1].textContent.replace(/\./g, "").replace(",", "."));
-    minimoItem.value = parseFloat(celulas[2].textContent.replace(/\./g, "").replace(",", "."));
-    unidadeItem.value = celulas[1].textContent.trim().split(/\s+/).pop();
+    const linha = botao.closest("tr");
+    formItem.action = botao.dataset.url || "";
+    nomeItem.value = linha.dataset.nome || "";
+    quantidadeItem.value = linha.dataset.qtd || "";
+    minimoItem.value = linha.dataset.min || "";
+    unidadeItem.value = linha.dataset.unidade || "kg";
     dialogoItem.showModal();
   });
 });
 
 document.getElementById("cancelar-edicao").addEventListener("click", () => dialogoItem.close());
 nomeItem.addEventListener("input", () => nomeItem.setCustomValidity(""));
-formItem.addEventListener("submit", (evento) => {
-  evento.preventDefault();
+formItem.addEventListener("submit", () => {
   nomeItem.setCustomValidity(nomeItem.value.trim() ? "" : "Informe o nome do item.");
   if (!formItem.reportValidity()) return;
-  const qtd = Number(quantidadeItem.value);
-  const minimo = Number(minimoItem.value);
-  const celulas = linhaItem.cells;
-  celulas[0].textContent = nomeItem.value.trim();
-  celulas[1].textContent = `${qtd.toLocaleString("pt-BR")} ${unidadeItem.value}`;
-  celulas[2].textContent = `${minimo.toLocaleString("pt-BR")} ${unidadeItem.value}`;
-  const status = celulas[3].querySelector(".status");
-  status.textContent = qtd < minimo ? "Repor" : "Regular";
-  status.classList.toggle("verde", qtd >= minimo);
-  botaoItem.setAttribute("aria-label", `Editar ${nomeItem.value.trim()}`);
-  dialogoItem.close();
-  filtrarEstoque();
+  // Sem preventDefault: o formulário é submetido de verdade ao backend.
 });
+
+// ===================== Edição de bebida =====================
+// POSTa para /admin/servicos/bebidas/atualizar/<id> com nome/descricao/valor_unitario.
+const dialogoBebida = document.getElementById("editar-bebida");
+const formBebida = document.getElementById("form-editar-bebida");
+const nomeBebida = document.getElementById("editar-bebida-nome");
+const descricaoBebida = document.getElementById("editar-bebida-descricao");
+const valorBebida = document.getElementById("editar-bebida-valor");
+
+document.querySelectorAll(".editar-bebida").forEach((botao) => {
+  botao.addEventListener("click", () => {
+    const linha = botao.closest("tr");
+    formBebida.action = botao.dataset.url || "";
+    nomeBebida.value = linha.dataset.nome || "";
+    descricaoBebida.value = linha.dataset.descricao || "";
+    valorBebida.value = linha.dataset.valor || "";
+    dialogoBebida.showModal();
+  });
+});
+
+document.getElementById("cancelar-edicao-bebida").addEventListener("click", () => dialogoBebida.close());
 
 const botaoCadastrar = document.querySelector('.cadastrar-item');
 const cadastroItem = document.getElementById('cadastro-item');

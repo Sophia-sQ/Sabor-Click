@@ -1,0 +1,213 @@
+{% extends "base_admin.html" %}
+{% set pagina_admin = "estoque" %}
+{% set inicio_admin = url_for('admin.visao_geral') %}
+{% block titulo %}Estoque | Sabor &amp; Click{% endblock %}
+{% block classe_admin %} pagina-estoque{% endblock %}
+{% block estilos_admin %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
+{% endblock %}
+{% block conteudo_admin %}
+{% set nomes_ingredientes = {} %}
+{% for ingrediente in ingredientes %}{% set _ = nomes_ingredientes.update({ingrediente.id_ingrediente: ingrediente.nome|nome_exibicao}) %}{% endfor %}
+<header class="intro"><h1>Estoque do Sabor</h1><p>Consulte ingredientes, bebidas, pratos e lotes.</p></header>
+<section class="card">
+    {% include "componentes/mensagens.html" %}
+    <div class="cabecalho-estoque">
+        <h2 id="titulo-entidade">Ingredientes e bebidas</h2>
+        <button type="button" class="cadastrar-item" aria-haspopup="dialog" aria-controls="cadastro-item">Cadastrar item</button>
+        <button type="button" class="cadastrar-cardapio" aria-haspopup="dialog" aria-controls="cadastro-cardapio">Cadastrar cardápio</button>
+    </div>
+    <form class="filtros-estoque formulario" onsubmit="return false" aria-label="Filtros do estoque">
+        <div>
+            <label for="estoque-entidade">Entidade</label>
+            <select id="estoque-entidade">
+                <option value="todos">Ingredientes e bebidas</option>
+                <option value="ingrediente">Ingredientes</option>
+                <option value="bebida">Bebidas</option>
+                <option value="prato">Pratos</option>
+                <option value="lote">Lotes</option>
+            </select>
+        </div>
+        <div>
+            <label for="estoque-busca">Buscar</label>
+            <input id="estoque-busca" type="search" placeholder="Nome do item">
+        </div>
+        <div id="grupo-situacao">
+            <label for="estoque-situacao">Situação</label>
+            <select id="estoque-situacao">
+                <option value="">Todas</option>
+                <option value="Regular">Regular</option>
+                <option value="Repor">Repor</option>
+            </select>
+        </div>
+        <button type="reset">Limpar filtros</button>
+    </form>
+    <p id="estoque-contagem" role="status" aria-live="polite"></p>
+    <div class="tabela" id="tabela-insumos">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Item</th>
+                    <th scope="col">Quantidade</th>
+                    <th scope="col">Mínimo</th>
+                    <th scope="col">Situação</th>
+                    <th scope="col" aria-label="Editar item"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ingrediente in ingredientes %}
+                <tr data-entidade="ingrediente"
+                    data-id="{{ ingrediente.id_ingrediente }}"
+                    data-nome="{{ ingrediente.nome }}"
+                    data-qtd="{{ ingrediente.qtd }}"
+                    data-min="{{ ingrediente.qtd_min }}"
+                    data-unidade="{{ ingrediente.unidade }}">
+                    <td>{{ ingrediente.nome|nome_exibicao }}</td>
+                    <td>{{ ingrediente.qtd }} {{ ingrediente.unidade }}</td>
+                    <td>{{ ingrediente.qtd_min }} {{ ingrediente.unidade }}</td>
+                    <td><span class="status{% if ingrediente.qtd >= ingrediente.qtd_min %} verde{% endif %}">{{ 'Regular' if ingrediente.qtd >= ingrediente.qtd_min else 'Repor' }}</span></td>
+                    <td><button type="button" class="editar-estoque" data-url="{{ url_for('admin.atualizar_ingrediente_route', id_ingrediente=ingrediente.id_ingrediente) }}" aria-label="Editar {{ ingrediente.nome|nome_exibicao }}">Editar</button></td>
+                </tr>
+                {% endfor %}
+                {% for bebida in bebidas %}
+                <tr data-entidade="bebida"
+                    data-id="{{ bebida.id_bebida }}"
+                    data-nome="{{ bebida.nome }}"
+                    data-descricao="{{ bebida.descricao }}"
+                    data-valor="{{ bebida.valor_unitario }}">
+                    <td>{{ bebida.nome|nome_exibicao }}</td>
+                    <td>{{ (bebida.valor_unitario * 100)|moeda }}</td>
+                    <td class="muted">—</td>
+                    <td class="muted">—</td>
+                    <td><button type="button" class="editar-bebida" data-url="{{ url_for('admin.atualizar_bebida_route', id_bebida=bebida.id_bebida) }}" aria-label="Editar {{ bebida.nome|nome_exibicao }}">Editar</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="tabela" id="tabela-pratos" hidden>
+        <table>
+            <thead>
+                <tr><th>Prato</th><th>Tipo</th><th>Tempo de preparo</th><th>Pré-preparo</th></tr>
+            </thead>
+            <tbody>
+                {% for prato in pratos %}
+                <tr data-entidade="prato">
+                    <td>{{ prato.nome|nome_exibicao }}</td>
+                    <td>{{ prato.tipo_prato }}</td>
+                    <td>{{ prato.tempo_preparo }} min</td>
+                    <td>{{ 'Sim' if prato.requer_pre_preparo else 'Não' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="tabela" id="tabela-lotes" hidden>
+        <table>
+            <thead>
+                <tr><th>Lote</th><th>Item</th><th>Marca</th><th>Recebimento</th><th>Validade</th><th>Quantidade inicial</th></tr>
+            </thead>
+            <tbody>
+                {% for lote in lotes %}
+                <tr data-entidade="lote">
+                    <td>{{ lote.num_lote }}</td>
+                    <td>{{ nomes_ingredientes.get(lote.id_ingrediente, lote.id_ingrediente) }}</td>
+                    <td>{{ lote.marca }}</td>
+                    <td>{{ lote.data_recebimento.strftime('%d/%m/%Y %H:%M') if lote.data_recebimento else '-' }}</td>
+                    <td>{{ lote.data_validade.strftime('%d/%m/%Y') if lote.data_validade else '-' }}</td>
+                    <td>{{ lote.qtd_inicial }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p id="estoque-vazio" hidden>Nenhum item encontrado para estes filtros.</p>
+</section>
+<footer>Sabor &amp; Click · 2026</footer>
+{% endblock %}
+{% block dialogos_admin %}
+<dialog class="dialogo-estoque" id="editar-item" aria-labelledby="titulo-editar-item">
+    <form id="form-editar-item" class="formulario" method="post" action="">
+        <h2 id="titulo-editar-item">Editar ingrediente</h2>
+        <small>* Campos obrigatórios</small>
+        <label for="editar-nome">Nome do item *</label><input id="editar-nome" name="nome" required maxlength="60">
+        <label for="editar-quantidade">Quantidade *</label><input id="editar-quantidade" name="qtd" type="number" min="0" step="1" required>
+        <label for="editar-minimo">Estoque mínimo *</label><input id="editar-minimo" name="qtd_min" type="number" min="0" step="1" required>
+        <label for="editar-unidade">Unidade *</label>
+        <select id="editar-unidade" name="unidade" required>
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="L">L</option>
+            <option value="ml">ml</option>
+            <option value="un">un</option>
+        </select>
+        <div class="acoes-editar"><button type="button" id="cancelar-edicao">Cancelar</button><button type="submit">Salvar alterações</button></div>
+    </form>
+</dialog>
+<dialog class="dialogo-estoque" id="editar-bebida" aria-labelledby="titulo-editar-bebida">
+    <form id="form-editar-bebida" class="formulario" method="post" action="">
+        <h2 id="titulo-editar-bebida">Editar bebida</h2>
+        <small>* Campos obrigatórios</small>
+        <label for="editar-bebida-nome">Nome da bebida *</label><input id="editar-bebida-nome" name="nome" required maxlength="60">
+        <label for="editar-bebida-descricao">Descrição *</label><textarea id="editar-bebida-descricao" name="descricao" required></textarea>
+        <label for="editar-bebida-valor">Valor unitário (R$) *</label><input id="editar-bebida-valor" name="valor_unitario" type="number" min="0" step="0.01" required>
+        <div class="acoes-editar"><button type="button" id="cancelar-edicao-bebida">Cancelar</button><button type="submit">Salvar alterações</button></div>
+    </form>
+</dialog>
+<dialog class="dialogo-estoque dialogo-cadastro" id="cadastro-item" aria-labelledby="titulo-cadastro-item">
+    <div class="cabecalho-estoque"><h2 id="titulo-cadastro-item">Entrada de insumos</h2><button type="button" id="fechar-cadastro" aria-label="Fechar cadastro">Fechar</button></div>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_ingrediente_route') }}">
+        <h3>Novo ingrediente</h3>
+        <small>* Campos obrigatórios</small>
+        <label for="novo-nome">Nome do ingrediente *</label><input id="novo-nome" name="nome" required maxlength="60" placeholder="Ingrediente">
+        <label for="novo-unidade">Unidade *</label>
+        <select id="novo-unidade" name="unidade" required>
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="L">L</option>
+            <option value="ml">ml</option>
+            <option value="un">un</option>
+        </select>
+        <label for="novo-qtd">Quantidade *</label><input id="novo-qtd" name="qtd" type="number" min="0" step="1" required>
+        <label for="novo-qtd-min">Estoque mínimo *</label><input id="novo-qtd-min" name="qtd_min" type="number" min="0" step="1" required>
+        <button type="submit">Cadastrar ingrediente</button>
+    </form>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_bebida_route') }}">
+        <h3>Nova bebida</h3>
+        <small>* Campos obrigatórios</small>
+        <label for="nova-bebida-nome">Nome da bebida *</label><input id="nova-bebida-nome" name="nome" required maxlength="60" placeholder="Bebida">
+        <label for="nova-bebida-descricao">Descrição *</label><textarea id="nova-bebida-descricao" name="descricao" required></textarea>
+        <label for="nova-bebida-valor">Valor unitário (R$) *</label><input id="nova-bebida-valor" name="valor_unitario" type="number" min="0" step="0.01" required>
+        <button type="submit">Cadastrar bebida</button>
+    </form>
+    <form class="formulario" method="post" action="{{ url_for('admin.criar_lote_route') }}">
+        <h3>Entrada de lote</h3>
+        <small>* Campos obrigatórios</small>
+        <label for="lote-num">Número do lote *</label><input id="lote-num" name="num_lote" required maxlength="60">
+        <label for="lote-marca">Marca *</label><input id="lote-marca" name="marca" required maxlength="60">
+        <label for="lote-recebimento">Recebimento *</label><input id="lote-recebimento" name="data_recebimento" type="datetime-local" required>
+        <label for="lote-validade">Validade</label><input id="lote-validade" name="data_validade" type="date">
+        <label for="lote-qtd">Quantidade inicial *</label><input id="lote-qtd" name="qtd_inicial" type="number" min="0" step="1" required>
+        <label for="lote-ingrediente">Ingrediente *</label>
+        <select id="lote-ingrediente" name="id_ingrediente" required>
+            {% for ingrediente in ingredientes %}
+            <option value="{{ ingrediente.id_ingrediente }}">{{ ingrediente.nome|nome_exibicao }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Registrar entrada</button>
+    </form>
+</dialog>
+<dialog class="dialogo-estoque dialogo-cadastro" id="cadastro-cardapio" aria-labelledby="titulo-cadastro-cardapio">
+    <div class="cabecalho-estoque"><h2 id="titulo-cadastro-cardapio">Cadastrar cardápio</h2><button type="button" id="fechar-cadastro-cardapio" aria-label="Fechar cadastro de cardápio">Fechar</button></div>
+    <form class="formulario" method="post" action="{{ url_for('admin.c_cardapio') }}" enctype="multipart/form-data">
+        <label for="cardapio-nome">Nome *</label><input id="cardapio-nome" name="nome" required maxlength="60" placeholder="Nome do cardápio">
+        <label for="cardapio-descricao">Descrição *</label><textarea id="cardapio-descricao" name="descricao" required placeholder="Descrição do cardápio"></textarea>
+        <label for="cardapio-preco">Preço base *</label><input id="cardapio-preco" name="preco_base" required placeholder="149,90">
+        <label for="cardapio-imagem">Imagem</label><input id="cardapio-imagem" name="imagem" type="file" accept=".jpg,.jpeg,.png,.webp">
+        <button type="submit">Cadastrar cardápio</button>
+    </form>
+</dialog>
+{% endblock %}
+{% block scripts_admin %}
+<script src="/static/js/estoque.js" defer></script>
+{% endblock %}

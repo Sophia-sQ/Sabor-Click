@@ -40,3 +40,111 @@ modalSair.addEventListener('click', evento => {
   const area = modalSair.getBoundingClientRect();
   if (evento.target === modalSair && (evento.clientX < area.left || evento.clientX > area.right || evento.clientY < area.top || evento.clientY > area.bottom)) modalSair.close();
 });
+
+// ===== Pedidos: carrega o pedido em andamento do cliente =====
+const pedidosConteudo = document.querySelector('#pedidos-conteudo');
+function criar(tag, texto, classe) {
+  const elemento = document.createElement(tag);
+  if (classe) elemento.className = classe;
+  if (texto !== undefined && texto !== null) elemento.textContent = texto;
+  return elemento;
+}
+function pedidoVazio() {
+  const vazio = criar('div', null, 'vazio');
+  const simbolo = criar('span', '✦'); simbolo.setAttribute('aria-hidden', 'true');
+  vazio.append(simbolo, criar('h3', 'Nenhum pedido em andamento.'),
+    criar('p', 'Monte o seu evento pelo cardápio para ver o pedido aqui.'));
+  return vazio;
+}
+function textoData(iso) {
+  if (!iso) return '';
+  const partes = iso.split('-');
+  return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : iso;
+}
+function textoHora(iso) { return iso ? iso.slice(0, 5) : ''; }
+function renderizarPedido(dados) {
+  const pedido = dados.pedido;
+  const artigo = criar('article', null, 'pedido');
+
+  const topo = criar('div', null, 'pedido-topo');
+  topo.append(criar('h3', `Pedido nº ${pedido.id}`));
+  const sucesso = pedido.status === 'concluido' || pedido.status === 'confirmado';
+  const badge = criar('span', pedido.status.charAt(0).toUpperCase() + pedido.status.slice(1),
+    sucesso ? 'status verde' : 'status');
+  topo.append(badge);
+  artigo.append(topo);
+
+  const total = criar('p', null, 'pedido-total');
+  total.append(criar('span', 'Total do evento '), criar('strong', pedido.valor_total));
+  artigo.append(total);
+
+  if (pedido.data_evento || pedido.hora_inicio) {
+    const data = textoData(pedido.data_evento);
+    const horas = [textoHora(pedido.hora_inicio), textoHora(pedido.hora_fim)].filter(Boolean).join(' às ');
+    artigo.append(criar('p', [data, horas].filter(Boolean).join(' · ')));
+  }
+
+  const servicos = dados.servicos || {};
+  const nomesServicos = Object.keys(servicos);
+  if (nomesServicos.length) {
+    artigo.append(criar('h4', 'Cardápios'));
+    const lista = criar('ul', null, 'pedido-itens');
+    nomesServicos.forEach(nome => {
+      const [cardapio, valor] = servicos[nome];
+      const item = criar('li');
+      item.append(criar('span', cardapio), criar('span', valor));
+      lista.append(item);
+    });
+    artigo.append(lista);
+  }
+
+  const bebidas = (dados.bebidas && dados.bebidas.itens) || [];
+  if (bebidas.length) {
+    artigo.append(criar('h4', 'Bebidas'));
+    const lista = criar('ul', null, 'pedido-itens');
+    bebidas.forEach(bebida => {
+      const item = criar('li');
+      item.append(criar('span', `${bebida.qtd} × ${bebida.nome}`));
+      lista.append(item);
+    });
+    artigo.append(lista);
+  }
+
+  if (dados.endereco) {
+    const endereco = dados.endereco;
+    artigo.append(criar('h4', 'Endereço do evento'));
+    const bloco = criar('div', null, 'pedido-endereco');
+    if (endereco.nome) bloco.append(criar('p', endereco.nome));
+    const complemento = endereco.complemento ? ` · ${endereco.complemento}` : '';
+    bloco.append(criar('p', `${endereco.logradouro}, ${endereco.numero}${complemento}`));
+    bloco.append(criar('p', `${endereco.bairro} · ${endereco.cidade}`));
+    if (endereco.cep) bloco.append(criar('p', `CEP ${endereco.cep}`));
+    artigo.append(bloco);
+  }
+
+  if (pedido.status === 'aguardando') {
+    const form = criar('form');
+    form.method = 'post';
+    form.action = `/home/cancelar_pedido/${pedido.id}`;
+    form.className = 'pedido-acoes';
+    const botao = criar('button', 'Cancelar pedido', 'secundario');
+    botao.type = 'submit';
+    form.append(botao);
+    artigo.append(form);
+  }
+
+  return artigo;
+}
+if (pedidosConteudo && !previa) {
+  fetch('/home/perfil/dados', { headers: { Accept: 'application/json' } })
+    .then(resposta => resposta.ok ? resposta.json() : null)
+    .then(dados => {
+      pedidosConteudo.replaceChildren();
+      if (dados && dados.pedido) pedidosConteudo.append(renderizarPedido(dados));
+      else pedidosConteudo.append(pedidoVazio());
+    })
+    .catch(() => {
+      pedidosConteudo.replaceChildren();
+      pedidosConteudo.append(pedidoVazio());
+    });
+}

@@ -40,3 +40,18 @@
     padding: 0;
     accent-color: #82472f;
 }
+
+.item-catalogo.item-inativo {
+    opacity: 0.6;
+}
+
+.rotulo-inativo {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: #f3dfd4;
+    color: #873c23;
+    font: 600 10px system-ui;
+    vertical-align: middle;
+}
