@@ -30,6 +30,11 @@ class Servico(db.Model):
     nome = db.Column(db.String(60), unique=True, nullable=False)
     descricao = db.Column(db.Text, nullable=False)
     slug = db.Column(db.String(120), nullable=False, unique=True)
+    # slug usado para resolver a imagem do serviço em docs/imagens-servicos.json.
+    imagem_slug = db.Column(db.String(120), nullable=True)
+    # Soft delete: serviços "removidos" ficam ativo=False e somem das listas do
+    # cliente/admin (listar_servicos_ativos), preservando a integridade referencial.
+    ativo = db.Column(db.Boolean, nullable=False, default=True, server_default=db.text("1"))
 
     # É executada cada vez que a classe é instanciada
     def __init__(self, nome: str, descricao: str, slug: str = None, **kwargs):
@@ -193,17 +198,19 @@ def deletar_bancada(id_bancada, id_usuario: int) -> bool:
     return True
 
 """==============CRUD SERVICO======"""
-def criar_servico(nome, descricao) -> int:
+def criar_servico(nome, descricao, imagem_slug=None) -> int:
     """Cria um serviço e retorna seu id.
 
     Args:
         nome: nome do serviço.
         descricao: descrição do serviço.
+        imagem_slug (str | None, optional): slug da imagem em
+            docs/imagens-servicos.json; None quando o serviço é criado sem imagem.
 
     Returns:
         int: id do serviço criado.
     """
-    novo_servico = Servico(nome=nome, descricao=descricao)
+    novo_servico = Servico(nome=nome, descricao=descricao, imagem_slug=imagem_slug)
     db.session.add(novo_servico)
     db.session.commit()
     registrar_log("CRIACAO SERVICO", "Usuário criou novo servico")
@@ -260,14 +267,18 @@ def buscar_servicos(busca: str = "") -> list:
     stmt = stmt.order_by(Servico.nome)
     return db.session.execute(stmt).scalars().all()
 
-def atualizar_servico(id_servico, id_usuario: int, nome=None, descricao=None) -> bool:
+def atualizar_servico(id_servico, id_usuario=None, nome=None, descricao=None, imagem_slug=None, ativo=None) -> bool:
     """Atualiza os dados de um serviço (campos None não são alterados).
 
     Args:
         id_servico: identificador do serviço.
-        id_usuario (int): usuário responsável (para o log).
+        id_usuario (int | None, optional): usuário responsável (para o log).
         nome (str | None, optional): novo nome.
         descricao (str | None, optional): nova descrição.
+        imagem_slug (str | None, optional): novo slug de imagem; só é alterado
+            quando fornecido (não-None), seguindo o padrão dos demais campos.
+        ativo (bool | None, optional): novo estado de ativação; só é alterado
+            quando fornecido (não-None).
 
     Returns:
         bool: True se atualizado; False se o serviço não existir.
@@ -279,10 +290,45 @@ def atualizar_servico(id_servico, id_usuario: int, nome=None, descricao=None) ->
         servico.nome = nome
     if descricao:
         servico.descricao = descricao
+    if imagem_slug is not None:
+        servico.imagem_slug = imagem_slug
+    if ativo is not None:
+        servico.ativo = ativo
     db.session.commit()
     registrar_log("ATUALIZACAO SERVICO", "Usuário atulizou o servico")
 
     return True
+
+def desativar_servico(id_servico, id_usuario=None) -> bool:
+    """Desativa um serviço (soft delete): seta ativo=False e persiste.
+
+    Mantém o registro no banco (preservando vínculos como ServicoBancada e
+    ServicoCardapio) e apenas o esconde das listagens (listar_servicos_ativos).
+    Espelha desativar_bancada.
+
+    Args:
+        id_servico: identificador do serviço.
+        id_usuario (int | None, optional): usuário responsável (para o log).
+
+    Returns:
+        bool: True se desativado; False se o serviço não existir.
+    """
+    servico = db.session.get(Servico, id_servico)
+    if not servico:
+        return False
+    servico.ativo = False
+    db.session.commit()
+    registrar_log("DESATIVACAO SERVICO", f"Usuário desativou o servico {id_servico}")
+    return True
+
+def listar_servicos_ativos() -> list[Servico] | None:
+    """Lista apenas os serviços ativos (ativo==True); None se não houver."""
+    servicos = db.session.execute(
+        db.select(Servico).where(Servico.ativo == True),  # noqa: E712
+    ).scalars().all()
+    if servicos:
+        return servicos
+    return None
 
 def deletar_servico(id_servico) -> bool:
     """Remove um serviço pelo id. Retorna False se não existir."""

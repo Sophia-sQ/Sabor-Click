@@ -31,6 +31,27 @@
     </div>
     <small>Pratos entram em serviços indiretamente: associe o prato a cardápios e os cardápios aos serviços.</small>
 </fieldset>
+<fieldset class="campo-largo ingredientes-catalogo">
+    <legend>Ingredientes (ficha técnica)</legend>
+    {% set ficha = ficha_prato if ficha_prato is defined else {} %}
+    <div class="opcoes-ingredientes">
+    {% for ing in ingredientes_catalogo %}
+        <div class="linha-ingrediente">
+            <label class="selecao-ingrediente">
+                <input type="checkbox" name="ingredientes" value="{{ ing.id }}" data-ingrediente="{{ ing.id }}"{% if ing.id in ficha %} checked{% endif %}>
+                {{ ing.nome }}
+            </label>
+            <span class="quantidade-ingrediente">
+                <input type="number" name="qtd_ingrediente_{{ ing.id }}" step="0.001" min="0" value="{{ ficha.get(ing.id, '') }}" placeholder="0"{% if ing.id not in ficha %} disabled{% endif %}>
+                <span class="unidade-ingrediente">{{ ing.unidade }}</span>
+            </span>
+        </div>
+    {% else %}
+        <p>Nenhum ingrediente cadastrado. Cadastre ingredientes para montar a ficha técnica do prato.</p>
+    {% endfor %}
+    </div>
+    <small>Informe a quantidade por porção de cada ingrediente selecionado, em g/ml ou unidade conforme o ingrediente.</small>
+</fieldset>
 </div>
 <fieldset class="imagem-catalogo"><legend>Imagem do prato</legend><div class="previa-imagem" id="area-previa"><img id="previa-imagem" {% if atual and atual.imagem %}src="{{ url_for('static', filename=atual.imagem) }}"{% else %}hidden{% endif %} alt="Prévia da imagem selecionada"><span id="placeholder-imagem"{% if atual and atual.imagem %} hidden{% endif %}><b aria-hidden="true">＋</b>Uma imagem para dar sabor à escolha</span></div><label for="imagem-arquivo">Arquivo da imagem</label><input id="imagem-arquivo" name="imagem" type="file" accept="image/png,image/jpeg,image/webp"><p id="status-imagem" role="status" aria-live="polite"></p>{% if atual %}<small>Deixe o campo vazio para manter a imagem atual.</small>{% else %}<small>Formatos aceitos: PNG, JPG ou WebP (até 5 MB).</small>{% endif %}</fieldset>
 <div class="acoes-cadastro"><button type="submit">{{ 'Salvar alterações' if atual else 'Adicionar prato +' }}</button>{% if atual %}<a href="{{ url_for('admin.catalogo_pratos') }}">Cancelar</a>{% endif %}</div></form></section>

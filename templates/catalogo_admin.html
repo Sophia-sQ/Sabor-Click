@@ -30,7 +30,35 @@
     </div>
 </fieldset>
 {% endif %}
-<div><label for="preco-item">{{ 'Preço por porção (R$)' if tipo == 'bebidas' else 'Preço por pessoa (R$)' }}</label><input id="preco-item" name="{{ 'valor_unitario' if tipo == 'bebidas' else 'preco_base' }}" type="number" min="0" max="1000000" step="0.01" required value="{{ valores.get('preco','') if valores.get('preco') is not none else '' }}" placeholder="0,00"></div></div>
+{% if tipo == 'bebidas' %}
+<fieldset class="campo-largo ingredientes-catalogo">
+    <legend>Ingredientes (ficha técnica)</legend>
+    {% set ficha = ficha_bebida if ficha_bebida is defined else {} %}
+    <div class="opcoes-ingredientes">
+    {% for ing in ingredientes_catalogo %}
+        <div class="linha-ingrediente">
+            <label class="selecao-ingrediente">
+                <input type="checkbox" name="ingredientes" value="{{ ing.id }}" data-ingrediente="{{ ing.id }}"{% if ing.id in ficha %} checked{% endif %}>
+                {{ ing.nome }}
+            </label>
+            <span class="quantidade-ingrediente">
+                <input type="number" name="qtd_ingrediente_{{ ing.id }}" step="0.001" min="0" value="{{ ficha.get(ing.id, '') }}" placeholder="0"{% if ing.id not in ficha %} disabled{% endif %}>
+                <span class="unidade-ingrediente">{{ ing.unidade }}</span>
+            </span>
+        </div>
+    {% else %}
+        <p>Nenhum ingrediente cadastrado. Cadastre ingredientes para montar a ficha técnica da bebida.</p>
+    {% endfor %}
+    </div>
+    <small>Informe a quantidade por porção de cada ingrediente selecionado, em g/ml ou unidade conforme o ingrediente. Uma bebida com exatamente 1 ingrediente é avulsa e tem preço por porção; com 2 ou mais, é uma receita e não recebe preço.</small>
+</fieldset>
+{% endif %}
+{% if tipo == 'bebidas' %}
+<div id="campo-preco-bebida"{% set n_ficha = (ficha_bebida if ficha_bebida is defined else {})|length %}{% if n_ficha != 1 %} hidden{% endif %}><label for="preco-item">Preço por porção (R$)</label><input id="preco-item" name="valor_unitario" type="number" min="0" max="1000000" step="0.01" value="{{ valores.get('preco','') if valores.get('preco') is not none else '' }}" placeholder="0,00"></div>
+{% else %}
+<div><label for="preco-item">Preço por pessoa (R$)</label><input id="preco-item" name="preco_base" type="number" min="0" max="1000000" step="0.01" required value="{{ valores.get('preco','') if valores.get('preco') is not none else '' }}" placeholder="0,00"></div>
+{% endif %}
+</div>
 <fieldset class="imagem-catalogo"><legend>Imagem {{ 'da bebida' if tipo == 'bebidas' else 'do cardápio' }}</legend><div class="previa-imagem" id="area-previa"><img id="previa-imagem" {% if atual and atual.imagem %}src="{{ url_for('static', filename=atual.imagem) }}"{% else %}hidden{% endif %} alt="Prévia da imagem selecionada"><span id="placeholder-imagem"{% if atual and atual.imagem %} hidden{% endif %}><b aria-hidden="true">＋</b>Uma imagem para dar sabor à escolha</span></div><label for="imagem-arquivo">Arquivo da imagem</label><input id="imagem-arquivo" name="imagem" type="file" accept="image/png,image/jpeg,image/webp"><p id="status-imagem" role="status" aria-live="polite"></p>{% if atual %}<small>Deixe o campo vazio para manter a imagem atual.</small>{% else %}<small>Formatos aceitos: PNG, JPG ou WebP (até 5 MB).</small>{% endif %}</fieldset>
 <div class="acoes-cadastro"><button type="submit">{{ 'Salvar alterações' if atual else 'Adicionar ' ~ singular ~ ' +' }}</button>{% if atual %}<a href="{{ url_for(endpoint_pagina) }}">Cancelar</a>{% endif %}</div></form></section>
 <details class="gerenciar-catalogo"{% if gerenciar %} open{% endif %}><summary>Gerenciar opções existentes <span>{{ itens|length }}</span><b aria-hidden="true">⌄</b></summary><section class="catalogo-lista"><header><label for="buscar-catalogo">Buscar por nome</label><input id="buscar-catalogo" type="search" placeholder="Qual opção você quer editar?"></header><div class="itens-catalogo">{% for item in itens %}<article class="item-catalogo{% if not item.ativo %} item-inativo{% endif %}" data-nome="{{ item.nome }}">{% if item.imagem %}<img src="{{ url_for('static', filename=item.imagem) }}" alt="" width="72" height="72" loading="lazy">{% else %}<img src="{{ url_for('static', filename='images/home-bebidas.jpg' if tipo == 'bebidas' else 'images/menu-quentes.png') }}" alt="" width="72" height="72" loading="lazy">{% endif %}<div><span class="categoria-item">{{ dict(opcoes).get(item.categoria,item.categoria) }}</span><h3>{{ item.nome|nome_exibicao }}{% if not item.ativo %} <span class="rotulo-inativo">inativo</span>{% endif %}</h3>{% if item.servicos %}<small>{% for slug in item.servicos %}{{ servicos_catalogo[slug][0] if slug in servicos_catalogo else slug }}{% if not loop.last %} · {% endif %}{% endfor %}</small>{% endif %}<p>{{ item.descricao }}</p>{% if tipo == 'bebidas' %}<small>{{ item.volume_ml }} ml por porção</small>{% endif %}</div><div class="item-preco">{% if item.preco is not none %}<strong>R$ {{ '%.2f'|format(item.preco)|replace('.', ',') }}</strong><small>{{ '/ pessoa' if tipo == 'cardapio' else '/ porção' }}</small>{% else %}<small>Preço a definir</small>{% endif %}</div><div class="acoes-item"><a href="{{ url_for(endpoint_pagina, editar=item.id, gerenciar=1) }}">Editar</a>{% if item.ativo %}<button class="remover-item" type="button" data-id="{{ item.id }}" data-nome="{{ item.nome|nome_exibicao }}" data-action="{{ url_for('admin.deletar_bebida_route', id_bebida=item.id) if tipo == 'bebidas' else url_for('admin.del_cardapio', id_cardapio=item.id) }}">Remover</button>{% endif %}</div></article>{% endfor %}</div><p id="catalogo-vazio" hidden>Nenhuma opção encontrada.</p></section></details>

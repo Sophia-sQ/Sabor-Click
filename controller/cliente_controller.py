@@ -35,6 +35,7 @@ from model.servico_model import (
     buscar_servico_por_slug,
     listar_cardapios,
     listar_cardapios_do_servico,
+    listar_servicos_ativos,
 )
 from model.usuario_model import (
     adicionar_endereco,
@@ -173,17 +174,94 @@ def _slug_imagem_do_cardapio(cardapio) -> str | None:
         return cardapio.imagem_slug
     return _CARDAPIO_POR_ID.get(cardapio.id_cardapio, (None, None))[0]
 
+# Fallback de imagem dos 4 serviços seed (espelha templates/componentes/
+# fotos_servicos.html). Valores são caminhos relativos a static/ (prefixados por
+# 'images/') para uso direto com url_for('static', filename=...).
+_FOTOS_SERVICOS = {
+    "buffet": "images/home-buffet-hd.jpg",
+    "chef-em-casa": "images/home-chef-hd.jpg",
+    "mesa-de-salgados": "images/home-salgados-hd.jpg",
+    "bar": "images/home-bebidas-hd.jpg",
+}
+
+
+def _imagem_servico_rel(imagem_slug):
+    """Resolve o caminho relativo (a static/) da imagem de um serviço.
+
+    Lê docs/imagens-servicos.json pelo imagem_slug e remove o prefixo 'static/'
+    (mesma lógica de _catalogo_bebidas._imagem_rel). Usado tanto pela home
+    (_servicos_home) quanto pela página dinâmica do serviço (mostrar_servico).
+
+    Args:
+        imagem_slug (str | None): slug do upload do serviço (servico.imagem_slug).
+
+    Returns:
+        str | None: caminho relativo a static/ (ex.: 'images/servicos/x.jpg')
+        ou None quando não há imagem registrada.
+    """
+    if not imagem_slug:
+        return None
+
+    from pathlib import Path
+
+    base = Path(current_app.root_path)
+    try:
+        with open(base / "docs" / "imagens-servicos.json", encoding="utf-8") as arq:
+            imagens = json.load(arq)
+    except (FileNotFoundError, json.JSONDecodeError):
+        imagens = {}
+
+    arquivo = (imagens.get(imagem_slug) or {}).get("arquivo")
+    if arquivo and arquivo.startswith("static/"):
+        return arquivo[len("static/"):]
+    return arquivo
+
+
+def _servicos_home() -> list:
+    """Monta a lista de serviços ATIVOS para a seção de serviços da home.
+
+    Para cada serviço ativo (em ordem de exibição) retorna um dicionário com:
+    numero (ordinal com zero à esquerda: '01', '02', ...), nome (via
+    nome_exibicao), descricao, slug e imagem (caminho relativo a static/).
+
+    Resolução da imagem, por prioridade:
+      1) servico.imagem_slug -> campo 'arquivo' de docs/imagens-servicos.json,
+         sem o prefixo 'static/' (via _imagem_servico_rel);
+      2) fallback para o mapa fixo dos 4 serviços seed (_FOTOS_SERVICOS);
+      3) None (o template renderiza sem imagem, mantendo o layout).
+
+    Returns:
+        list: dicionários {numero, nome, descricao, slug, imagem}.
+    """
+    from utils import nome_exibicao
+
+    servicos = []
+    for indice, servico in enumerate(listar_servicos_ativos() or [], start=1):
+        imagem = _imagem_servico_rel(servico.imagem_slug)
+        if imagem is None:
+            imagem = _FOTOS_SERVICOS.get(servico.slug)
+        servicos.append({
+            "numero": f"{indice:02d}",
+            "nome": nome_exibicao(servico.nome),
+            "descricao": servico.descricao,
+            "slug": servico.slug,
+            "imagem": imagem,
+        })
+    return servicos
+
+
 @cliente_bp.get("")
 def pagina_inicial():
     """Renderiza a home page."""
-    return render_template("home.html")
+    return render_template("home.html", servicos=_servicos_home())
 
 # =========================== PEDIDO ===========================
 
 @cliente_bp.post("/carrinho/fazer_pedido")
 def fazer_pedido():
     """Registra o pedido do cliente e dispara um e-mail de confirmação."""
-    from datetime import date, datetime, time
+    import math
+    from datetime import date, datetime, time, timedelta
     from zoneinfo import ZoneInfo
 
     # --- endereço do evento ---
@@ -197,11 +275,14 @@ def fazer_pedido():
         data_evento = date.fromisoformat(request.form.get("data_evento", ""))
         hora_inicio = time.fromisoformat(request.form.get("hora_inicio", ""))
         hora_fim = time.fromisoformat(request.form.get("hora_fim", ""))
+        passa_meia_noite = request.form.get("passa_meia_noite") == "1"
         if (data_evento < datetime.now(ZoneInfo("America/Sao_Paulo")).date()
-                or hora_inicio.tzinfo or hora_fim.tzinfo or hora_fim <= hora_inicio):
+                or hora_inicio.tzinfo or hora_fim.tzinfo
+                or hora_fim == hora_inicio
+                or (not passa_meia_noite and hora_fim < hora_inicio)):
             raise ValueError
     except ValueError:
-        flash("Informe uma data válida e um horário de término posterior ao início.", "danger")
+        flash("Informe uma data válida e horários coerentes. Se o evento terminar após a meia-noite, marque a opção correspondente.", "danger")
         return redirect(url_for("cliente.mostrar_carrinho"))
 
     # --- carrinho (itens de cardápio) ---
@@ -212,7 +293,7 @@ def fazer_pedido():
     # formato {"<id_bebida>": qtd}. Cada bebida é validada no servidor (catálogo
     # + quantidade) e o valor vem SEMPRE do banco (Bebida.valor_unitario), nunca
     # de um preço informado pelo cliente.
-    from decimal import Decimal
+    from decimal import ROUND_HALF_UP, Decimal
 
     try:
         selecao_bebidas = json.loads(request.form.get("bebidas", "{}"))
@@ -242,7 +323,47 @@ def fazer_pedido():
         flash("Adicione itens ao carrinho antes de confirmar.", "danger")
         return redirect(url_for("cliente.mostrar_carrinho"))
 
-    total = sum(_subtotal_item(item) for item in carrinho)
+    # --- antecedência mínima da data do evento ---
+    # A antecedência depende do MAIOR número de convidados entre os cardápios do
+    # carrinho (não da soma; bebidas não contam como convidados). A cada 50
+    # convidados soma-se uma semana, com piso de 1 semana.
+    maior_convidados = 0
+    for item in carrinho:
+        try:
+            qtd = int(item.get("qtd", 0))
+        except (TypeError, ValueError):
+            qtd = 0
+        if qtd > maior_convidados:
+            maior_convidados = qtd
+
+    semanas = max(1, math.ceil(maior_convidados / 50))
+    hoje = datetime.now(ZoneInfo("America/Sao_Paulo")).date()
+    data_minima = hoje + timedelta(weeks=semanas)
+    if data_evento < data_minima:
+        flash(
+            f"Para {maior_convidados} convidado(s), a data do evento deve ter "
+            f"antecedência mínima de {semanas} semana(s): escolha uma data a "
+            f"partir de {data_minima.strftime('%d/%m/%Y')}.",
+            "danger",
+        )
+        return redirect(url_for("cliente.mostrar_carrinho"))
+
+    # Pedido.valor_total é persistido em REAIS (coerente com os seeds e com
+    # TODOS os consumidores/relatórios, que tratam o campo como reais e aplicam
+    # *100 ao formatar). O carrinho de cardápios trabalha em CENTAVOS
+    # (_subtotal_item retorna preco_base[centavos]*qtd) e as bebidas já vêm em
+    # REAIS (Bebida.valor_unitario). Por isso somamos tudo em centavos com
+    # Decimal (as bebidas convertidas de reais->centavos com ROUND_HALF_UP) e
+    # convertemos o total final para reais aqui. O total inclui cardápios + bebidas.
+    subtotal_cardapios_centavos = sum(_subtotal_item(item) for item in carrinho)
+    subtotal_bebidas_centavos = sum(
+        int((Decimal(str(item["valor_total"])) * 100).quantize(
+            Decimal(1), rounding=ROUND_HALF_UP))
+        for item in bebidas
+    )
+    total_centavos = subtotal_cardapios_centavos + subtotal_bebidas_centavos
+    total = (Decimal(total_centavos) / 100).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP)
     observacao = (request.form.get("obs", "") or "").strip()[:1000] or None
 
     pedido = criar_pedido(
@@ -589,7 +710,13 @@ def mostrar_servico(slug):
             "versao": dados_img.get("versao"),
         })
 
-    return render_template("servico.html", servico=servico, cardapios=cardapios)
+    # Imagem própria do serviço (upload do admin), resolvida do mesmo modo que a
+    # home (via _imagem_servico_rel). Serviços seed sem upload caem no mapa fixo
+    # fotos_servicos (no template).
+    imagem_servico_rel = _imagem_servico_rel(servico.imagem_slug)
+
+    return render_template("servico.html", servico=servico, cardapios=cardapios,
+                           imagem_servico=imagem_servico_rel)
 
 # ================== CARRINHO DE COMPRAS ==================
 def _carrinho() -> list:
@@ -707,8 +834,8 @@ def adicionar_do_menu():
     id_cardapio = request.form.get("id_cardapio", type=int)
     qtd = request.form.get("qtd", type=int)
     cardapio = buscar_cardapio_por_id(id_cardapio) if id_cardapio is not None else None
-    if cardapio is None or qtd is None or not 10 <= qtd <= 500:
-        flash("Escolha um prato e informe uma quantidade de 10 a 500 pessoas.", "danger")
+    if cardapio is None or qtd is None or not 10 <= qtd <= 250:
+        flash("Escolha um prato e informe uma quantidade de 10 a 250 pessoas.", "danger")
         return redirect(url_for("cliente.menu"))
 
     categoria = _categoria_do_cardapio(cardapio.id_cardapio)
@@ -741,7 +868,7 @@ def adicionar_do_menu():
 def adicionar():
     """Adiciona (ou atualiza a quantidade de) um cardápio no carrinho.
 
-    Valida o serviço, o cardápio e o número de convidados (entre 10 e 500).
+    Valida o serviço, o cardápio e o número de convidados (entre 10 e 250).
 
     Returns:
         Response: redirecionamento para a página do serviço.
@@ -753,7 +880,7 @@ def adicionar():
 
 
     if (not slug_servico or id_cardapio is None or qtd_convidados is None
-            or qtd_convidados < 10 or qtd_convidados > 500):
+            or qtd_convidados < 10 or qtd_convidados > 250):
         flash("Valor(es) inválido(s).", "danger")
         return redirect(url_for("cliente.mostrar_servico", slug=slug_servico) if slug_servico else url_for("cliente.menu"))
 
@@ -1019,7 +1146,7 @@ def atualizar_perfil():
 
 def home():
     """Renderiza a home page."""
-    return render_template("home.html")
+    return render_template("home.html", servicos=_servicos_home())
 
 
 def menu():

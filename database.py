@@ -168,11 +168,10 @@ def status_inicializacao() -> dict:
 
     A checagem é feita diretamente no banco (único estado que persiste entre as
     execuções dos comandos). Usa a existência de registros-sentinela:
-
-    - 'seed': cria os cargos (nivel_permissao); se houver ao menos um, o seed
-      já rodou.
-    - 'dummy': cria os pedidos de simulação; se houver ao menos um, o dummy já
-      rodou.
+      - 'seed': cria os cargos (nivel_permissao); se houver ao menos um, o seed
+        já rodou.
+      - 'dummy': cria os pedidos de simulação; se houver ao menos um, o dummy já
+        rodou.
 
     Não realiza commit nem altera dados.
 
@@ -205,6 +204,8 @@ def _backfill_colunas_catalogo() -> None:
         ("cardapio", "ativo", "ALTER TABLE cardapio ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT 1"),
         ("bebida", "ativo", "ALTER TABLE bebida ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT 1"),
         ("bebida", "imagem_slug", "ALTER TABLE bebida ADD COLUMN imagem_slug VARCHAR(120)"),
+        ("servico", "ativo", "ALTER TABLE servico ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT 1"),
+        ("servico", "imagem_slug", "ALTER TABLE servico ADD COLUMN imagem_slug VARCHAR(120)"),
     )
 
     alterou = False

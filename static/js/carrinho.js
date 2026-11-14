@@ -137,9 +137,26 @@ function renderizarBebidasCarrinho() {
   selecionadas.forEach(bebida => {
     const card = document.createElement('article');
     card.className = 'bebida-carrinho';
+    let imagem;
+    if (bebida.imagem) {
+      imagem = document.createElement('img');
+      imagem.className = 'item-imagem';
+      imagem.src = `/static/${bebida.imagem}`;
+      imagem.alt = bebida.nome;
+      imagem.width = 180;
+      imagem.height = 140;
+      imagem.loading = 'lazy';
+      imagem.decoding = 'async';
+    } else {
+      imagem = document.createElement('div');
+      imagem.className = 'item-imagem item-imagem-vazia';
+      imagem.setAttribute('aria-hidden', 'true');
+    }
     const info = document.createElement('div');
+    info.className = 'bebida-info';
     info.append(criar('p', 'BEBIDA À PARTE'), criar('h2', bebida.nome), criar('p', `${quantidades[bebida.id]} unidade(s)${bebida.volume_ml ? ' · ' + bebida.volume_ml + ' ml cada' : ''}`));
     const acoes = document.createElement('div');
+    acoes.className = 'bebida-acoes';
     acoes.append(criar('strong', bebida.preco === null ? 'Valor a confirmar' : catalogoCarrinho.dinheiro(bebida.preco * quantidades[bebida.id])));
     const remover = criar('button', 'Remover');
     remover.type = 'button';
@@ -159,7 +176,7 @@ function renderizarBebidasCarrinho() {
       }
     });
     acoes.append(remover);
-    card.append(info, acoes);
+    card.append(imagem, info, acoes);
     container.append(card);
   });
   const servicos = document.querySelectorAll('[data-servico]').length;

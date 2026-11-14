@@ -143,3 +143,239 @@
         min-width: 420px;
     }
 }
+
+/* ===== Campo "Requer pré-preparo" (checkbox simples no grid do form) =====
+   Classe escopada; só existe no formulário de prato. Ocupa a linha inteira
+   para não ficar espremido numa meia-coluna, com rótulo e checkbox alinhados. */
+.campo-checkbox {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.campo-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.campo-checkbox input[type="checkbox"] {
+    appearance: auto;
+    width: 16px;
+    height: 16px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    accent-color: #82472f;
+    cursor: pointer;
+}
+
+/* ===== Ficha técnica: seleção de ingredientes (prato e bebida) =====
+   Classes NOVAS e escopadas sob .ingredientes-catalogo, para não colidir com o
+   fieldset de cardápios (.servicos-catalogo). O fieldset tem também .campo-largo,
+   então já ocupa as duas colunas do grid. Espelha o visual de cartão das labels
+   de .opcoes-servicos (borda, radius, fundo). */
+.ingredientes-catalogo {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.ingredientes-catalogo legend {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ingredientes-catalogo .opcoes-ingredientes {
+    display: grid;
+    margin-top: 8px;
+    gap: 8px;
+}
+
+.ingredientes-catalogo .linha-ingrediente {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid #d2bfa4;
+    border-radius: 10px;
+    background: #fffcf7;
+}
+
+.ingredientes-catalogo .selecao-ingrediente {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.ingredientes-catalogo .selecao-ingrediente input[type="checkbox"] {
+    appearance: auto;
+    width: 16px;
+    height: 16px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    accent-color: #82472f;
+    cursor: pointer;
+}
+
+.ingredientes-catalogo .quantidade-ingrediente {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.ingredientes-catalogo .quantidade-ingrediente input[type="number"] {
+    width: 88px;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.ingredientes-catalogo .quantidade-ingrediente input[type="number"]:disabled {
+    background: #f1e8da;
+    color: #a99a86;
+    cursor: not-allowed;
+}
+
+.ingredientes-catalogo .unidade-ingrediente {
+    font-size: 11px;
+    color: #a16d4d;
+    /* Largura fixa suficiente para o maior rótulo ('unidade') na fonte atual
+       (font-size:11px). Mantém a coluna da unidade constante para que o input
+       numérico (width:88px) fique sempre na mesma posição horizontal em todas
+       as linhas, independentemente de a unidade ser 'g', 'ml' ou 'unidade'. */
+    width: 4.5em;
+    flex-shrink: 0;
+    text-align: left;
+}
+
+.ingredientes-catalogo > small {
+    display: block;
+    margin-top: 10px;
+    font-size: 10px;
+    color: #927661;
+}
+
+@media (max-width: 700px) {
+    .ingredientes-catalogo .linha-ingrediente {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ingredientes-catalogo .quantidade-ingrediente {
+        justify-content: flex-end;
+    }
+}
+
+/* Tabela da área "Gerenciar serviços existentes" (somente a página de
+   serviços). Classe NOVA e escopada sob .tabela-servicos: espelha as regras de
+   .tabela-bancadas sem alterá-las, para não vazar para as demais páginas. */
+.tabela-servicos {
+    overflow-x: auto;
+}
+
+.tabela-servicos table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.tabela-servicos thead th {
+    text-align: left;
+    font: 600 11px system-ui;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #927661;
+    padding: 0 12px 12px;
+    border-bottom: 1px solid #e4d6c3;
+}
+
+.tabela-servicos thead th:last-child {
+    text-align: right;
+}
+
+/* Neutraliza o layout de card herdado de .item-catalogo quando a classe é
+   usada numa linha de tabela (o JS da busca exige a classe na <tr>). */
+.tabela-servicos tr.item-catalogo {
+    display: table-row;
+    gap: 0;
+    align-items: initial;
+    padding: 0;
+    border-top: 0;
+}
+
+.tabela-servicos tbody tr.item-catalogo + tr.item-catalogo td {
+    border-top: 1px solid #e4d6c3;
+}
+
+.tabela-servicos tbody td {
+    padding: 16px 12px;
+    vertical-align: top;
+    border-top: 1px solid #e4d6c3;
+}
+
+.tabela-servicos tbody tr:first-child td {
+    border-top: 0;
+}
+
+.tabela-servicos td:first-child {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.tabela-servicos td:last-child {
+    width: 1%;
+    white-space: nowrap;
+}
+
+/* Miniatura da imagem do serviço na listagem. */
+.tabela-servicos td:first-child img {
+    flex: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.tabela-servicos .item-catalogo h3 {
+    font: 600 15px system-ui;
+    margin: 0 0 6px;
+}
+
+.tabela-servicos .item-catalogo small {
+    display: block;
+    font-size: 10px;
+    color: #a16d4d;
+    margin-bottom: 6px;
+}
+
+.tabela-servicos .item-catalogo p {
+    font-size: 12px;
+    color: #715b4b;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* A acoes-item compartilhada é coluna; aqui fica lado a lado e à direita. */
+.tabela-servicos .acoes-item {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-left: 0;
+}
+
+@media (max-width: 700px) {
+    .tabela-servicos table {
+        min-width: 420px;
+    }
+}

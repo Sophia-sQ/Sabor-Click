@@ -21,14 +21,14 @@ const detalheQuantidade = document.querySelector('#detalhe-pessoas');
 const formularioCarrinho = document.querySelector('#adicionar-do-menu');
 let pratoSelecionado = null;
 function quantidadeValida(campo) {
-  return campo.validity.valid && Number.isInteger(campo.valueAsNumber) && campo.valueAsNumber >= 10 && campo.valueAsNumber <= 500;
+  return campo.validity.valid && Number.isInteger(campo.valueAsNumber) && campo.valueAsNumber >= 10 && campo.valueAsNumber <= 250;
 }
 function atualizarTotal(prato) {
   const campo = prato.querySelector('.quantidade-pessoas');
   if (!campo) return;
   const total = prato.querySelector('.total-menu');
   if (!quantidadeValida(campo)) {
-    total.textContent = 'Informe uma quantidade inteira de 10 a 500 pessoas.';
+    total.textContent = 'Informe uma quantidade inteira de 10 a 250 pessoas.';
     return;
   }
   const valor = document.createElement('strong');
@@ -43,7 +43,7 @@ function atualizarDetalhe() {
   if (!pratoSelecionado) return;
   const total = document.querySelector('#detalhe-total');
   if (!quantidadeValida(detalheQuantidade)) {
-    total.textContent = 'Informe uma quantidade inteira de 10 a 500 pessoas.';
+    total.textContent = 'Informe uma quantidade inteira de 10 a 250 pessoas.';
     return;
   }
   const campo = pratoSelecionado.querySelector('.quantidade-pessoas');

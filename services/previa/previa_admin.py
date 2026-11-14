@@ -7,6 +7,39 @@ from services.previa.catalogo_previa_admin import registrar, menu_publico, lista
 from services import apresentar_endereco_evento, validar_endereco_evento
 from utils import nome_exibicao
 
+# A prévia é um Flask standalone, sem banco nem app-context do app principal, então
+# a seção de serviços da home (que agora itera `servicos`) é alimentada pelos 4
+# serviços seed. As imagens reutilizam o mapa de fallback do controller real
+# (_FOTOS_SERVICOS) para não divergir dos caminhos usados em produção.
+from controller.cliente_controller import _FOTOS_SERVICOS
+
+# nome, descrição, slug (espelha seeds.lista_servicos + os slugs de _FOTOS_SERVICOS).
+_SERVICOS_PREVIA = [
+    ("Chef em casa", "Prepara a refeição em pequenas comemorações e em ambiente domiciliar.", "chef-em-casa"),
+    ("Buffet", "Prepara o ambiente para grandes comemorações que envolvam pratos quentes.", "buffet"),
+    ("Bar", "Prepara bebidas escolhidas pelo cliente no balcão.", "bar"),
+    ("Mesa de salgados", "Organiza os salgados para festas.", "mesa-de-salgados"),
+]
+
+
+def _servicos_previa():
+    """Lista fixa de serviços para a seção de serviços da home na prévia.
+
+    Mesma forma dos dicionários montados por cliente_controller._servicos_home
+    (numero, nome, descricao, slug, imagem), garantindo que a grade da prévia
+    volte a renderizar os 4 cards de serviço.
+    """
+    return [
+        {
+            "numero": f"{indice:02d}",
+            "nome": nome,
+            "descricao": descricao,
+            "slug": slug,
+            "imagem": _FOTOS_SERVICOS.get(slug),
+        }
+        for indice, (nome, descricao, slug) in enumerate(_SERVICOS_PREVIA, start=1)
+    ]
+
 RAIZ = Path(__file__).resolve().parents[2]
 app = Flask(__name__, template_folder=str(RAIZ / 'templates'), static_folder=str(RAIZ / 'static'))
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -40,7 +73,7 @@ def checkout():
 
 @app.get('/', endpoint='cliente.home')
 def home():
-    return render_template('home.html', servicos_na_previa=True)
+    return render_template('home.html', servicos_na_previa=True, servicos=_servicos_previa())
 
 @app.get('/admin')
 def admin():

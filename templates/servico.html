@@ -19,7 +19,11 @@
 {% include "componentes/mensagens.html" %}
 {% from 'componentes/fotos_servicos.html' import fotos_servicos %}
 <section class="menu-intro">
-    {% if servico.slug in fotos_servicos %}
+    {% if imagem_servico %}
+    <figure class="menu-intro-foto">
+        <img src="{{ url_for('static', filename=imagem_servico) }}" alt="">
+    </figure>
+    {% elif servico.slug in fotos_servicos %}
     <figure class="menu-intro-foto">
         <img src="{{ url_for('static', filename='images/' ~ fotos_servicos[servico.slug]) }}" alt="">
     </figure>
@@ -31,7 +35,7 @@
     </div>
 </section>
 <section class="menu-catalogo" aria-label="Cardápios do serviço">
-<datalist id="sugestoes-convidados">{% for quantidade in [10,20,30,40,50,75,100,150,200,300,400,500] %}<option value="{{ quantidade }}"></option>{% endfor %}</datalist>
+<datalist id="sugestoes-convidados">{% for quantidade in [10,20,30,40,50,75,100,150,200,250] %}<option value="{{ quantidade }}"></option>{% endfor %}</datalist>
 <div class="pratos-grade">
 {% for cardapio in cardapios %}
 <article class="prato" data-categoria="{{ servico.slug }}" data-busca="{{ cardapio.nome }} {{ cardapio.descricao }}">
@@ -47,7 +51,7 @@
         <form class="escolha-menu" method="post" action="{{ url_for('cliente.adicionar') }}">
             <input type="hidden" name="slug_servico" value="{{ servico.slug }}">
             <input type="hidden" name="id_cardapio" value="{{ cardapio.id_cardapio }}">
-            <label class="convidados-label">Para <input class="quantidade-pessoas" type="number" name="qtd" min="10" max="500" step="1" value="50" inputmode="numeric" list="sugestoes-convidados" aria-label="Quantidade de pessoas para {{ cardapio.nome }}" required></label>
+            <label class="convidados-label">Para <input class="quantidade-pessoas" type="number" name="qtd" min="10" max="250" step="1" value="50" inputmode="numeric" list="sugestoes-convidados" aria-label="Quantidade de pessoas para {{ cardapio.nome }}" required></label>
             <button type="submit" class="ver-menu">Adicionar ao carrinho <span aria-hidden="true">↗</span></button>
         </form>
     </div>

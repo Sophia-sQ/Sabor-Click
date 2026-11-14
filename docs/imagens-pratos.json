@@ -9,5 +9,16 @@
     "original": "",
     "alteracoes": "Imagem enviada pelo admin via upload.",
     "versao": "a8c61ba1f5"
+  },
+  "meiko": {
+    "arquivo": "static/images/pratos/meiko.jpg",
+    "titulo": "meiko",
+    "fonte": "",
+    "autor": "Upload Sabor & Click",
+    "licenca": "Uso próprio",
+    "licenca_url": "",
+    "original": "",
+    "alteracoes": "Imagem enviada pelo admin via upload.",
+    "versao": "cabd17cece"
   }
 }
