@@ -29,27 +29,6 @@ formItem.addEventListener("submit", () => {
   // Sem preventDefault: o formulário é submetido de verdade ao backend.
 });
 
-// ===================== Edição de bebida =====================
-// POSTa para /admin/servicos/bebidas/atualizar/<id> com nome/descricao/valor_unitario.
-const dialogoBebida = document.getElementById("editar-bebida");
-const formBebida = document.getElementById("form-editar-bebida");
-const nomeBebida = document.getElementById("editar-bebida-nome");
-const descricaoBebida = document.getElementById("editar-bebida-descricao");
-const valorBebida = document.getElementById("editar-bebida-valor");
-
-document.querySelectorAll(".editar-bebida").forEach((botao) => {
-  botao.addEventListener("click", () => {
-    const linha = botao.closest("tr");
-    formBebida.action = botao.dataset.url || "";
-    nomeBebida.value = linha.dataset.nome || "";
-    descricaoBebida.value = linha.dataset.descricao || "";
-    valorBebida.value = linha.dataset.valor || "";
-    dialogoBebida.showModal();
-  });
-});
-
-document.getElementById("cancelar-edicao-bebida").addEventListener("click", () => dialogoBebida.close());
-
 const botaoCadastrar = document.querySelector('.cadastrar-item');
 const cadastroItem = document.getElementById('cadastro-item');
 botaoCadastrar.addEventListener('click', () => {
@@ -59,31 +38,21 @@ document.getElementById('fechar-cadastro').addEventListener('click', () => {
   cadastroItem.close();
 });
 
-const botaoCadastrarCardapio = document.querySelector('.cadastrar-cardapio');
-const cadastroCardapio = document.getElementById('cadastro-cardapio');
-botaoCadastrarCardapio.addEventListener('click', () => {
-  cadastroCardapio.showModal();
-});
-document.getElementById('fechar-cadastro-cardapio').addEventListener('click', () => {
-  cadastroCardapio.close();
-});
-
 const entidadeEstoque = document.getElementById('estoque-entidade');
 const buscaEstoque = document.getElementById('estoque-busca');
 const situacaoEstoque = document.getElementById('estoque-situacao');
 const normalizarEstoque = texto => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 function filtrarEstoque() {
   const entidade = entidadeEstoque.value;
-  const insumos = ['todos', 'ingrediente', 'bebida'].includes(entidade);
+  const insumos = ['todos', 'ingrediente'].includes(entidade);
   document.getElementById('tabela-insumos').hidden = !insumos;
-  document.getElementById('tabela-pratos').hidden = entidade !== 'prato';
   document.getElementById('tabela-lotes').hidden = entidade !== 'lote';
   document.getElementById('grupo-situacao').hidden = !insumos;
   situacaoEstoque.disabled = !insumos;
   botaoCadastrar.hidden = !insumos;
   document.getElementById('titulo-entidade').textContent = entidadeEstoque.selectedOptions[0].textContent;
-  buscaEstoque.placeholder = entidade === 'lote' ? 'Número do lote, item ou marca' : entidade === 'prato' ? 'Nome ou tipo do prato' : 'Nome do item';
-  const tabela = document.getElementById(entidade === 'prato' ? 'tabela-pratos' : entidade === 'lote' ? 'tabela-lotes' : 'tabela-insumos');
+  buscaEstoque.placeholder = entidade === 'lote' ? 'Número do lote, item ou marca' : 'Nome do item';
+  const tabela = document.getElementById(entidade === 'lote' ? 'tabela-lotes' : 'tabela-insumos');
   let total = 0;
   tabela.querySelectorAll('tbody tr').forEach(linha => {
     const tipoCorreto = !insumos || entidade === 'todos' || linha.dataset.entidade === entidade;

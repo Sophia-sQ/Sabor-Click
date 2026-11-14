@@ -209,16 +209,5 @@
     "original": "https://images.pexels.com/photos/14665242/pexels-photo-14665242.jpeg",
     "alteracoes": "Redimensionamento pelo serviço de imagens do Pexels; recorte visual no site com object-fit: cover.",
     "versao": "a5ac39cc02"
-  },
-  "kaitodayo": {
-    "arquivo": "static/images/menu/kaitodayo.jpg",
-    "titulo": "kaitodayo",
-    "fonte": "",
-    "autor": "Upload Sabor & Click",
-    "licenca": "Uso próprio",
-    "licenca_url": "",
-    "original": "",
-    "alteracoes": "Imagem enviada pelo admin via upload.",
-    "versao": "7d3d45be03"
   }
 }
