@@ -30,11 +30,11 @@ class Config:
 
     # --- CONFIGURAÇÕES DO FLASK-MAIL ---
     MAIL_SERVER = os.environ.get("MAIL_SERVER")
-    MAIL_PORT = int(os.environ.get("MAIL_PORT"))
+    MAIL_PORT = int(os.environ.get("MAIL_PORT") or 587)
 
     # Segurança da conexão
-    MAIL_USE_TLS = bool(int(os.environ.get("MAIL_USE_TLS")))
-    MAIL_USE_SSL = bool(int(os.environ.get("MAIL_USE_SSL")))
+    MAIL_USE_TLS = bool(int(os.environ.get("MAIL_USE_TLS") or 0))
+    MAIL_USE_SSL = bool(int(os.environ.get("MAIL_USE_SSL") or 0))
 
     # Credenciais de autenticação
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")

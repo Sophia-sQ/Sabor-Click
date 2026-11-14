@@ -1,0 +1,49 @@
+/*
+ * base-cliente.css
+ * Fonte de verdade dos tokens de design da area CLIENTE do Sabor & Click.
+ * Todas as paginas cliente (home, menu, bebidas, carrinho, perfil, servico,
+ * login, cadastro, verificacao, erro) carregam este arquivo ANTES do CSS
+ * especifico da pagina para herdar estes tokens.
+ *
+ * A cor de acao (--cor) e alinhada a identidade oficial do projeto
+ * (--cor:#a94f2e, a mesma usada pela familia admin em previas.css).
+ * --destaque e um alias de compatibilidade porque home.css/menu.css e outras
+ * paginas ja consomem var(--destaque).
+ *
+ * Este arquivo contem SOMENTE tokens (:root). Nao duplicar regras de layout
+ * de previas.css aqui. O componente base de botao e tratado na FEAT-003.
+ */
+:root {
+    --fundo: #f7f1e6;
+    --papel: #fffaf2;
+    --texto: #312118;
+    --secundario: #614a3d;
+    --muted: #715b4b;
+    --linha: #e4d6c3;
+    --cor: #a94f2e;
+    --cor-hover: #8c4025;
+    --destaque: var(--cor);
+    --raio-botao: 8px;
+    --raio-pilula: 999px;
+}
+
+/*
+ * PADRAO DE BOTAO DA AREA CLIENTE (FEAT-003)
+ * Para coesao visual, todo botao cliente pertence a UM de dois tipos, e o
+ * mesmo tipo usa SEMPRE o mesmo raio em todas as paginas:
+ *
+ *  1) ACAO PRIMARIA (retangular) -> raio var(--raio-botao) = 8px.
+ *     Preenchido com var(--cor), hover var(--cor-hover), texto claro,
+ *     min-height >= 44px e foco visivel outline var(--cor).
+ *     Ex.: .botao (home), .finalizar-compra, .escolher-endereco,
+ *     .resumo-bebidas>.botao (adicionar), .ver-menu, .acao-erro, .entrar.
+ *     Decisao: botoes de mesma funcao (finalizar/adicionar/usar endereco)
+ *     convergem para 8px; antes divergiam (22px, 99px, 999px, 5px).
+ *
+ *  2) VARIANTE PILULA (secundaria/compacta) -> raio var(--raio-pilula) = 999px.
+ *     Ex.: .botao-menu (CTA "Ver cardapio"), perfil .primario/.secundario,
+ *     .remover-item (acao secundaria no card do carrinho), #cancelar-endereco.
+ *
+ * Cores destrutivas intencionais (sair/excluir conta, #b42318) ficam de fora
+ * deste token de cor de acao de proposito.
+ */

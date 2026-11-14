@@ -5,7 +5,7 @@ from . import admin_bp
 from flask import render_template
 
 from model.pedido_model import (
-    listar_pedidos_em_andamento,
+    listar_todos_pedidos,
     buscar_cardapios_pedido,
     listar_bebidas_do_pedido,
     buscar_bebida_por_id,
@@ -23,9 +23,11 @@ _ROTULO_STATUS = {
     "cancelado": "Cancelado",
 }
 _CLASSE_STATUS = {
+    "aguardando": "cinza",
     "confirmado": "amarelo",
     "em preparo": "amarelo",
     "concluido": "verde",
+    "cancelado": "vermelho",
 }
 
 
@@ -76,15 +78,16 @@ def _resumo_pedido_admin(pedido) -> dict:
 
 @admin_bp.get("/pedidos")
 def pagina_pedidos():
-    """Exibe todos os pedidos em andamento para o administrador.
+    """Exibe todos os pedidos para o administrador.
 
-    Página somente leitura: lista os pedidos ativos ('confirmado'/'em preparo')
-    sem alterar status nem expor dados sensíveis do cliente. O acesso é restrito
-    ao cargo ADMIN pelo hook ``verificar_cargo`` do blueprint admin.
+    Página somente leitura: lista os pedidos de todos os status do enum
+    ('aguardando', 'confirmado', 'em preparo', 'concluido', 'cancelado') sem
+    alterar status nem expor dados sensíveis do cliente. O acesso é restrito ao
+    cargo ADMIN pelo hook ``verificar_cargo`` do blueprint admin.
 
     Returns:
-        str: template "pedidos.html" renderizado com os pedidos em andamento.
+        str: template "pedidos.html" renderizado com todos os pedidos.
     """
-    pedidos = listar_pedidos_em_andamento()
+    pedidos = listar_todos_pedidos()
     pedidos_dados = [_resumo_pedido_admin(pedido) for pedido in pedidos]
     return render_template("pedidos.html", pedidos=pedidos_dados)

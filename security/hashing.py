@@ -19,8 +19,8 @@ def gerar_hmac(cpf: str = None, email: str = None) -> str:
         str: hash HMAC-SHA256 em hexadecimal.
 
     Raises:
-        ValueError: se a variável *_LOOKUP_HMAC_SECRET correspondente não estiver
-            configurada no .env.
+        ValueError: se a variável ``*_LOOKUP_HMAC_SECRET`` correspondente não
+            estiver configurada no .env.
     """
     
     if cpf:

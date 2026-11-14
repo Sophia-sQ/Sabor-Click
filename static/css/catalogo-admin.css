@@ -55,3 +55,91 @@
     font: 600 10px system-ui;
     vertical-align: middle;
 }
+
+/* Tabela da área "Gerenciar bancadas existentes" (somente a página de
+   bancadas). Todas as regras ficam sob .tabela-bancadas para não vazar
+   para .item-catalogo das outras páginas de catálogo. */
+.tabela-bancadas {
+    overflow-x: auto;
+}
+
+.tabela-bancadas table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.tabela-bancadas thead th {
+    text-align: left;
+    font: 600 11px system-ui;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #927661;
+    padding: 0 12px 12px;
+    border-bottom: 1px solid #e4d6c3;
+}
+
+.tabela-bancadas thead th:last-child {
+    text-align: right;
+}
+
+/* Neutraliza o layout de card herdado de .item-catalogo quando a classe é
+   usada numa linha de tabela (o JS da busca exige a classe na <tr>). */
+.tabela-bancadas tr.item-catalogo {
+    display: table-row;
+    gap: 0;
+    align-items: initial;
+    padding: 0;
+    border-top: 0;
+}
+
+.tabela-bancadas tbody tr.item-catalogo + tr.item-catalogo td {
+    border-top: 1px solid #e4d6c3;
+}
+
+.tabela-bancadas tbody td {
+    padding: 16px 12px;
+    vertical-align: top;
+    border-top: 1px solid #e4d6c3;
+}
+
+.tabela-bancadas tbody tr:first-child td {
+    border-top: 0;
+}
+
+.tabela-bancadas td:last-child {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.tabela-bancadas .item-catalogo h3 {
+    font: 600 15px system-ui;
+    margin: 0 0 6px;
+}
+
+.tabela-bancadas .item-catalogo small {
+    display: block;
+    font-size: 10px;
+    color: #a16d4d;
+    margin-bottom: 6px;
+}
+
+.tabela-bancadas .item-catalogo p {
+    font-size: 12px;
+    color: #715b4b;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* A acoes-item compartilhada é coluna; aqui fica lado a lado e à direita. */
+.tabela-bancadas .acoes-item {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-left: 0;
+}
+
+@media (max-width: 700px) {
+    .tabela-bancadas table {
+        min-width: 420px;
+    }
+}

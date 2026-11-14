@@ -40,6 +40,11 @@
     // Pedido que está na bancada do chef (vindo de GET /pedido/preparo).
     let atual = null;
     const separados = new Set();
+    // Total de pedidos concluídos nesta sessão da cozinha. O pedido concluído
+    // é descartado da bancada (atual = null) para liberá-la, então a contagem
+    // de "Pedidos Feitos" precisa ser acumulada aqui — não pode ser derivada do
+    // estado efêmero de `atual`, que nunca fica em 'concluido'.
+    let totalConcluidos = 0;
 
     function definirMensagem(texto) {
         el('mensagem-cozinha').textContent = texto || '';
@@ -85,7 +90,7 @@
     function atualizarContadores() {
         el('total-aguardando').textContent = fila.length;
         el('total-preparo').textContent = (atual && ['confirmado', 'em preparo'].includes(atual.status)) ? 1 : 0;
-        el('total-concluido').textContent = (atual && atual.status === 'concluido') ? 1 : 0;
+        el('total-concluido').textContent = totalConcluidos;
     }
 
     // ------- BANCADA DE PREPARO (pedido atual do chef) -------
@@ -130,7 +135,7 @@
         }
         lista.replaceChildren(...bancadas.map(bancada => {
             const item = criar('li');
-            item.append(criar('span', bancada.nome || 'Bancada'));
+            item.append(criar('span', bancada.nome + " - "|| 'Bancada'));
             if (bancada.descricao) item.append(criar('span', bancada.descricao, 'muted'));
             return item;
         }));
@@ -288,9 +293,12 @@
             const statusFinal = dados.status || alvo;
             if (statusFinal === 'em preparo') separados.clear();
             if (statusFinal === 'concluido') {
-                // Pedido concluído: libera a bancada e rebusca a fila do servidor
-                // para que novos pedidos 'aguardando' voltem a poder ser aceitos.
+                // Pedido concluído: contabiliza, libera a bancada e rebusca a
+                // fila do servidor para que novos pedidos 'aguardando' voltem a
+                // poder ser aceitos. O incremento acontece só após o servidor
+                // confirmar a transição (resposta.ok && dados.ok acima).
                 const idConcluido = atual.id_pedido;
+                totalConcluidos += 1;
                 atual = null;
                 separados.clear();
                 mostrarBancadaVazia();
@@ -307,7 +315,47 @@
         }
     }
 
+    // Cancela o pedido ativo da bancada. O chef só pode cancelar depois de ter
+    // aceitado o pedido (status 'confirmado' ou 'em preparo'); por isso o botão
+    // só aparece junto da bancada de preparo (preparo-conteudo), nunca nos cards
+    // da fila. Em caso de sucesso, segue o mesmo tratamento de "bancada
+    // liberada" da conclusão: zera `atual`, limpa os separados, mostra a
+    // bancada vazia e rebusca a fila para que novos pedidos 'aguardando' voltem
+    // a poder ser aceitos. Cancelado não é concluído, então não incrementa
+    // totalConcluidos.
+    async function cancelarPreparo() {
+        if (!atual) return;
+        const botao = el('cancelar-preparo');
+        botao.disabled = true;
+        definirMensagem('');
+        try {
+            const resposta = await fetch('/pedido/cancelar', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: atual.id_pedido}),
+            });
+            if (resposta.redirected || !resposta.headers.get('content-type')?.includes('application/json')) {
+                throw new Error('Sua sessão expirou. Entre na sua conta e tente novamente.');
+            }
+            const dados = await resposta.json();
+            if (!resposta.ok || !dados.ok) {
+                throw new Error(dados.erro || 'Não foi possível cancelar o pedido.');
+            }
+            const idCancelado = atual.id_pedido;
+            atual = null;
+            separados.clear();
+            mostrarBancadaVazia();
+            definirMensagem(`Pedido #${idCancelado}: ${(estados.cancelado).toLowerCase()}.`);
+            await carregarFila();
+        } catch (erro) {
+            definirMensagem(erro.message || 'Não foi possível cancelar o pedido.');
+            botao.disabled = false;
+            renderizarPreparo();
+        }
+    }
+
     el('avancar-preparo').addEventListener('click', avancarPreparo);
+    el('cancelar-preparo').addEventListener('click', cancelarPreparo);
 
     renderizarFila();
     carregarPreparo();

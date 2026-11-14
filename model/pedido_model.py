@@ -497,6 +497,26 @@ def listar_pedidos_em_andamento() -> list[Pedido]:
         .all()
     )
 
+def listar_todos_pedidos() -> list[Pedido]:
+    """Lista todos os pedidos, independentemente do status.
+
+    Diferente de ``listar_pedidos_em_andamento`` (restrita a
+    'confirmado'/'em preparo'), esta consulta traz os pedidos de todos os
+    status do enum ('aguardando', 'confirmado', 'em preparo', 'concluido',
+    'cancelado'), servindo ao painel administrativo de acompanhamento que
+    precisa enxergar o quadro completo. A ordenação coloca os pedidos mais
+    recentes primeiro (``criado_em`` desc e, em empate, ``id_pedido`` desc).
+
+    Returns:
+        list[Pedido]: todos os pedidos ordenados do mais recente ao mais antigo.
+    """
+
+    return (
+        db.session.query(Pedido)
+        .order_by(Pedido.criado_em.desc(), Pedido.id_pedido.desc())
+        .all()
+    )
+
 def buscar_pedido_por_chefe(id_chefe: int) -> Pedido | None:
     """Monta a consulta dos pedidos atribuídos a um chefe.
 

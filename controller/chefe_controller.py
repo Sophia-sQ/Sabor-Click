@@ -1,8 +1,9 @@
 """Rotas do chefe: aceitar e atualizar o status de pedidos."""
+import threading
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from flask import Blueprint, render_template, request, session, jsonify, flash, redirect, url_for, abort
+from flask import Blueprint, render_template, request, session, jsonify, flash, redirect, url_for, abort, current_app
 
 from model.ficha_model import listar_ficha_tecnica_por_bebida, listar_ficha_tecnica_por_prato, listar_pratos_por_cardapio
 from model.pedido_model import (buscar_cardapios_pedido, listar_bebidas_do_pedido, buscar_bebida_por_id, 
@@ -12,9 +13,37 @@ from model.servico_model import buscar_cardapio_por_id, listar_bancadas_do_servi
 from model.usuario_model import buscar_usuario_por_id, buscar_endereco_por_id, registrar_log
 
 from services import enviar_email_nao_responda
-from triggers import criar_trigger_baixa_estoque
 
 chefe_bp = Blueprint("chefe", __name__, url_prefix="/pedido")
+
+
+def _enviar_email_async(app, assunto, destinatario, preheader, html):
+    """Dispara o e-mail transacional numa thread separada, sem bloquear o request.
+
+    O envio por SMTP (Flask-Mail) é lento e, feito dentro do request, adiciona
+    segundos de latência às ações da cozinha. Para responder ao chef de imediato,
+    o envio roda numa ``threading.Thread`` daemon. O HTML já vem renderizado do
+    request (onde o app/request context existe), de modo que a thread só precisa
+    abrir um ``app_context`` para que ``mail.send`` funcione.
+
+    Falhas de envio NÃO podem derrubar a aplicação: como rodam fora do request,
+    a exceção é capturada e apenas registrada no log, nunca propagada.
+
+    Args:
+        app: aplicação Flask real (``current_app._get_current_object()``).
+        assunto (str): assunto do e-mail.
+        destinatario (str): e-mail de destino (criptografado).
+        preheader (str): corpo em texto puro / preheader.
+        html (str): corpo HTML já renderizado no request.
+    """
+    def _alvo():
+        with app.app_context():
+            try:
+                enviar_email_nao_responda(assunto, destinatario, preheader, html)
+            except Exception:  # noqa: BLE001 - envio em background não pode derrubar o app
+                app.logger.exception("Falha ao enviar e-mail de notificação do pedido.")
+
+    threading.Thread(target=_alvo, daemon=True).start()
 
 # Texto exato do RAISE(ABORT, ...) emitido pela trigger de baixa de estoque
 # (triggers.py) quando o estoque geral de algum ingrediente é insuficiente
@@ -194,10 +223,11 @@ def fila_cozinha():
 
 @chefe_bp.route("/aceitar", methods=["POST"])
 def aceitar_pedido():
-    """Confirma um pedido, registra o log, garante a trigger e notifica o cliente.
+    """Confirma um pedido, registra o log e notifica o cliente.
 
     Lê o id do pedido do corpo JSON, atualiza o status para 'confirmado',
-    registra a ação e envia e-mail de confirmação ao cliente.
+    registra a ação e dispara (em background) o e-mail de confirmação ao
+    cliente.
 
     Returns:
         Response: JSON com o resultado do aceite. Em sucesso, {'ok': True, ...};
@@ -226,8 +256,9 @@ def aceitar_pedido():
     # aborta (RAISE) quando o estoque geral de algum ingrediente é insuficiente.
     # atualizar_pedido() faz rollback e RE-LANÇA a exceção nesse caso, então
     # distinguimos aqui o abort de estoque de qualquer outro erro: só o abort
-    # de estoque produz uma mensagem que fala em estoque.
-    criar_trigger_baixa_estoque()
+    # de estoque produz uma mensagem que fala em estoque. A trigger de baixa já
+    # é criada no boot da aplicação (database.init_app), então não é recriada
+    # aqui a cada aceite.
     try:
         atualizado = atualizar_pedido(pedido.id_pedido, "confirmado", data_confirma, session.get("id"))
     except Exception as exc:  # noqa: BLE001 - precisamos inspecionar a exceção
@@ -247,7 +278,10 @@ def aceitar_pedido():
     data_confirma = data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
 
     cliente = buscar_usuario_por_id(pedido.id_cliente)
-    enviar_email_nao_responda(
+    # O HTML é renderizado aqui (onde há app/request context) e o envio por SMTP
+    # roda em background, para a resposta ao chef voltar sem esperar o e-mail.
+    _enviar_email_async(
+        current_app._get_current_object(),
         "Seu pedido foi aceito.",
         cliente.email_criptografado,
         "Seu pedido foi aceito.",
@@ -316,7 +350,9 @@ def atualizar_status():
     data_confirma = data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
 
     cliente = buscar_usuario_por_id(pedido.id_cliente)
-    enviar_email_nao_responda(
+    # HTML renderizado no request; envio SMTP em background para não bloquear.
+    _enviar_email_async(
+        current_app._get_current_object(),
         "Seu pedido recebeu uma atualização.",
         cliente.email_criptografado,
         f"Seu pedido está {dados['status']}.",
@@ -324,6 +360,74 @@ def atualizar_status():
     )
 
     return jsonify({"ok": True, "id": pedido.id_pedido, "status": dados["status"]})
+
+@chefe_bp.route("/cancelar", methods=["POST"])
+def cancelar_pedido():
+    """Cancela o pedido ativo do chef, registra o log e notifica o cliente.
+
+    O chef pode cancelar um pedido a qualquer momento depois de tê-lo aceitado,
+    ou seja, enquanto o status for 'confirmado' ou 'em preparo'. Pedidos
+    'aguardando' (ainda na fila, não aceitos) não podem ser cancelados por aqui:
+    o chef precisa aceitar antes. Lê o id do pedido do corpo JSON, valida o
+    estado atual no servidor (não confia no cliente), transiciona o status para
+    'cancelado', registra o log e envia e-mail de cancelamento ao cliente.
+
+    O cancelamento NÃO estorna estoque: mudar o status para 'cancelado' não
+    dispara a trigger de baixa (que só reage à transição para 'confirmado'),
+    então o estoque já baixado permanece baixado e nenhum tratamento especial
+    é necessário aqui.
+
+    Returns:
+        Response: JSON com o resultado do cancelamento. Em sucesso,
+        {'ok': True, 'id': ..., 'status': 'cancelado'}; nos caminhos de falha
+        (pedido inexistente, estado não cancelável, erro no commit) retorna
+        JSON de erro com status 4xx/5xx.
+    """
+    dados = request.get_json(silent=True) or {}
+    pedido = buscar_pedido_por_id(dados.get("id"))
+    if not pedido:
+        return jsonify({"ok": False, "erro": "Pedido não encontrado."}), 404
+
+    # Só é possível cancelar um pedido já aceito pelo chef. Pedidos ainda na
+    # fila ('aguardando') ou já encerrados ('concluido'/'cancelado') não são
+    # canceláveis. A guarda vale mesmo que o JS esconda o botão nesses casos:
+    # o servidor não confia no cliente.
+    if pedido.status not in ("confirmado", "em preparo"):
+        return jsonify({"ok": False, "erro": "Este pedido não pode ser cancelado."}), 409
+
+    data_cancelamento = datetime.now(ZoneInfo("America/Sao_Paulo"))
+
+    # atualizar_pedido() faz rollback e re-lança em caso de falha no commit.
+    # A transição para 'cancelado' não dispara a trigger de baixa de estoque,
+    # então aqui basta uma mensagem genérica para qualquer erro inesperado.
+    try:
+        atualizado = atualizar_pedido(pedido.id_pedido, "cancelado", id_chefe=session.get("id"))
+    except Exception:  # noqa: BLE001 - falha inesperada no commit
+        return jsonify({"ok": False, "erro": "Não foi possível cancelar o pedido."}), 500
+
+    # atualizado==False indica pedido inexistente (já tratado acima); mantém a
+    # guarda para não assumir sucesso indevidamente.
+    if not atualizado:
+        return jsonify({"ok": False, "erro": "Pedido não encontrado."}), 404
+
+    chefe = buscar_usuario_por_id(session.get("id"))
+    if not chefe:
+        return abort(400)
+
+    registrar_log("CANCELOU PEDIDO.", f"Em {data_cancelamento}, o chefe {chefe.nome} cancelou o pedido {pedido.id_pedido}.")
+    data_cancelamento = data_cancelamento.astimezone(ZoneInfo("America/Sao_Paulo"))
+
+    cliente = buscar_usuario_por_id(pedido.id_cliente)
+    # HTML renderizado no request; envio SMTP em background para não bloquear.
+    _enviar_email_async(
+        current_app._get_current_object(),
+        "Seu pedido foi cancelado.",
+        cliente.email_criptografado,
+        "Seu pedido foi cancelado.",
+        render_template("email_pedido.html", **_contexto_email_pedido(pedido, data_cancelamento)),
+    )
+
+    return jsonify({"ok": True, "id": pedido.id_pedido, "status": "cancelado"})
 
 @chefe_bp.get("/preparo")
 def enviar_preparo():

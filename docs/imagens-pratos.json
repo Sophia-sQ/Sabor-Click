@@ -1,1 +1,13 @@
-{}
+{
+  "hamburguer-smash": {
+    "arquivo": "static/images/pratos/hamburguer-smash.png",
+    "titulo": "hamburguer smash",
+    "fonte": "",
+    "autor": "Upload Sabor & Click",
+    "licenca": "Uso próprio",
+    "licenca_url": "",
+    "original": "",
+    "alteracoes": "Imagem enviada pelo admin via upload.",
+    "versao": "a8c61ba1f5"
+  }
+}

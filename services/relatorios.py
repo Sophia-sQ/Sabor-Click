@@ -72,23 +72,24 @@ def _faturamento() -> tuple[int, int]:
 # =================================== RELATÓRIOS ======================================
 
 def resumo_pedidos_por_dia(inicio: date, fim: date) -> list[dict]:
-    """Agrupa os pedidos pela data de CONFIRMAÇÃO e pelo status (datas inclusivas).
+    """Agrupa os pedidos pela data de CRIAÇÃO e pelo status (datas inclusivas).
 
-    Indicador financeiro: usa Pedido.confirmado_em como critério de data. Como
-    confirmado_em é DateTime e os limites (inicio/fim) são datas, o agrupamento e
-    o filtro usam func.date(Pedido.confirmado_em) para cobrir o dia inteiro do
-    'fim' (sem perder confirmações feitas após 00:00). Pedidos não confirmados
-    têm confirmado_em NULL e ficam de fora naturalmente; a receita continua sendo
-    zerada para status != 'concluido'.
+    Indicador de volume: usa Pedido.criado_em como critério de data. Como todo
+    Pedido tem criado_em (coluna NOT NULL), pedidos de todos os status são
+    contabilizados — inclusive 'aguardando' e 'cancelado', que não têm
+    confirmado_em (NULL) e ficariam de fora caso o eixo fosse confirmado_em.
+    Como criado_em é DateTime e os limites (inicio/fim) são datas, o agrupamento
+    e o filtro usam func.date(Pedido.criado_em) para cobrir o dia inteiro do
+    'fim'. A receita continua sendo zerada para status != 'concluido'.
     """
-    dia_confirmacao = func.date(Pedido.confirmado_em)
+    dia_criacao = func.date(Pedido.criado_em)
     resultados = (
         Pedido.query.with_entities(
-            dia_confirmacao, Pedido.status, func.count(), func.sum(Pedido.valor_total)
+            dia_criacao, Pedido.status, func.count(), func.sum(Pedido.valor_total)
         )
-        .filter(dia_confirmacao >= inicio, dia_confirmacao <= fim)
-        .group_by(dia_confirmacao, Pedido.status)
-        .order_by(dia_confirmacao, Pedido.status)
+        .filter(dia_criacao >= inicio, dia_criacao <= fim)
+        .group_by(dia_criacao, Pedido.status)
+        .order_by(dia_criacao, Pedido.status)
         .all()
     )
     return [
