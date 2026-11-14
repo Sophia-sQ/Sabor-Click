@@ -13,7 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from model.servico_model import (
     criar_bancada, atualizar_bancada, desativar_bancada,
-    listar_bancadas, listar_bancadas_ativas, buscar_bancada_por_id,
+    listar_bancadas_ativas, buscar_bancada_por_id,
     listar_servicos, buscar_servico_por_slug,
     associar_servico_bancada, desassociar_servico_bancada,
     Servico, ServicoBancada, Bancada,
@@ -49,9 +49,9 @@ def _slugs_servicos_da_bancada(id_bancada: int) -> list:
 
 
 def _itens_bancada() -> list:
-    """Monta a lista de bancadas (todas, ativas e inativas) para o catálogo admin."""
+    """Monta a lista de bancadas ATIVAS para o catálogo admin (desativadas são ocultadas)."""
     itens = []
-    for bancada in listar_bancadas() or []:
+    for bancada in listar_bancadas_ativas() or []:
         itens.append({
             "id": bancada.id_bancada,
             "nome": bancada.nome,
@@ -66,10 +66,10 @@ def _itens_bancada() -> list:
 def catalogo_bancadas():
     """Renderiza a página real de catálogo de bancadas (CMS).
 
-    Lista todas as bancadas (ativas e inativas, via listar_bancadas), marcando as
-    inativas. Suporta ?editar=<id> (abre o formulário já preenchido) e
-    ?gerenciar=1 (abre a seção de gerenciamento), como nas demais páginas. NÃO há
-    campo de imagem (bancadas não têm imagem).
+    Lista apenas as bancadas ATIVAS (via listar_bancadas_ativas); bancadas
+    desativadas (soft delete) não aparecem. Suporta ?editar=<id> (abre o
+    formulário já preenchido) e ?gerenciar=1 (abre a seção de gerenciamento),
+    como nas demais páginas. NÃO há campo de imagem (bancadas não têm imagem).
     """
     itens = _itens_bancada()
     servicos_catalogo = _servicos_catalogo()

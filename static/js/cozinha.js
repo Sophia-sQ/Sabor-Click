@@ -115,6 +115,28 @@
         return itens;
     }
 
+    // Bancadas (estações de trabalho) dos serviços em que o pedido foi
+    // contratado. Vêm já deduplicadas e apenas ativas do backend; aqui só
+    // renderizamos no mesmo padrão de "Itens do pedido". Sem bancadas, a seção
+    // fica oculta (como a bancada vazia) em vez de mostrar um bloco vazio.
+    function renderizarBancadas(pedido) {
+        const secao = el('bancadas-preparo');
+        const lista = el('lista-bancadas');
+        const bancadas = Array.isArray(pedido.bancadas) ? pedido.bancadas : [];
+        if (!bancadas.length) {
+            lista.replaceChildren();
+            secao.hidden = true;
+            return;
+        }
+        lista.replaceChildren(...bancadas.map(bancada => {
+            const item = criar('li');
+            item.append(criar('span', bancada.nome || 'Bancada'));
+            if (bancada.descricao) item.append(criar('span', bancada.descricao, 'muted'));
+            return item;
+        }));
+        secao.hidden = false;
+    }
+
     function mostrarBancadaVazia() {
         el('preparo-vazio').hidden = false;
         el('preparo-conteudo').hidden = true;
@@ -134,6 +156,8 @@
         el('observacao-preparo').textContent = atual.observacao ? `Observação: ${atual.observacao}` : '';
 
         el('itens-pedido').replaceChildren(...itensDoPedido(atual).map(texto => criar('li', texto)));
+
+        renderizarBancadas(atual);
 
         const ingredientes = ingredientesAgregados(atual);
         const container = el('ingredientes-preparo');

@@ -12,7 +12,7 @@ from services import imagem_bebida
 from model.pedido_model import (
     # Bebida
     criar_bebida, buscar_bebida_por_id, atualizar_bebida, deletar_bebida,
-    desativar_bebida, listar_bebidas,
+    desativar_bebida, listar_bebidas_ativas,
 )
 from model.ficha_model import (
     # Ficha técnica da bebida (uma linha por par bebida-ingrediente)
@@ -46,7 +46,7 @@ def _categoria_bebida(bebida) -> str:
 def _itens_bebida(mapa_imagens: dict) -> list:
     """Monta a lista de bebidas (todas) para o catálogo admin."""
     itens = []
-    for bebida in listar_bebidas() or []:
+    for bebida in listar_bebidas_ativas() or []:
         itens.append({
             "id": bebida.id_bebida,
             "nome": bebida.nome,

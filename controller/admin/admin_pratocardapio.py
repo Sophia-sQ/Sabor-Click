@@ -12,14 +12,14 @@ from services import imagem_cardapio, imagem_prato
 
 from model.servico_model import (
     criar_cardapio, atualizar_cardapio, buscar_cardapio_por_id,
-    listar_cardapios, listar_servicos, buscar_servico_por_slug,
+    listar_cardapios_ativos, listar_servicos, buscar_servico_por_slug,
     associar_servico_cardapio, desassociar_servico_cardapio,
     listar_cardapios_do_servico, desativar_cardapio,
     ServicoCardapio, Servico, Cardapio,
 )
 from model.ficha_model import (
     # Prato
-    criar_prato, buscar_prato_por_id, listar_pratos, atualizar_prato,
+    criar_prato, buscar_prato_por_id, atualizar_prato,
     desativar_prato, listar_pratos_ativos,
     # Prato x cardápio
     associar_prato_cardapio, buscar_prato_cardapio, listar_pratos_por_cardapio,
@@ -55,9 +55,9 @@ def _slugs_associados(id_cardapio: int) -> list:
 
 
 def _itens_cardapio(mapa_imagens: dict) -> list:
-    """Monta a lista de cardápios (todos, ativos e inativos) para o catálogo admin."""
+    """Monta a lista de cardápios ATIVOS para o catálogo admin (desativados são ocultados)."""
     itens = []
-    for cardapio in listar_cardapios() or []:
+    for cardapio in listar_cardapios_ativos() or []:
         itens.append({
             "id": cardapio.id_cardapio,
             "nome": cardapio.nome,
@@ -308,13 +308,13 @@ def _cardapios_catalogo() -> dict:
     Returns:
         dict: {id_cardapio: nome} ordenado pelos cardápios cadastrados.
     """
-    return {c.id_cardapio: c.nome for c in (listar_cardapios() or [])}
+    return {c.id_cardapio: c.nome for c in (listar_cardapios_ativos() or [])}
 
 
 def _itens_prato(mapa_imagens: dict) -> list:
-    """Monta a lista de pratos (todos, ativos e inativos) para o catálogo admin."""
+    """Monta a lista de pratos ATIVOS para o catálogo admin (desativados são ocultados)."""
     itens = []
-    for prato in listar_pratos() or []:
+    for prato in listar_pratos_ativos() or []:
         itens.append({
             "id": prato.id_prato,
             "nome": prato.nome,
@@ -333,9 +333,10 @@ def _itens_prato(mapa_imagens: dict) -> list:
 def catalogo_pratos():
     """Renderiza a página real de catálogo de pratos (CMS).
 
-    Lista todos os pratos (ativos e inativos, via listar_pratos), marcando os
-    inativos. Suporta ?editar=<id> (abre o formulário já preenchido) e
-    ?gerenciar=1 (abre a seção de gerenciamento), como nas demais páginas.
+    Lista apenas os pratos ATIVOS (via listar_pratos_ativos); pratos desativados
+    (soft delete) não aparecem. Suporta ?editar=<id> (abre o formulário já
+    preenchido) e ?gerenciar=1 (abre a seção de gerenciamento), como nas demais
+    páginas.
     """
     mapa = _mapa_imagens("imagens-pratos.json")
     itens = _itens_prato(mapa)

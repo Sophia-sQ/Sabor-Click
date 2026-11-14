@@ -8,7 +8,7 @@ from model.ficha_model import listar_ficha_tecnica_por_bebida, listar_ficha_tecn
 from model.pedido_model import (buscar_cardapios_pedido, listar_bebidas_do_pedido, buscar_bebida_por_id, 
                                 atualizar_pedido, buscar_pedido_por_id, listar_pedido_por_status, 
                                 buscar_pedido_ativo_por_chefe)
-from model.servico_model import buscar_cardapio_por_id
+from model.servico_model import buscar_cardapio_por_id, listar_bancadas_do_servico
 from model.usuario_model import buscar_usuario_por_id, buscar_endereco_por_id, registrar_log
 
 from services import enviar_email_nao_responda
@@ -370,8 +370,16 @@ def enviar_preparo():
 
     # -------- CARDÁPIOS DO PEDIDO (com pratos e suas fichas técnicas) --------
     cardapios_resposta = []
+    # Serviços envolvidos no pedido: a ficha do chef mostra, além da ficha
+    # técnica por prato, as bancadas (estações de trabalho) dos serviços em que
+    # o pedido foi contratado. Coletamos os ids de serviço aqui e deduplicamos
+    # as bancadas mais abaixo (um mesmo serviço pode aparecer em vários
+    # cardápios e bancadas podem ser compartilhadas entre serviços).
+    ids_servico = []
     for vinculo in buscar_cardapios_pedido(pedido.id_pedido) or []:
         cardapio = buscar_cardapio_por_id(vinculo.id_cardapio)
+        if vinculo.id_servico is not None and vinculo.id_servico not in ids_servico:
+            ids_servico.append(vinculo.id_servico)
 
         pratos_resposta = []
         for pc in listar_pratos_por_cardapio(vinculo.id_cardapio) or []:
@@ -408,10 +416,35 @@ def enviar_preparo():
             "ficha_tecnica": _ficha_bebida(item.id_bebida),
         })
 
+    # -------- BANCADAS DOS SERVIÇOS DO PEDIDO --------
+    # Para cada serviço contratado no pedido, buscamos suas bancadas e
+    # agregamos a lista DISTINTA (deduplicada por id_bancada), já que um
+    # serviço pode aparecer em vários cardápios e uma mesma bancada pode estar
+    # associada a mais de um serviço. Exibimos apenas bancadas ATIVAS
+    # (ativo==True): uma bancada desativada (soft delete) não deve aparecer
+    # como estação de trabalho recomendada. O filtro é feito aqui no controller
+    # em vez de em listar_bancadas_do_servico para não alterar a assinatura do
+    # model, que é de uso geral.
+    bancadas_resposta = []
+    ids_bancada_vistos = set()
+    for id_servico in ids_servico:
+        for bancada in listar_bancadas_do_servico(id_servico) or []:
+            if not getattr(bancada, "ativo", True):
+                continue
+            if bancada.id_bancada in ids_bancada_vistos:
+                continue
+            ids_bancada_vistos.add(bancada.id_bancada)
+            bancadas_resposta.append({
+                "id_bancada": bancada.id_bancada,
+                "nome": bancada.nome,
+                "descricao": bancada.descricao,
+            })
+
     return jsonify({
         "id_pedido": pedido.id_pedido,
         "status": pedido.status,
         "observacao": pedido.observacao,
         "cardapios": cardapios_resposta,
         "bebidas": bebidas_resposta,
+        "bancadas": bancadas_resposta,
     })
