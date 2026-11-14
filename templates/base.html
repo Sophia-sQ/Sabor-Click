@@ -9,11 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
     {% block estilos %}{% endblock %}
 </head>
-<body{% block atributos_body %}{% endblock %}>
-
-    <button type="button" id="botao-alto-contraste" aria-pressed="false"> Ativar alto contraste </button>
-
-
+<body {% block atributos_body %}{% endblock %}>
     {% block conteudo %}{% endblock %}
     {% block scripts %}{% endblock %}
     <script src="{{ url_for('static', filename='js/alto_contraste.js') }}" defer></script>
