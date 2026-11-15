@@ -1,0 +1,27 @@
+=============== CARGO: ADMIN ===============
+("admin", "00000000000", "saborclicknaoresponda@gmail.com", "vN7!qR2$Lm9@Tx4$Kp8Z")
+
+=============== CARGO: CLIENTE ===============
+("Ana Clara Souza", "11144477735", "ana.souza@exemplo.com", "SenhaCliente1!")
+("Bruno Henrique Lima", "22255588846", "bruno.lima@exemplo.com", "SenhaCliente2!")
+("Carla Regina Nunes", "33366699957", "carla.nunes@exemplo.com", "SenhaCliente3!")
+("Fernanda Oliveira Castro", "70100000100", "fernanda.castro@exemplo.com", "SenhaCliente11!")
+("Gabriel Teixeira Ramos", "70100000200", "gabriel.ramos@exemplo.com", "SenhaCliente12!")
+("Helena Barbosa Dias", "70100000300", "helena.dias@exemplo.com", "SenhaCliente13!")
+("Igor Carvalho Melo", "70100000400", "igor.melo@exemplo.com", "SenhaCliente14!")
+("Juliana Ferreira Pires", "70100000500", "juliana.pires@exemplo.com", "SenhaCliente15!")
+("Kleber Azevedo Lopes", "70100000600", "kleber.lopes@exemplo.com", "SenhaCliente16!")
+("Larissa Moreira Campos", "70100000700", "larissa.campos@exemplo.com", "SenhaCliente17!")
+("Marcelo Nogueira Freitas", "70100000800", "marcelo.freitas@exemplo.com", "SenhaCliente18!")
+("Natália Ribeiro Gomes", "70100000900", "natalia.gomes@exemplo.com", "SenhaCliente19!")
+("Otávio Cardoso Batista", "70100001000", "otavio.batista@exemplo.com", "SenhaCliente20!")
+("Patrícia Mendes Araújo", "70100001100", "patricia.araujo@exemplo.com", "SenhaCliente21!")
+("Rafael Santana Peixoto", "70100001200", "rafael.peixoto@exemplo.com", "SenhaCliente22!")
+
+=============== CARGO: CHEFE ===============
+("Diego Martins Rocha", "44477700012", "diego.rocha@exemplo.com", "SenhaChefe1!")
+("Eduarda Alves Pinto", "55588811123", "eduarda.pinto@exemplo.com", "SenhaChefe2!")
+("Sofia Cunha Vasconcelos", "80900000100", "sofia.vasconcelos@exemplo.com", "SenhaChefe11!")
+("Thiago Moraes Barros", "80900000200", "thiago.barros@exemplo.com", "SenhaChefe12!")
+("Vivian Antunes Rocha", "80900000300", "vivian.rocha@exemplo.com", "SenhaChefe13!")
+("William Siqueira Nunes", "80900000400", "william.nunes@exemplo.com", "SenhaChefe14!")
