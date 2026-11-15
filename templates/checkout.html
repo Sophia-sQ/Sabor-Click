@@ -3,17 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ 'Pedido recebido' if pedido else 'Finalizar pedido' }} | Sabor &amp; Click</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/previas.css') }}">
+
+    <title>
+        {{ 'Pedido recebido' if pedido else 'Finalizar pedido' }} | Sabor &amp; Click
+    </title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/previas.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/alto_contraste.css') }}">
+
     <script src="{{ url_for('static', filename='js/bebidas.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/checkout.js') }}" defer></script>
 </head>
 <body>
-<header class="cabecalho">
-    <a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt="">Sabor &amp; Click</a>
-</header>
+{% include "componentes/navbar_cliente.html" %}
 <main class="estrutura">
     {% include "componentes/mensagens.html" %}
     {% if pedido %}

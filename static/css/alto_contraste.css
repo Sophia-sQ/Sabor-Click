@@ -1,0 +1,113 @@
+
+/* =========================================
+   SABOR & CLICK — ALTO CONTRASTE
+========================================= */
+
+/* Botão na navbar */
+#botao-alto-contraste {
+    position: static;
+    flex-shrink: 0;
+    padding: 10px 14px;
+    border: 2px solid #000;
+    border-radius: 8px;
+    background: #ffff00;
+    color: #000;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#botao-alto-contraste:hover {
+    background: #fff;
+}
+
+#botao-alto-contraste:focus-visible {
+    outline: 3px solid #ffff00;
+    outline-offset: 4px;
+}
+
+/* Regras gerais */
+body.alto-contraste,
+body.alto-contraste * {
+    background-color: #000 !important;
+    color: #fff !important;
+    border-color: #fff !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Links */
+body.alto-contraste a,
+body.alto-contraste a:hover,
+body.alto-contraste a:active,
+body.alto-contraste a:visited {
+    color: #ffff00 !important;
+    text-decoration: underline !important;
+}
+
+/* Botões */
+body.alto-contraste button,
+body.alto-contraste .botao {
+    background: #ffff00 !important;
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    border: 2px solid #fff !important;
+}
+
+/* Formulários */
+body.alto-contraste input,
+body.alto-contraste select,
+body.alto-contraste textarea {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+}
+
+body.alto-contraste input::placeholder,
+body.alto-contraste textarea::placeholder {
+    color: #ffff00 !important;
+    opacity: 1;
+}
+
+/* Foco e imagens */
+body.alto-contraste :focus-visible {
+    outline: 3px solid #ffff00 !important;
+    outline-offset: 4px;
+}
+
+body.alto-contraste img,
+body.alto-contraste video {
+    background: transparent !important;
+}
+
+/* Navbar — carrinho e perfil */
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao,
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao * {
+    color: #ffff00 !important;
+    text-decoration: underline !important;
+}
+
+body.alto-contraste .navbar nav .acoes-usuario a.link-acao img {
+    filter: brightness(0) saturate(100%)
+            invert(91%) sepia(100%) saturate(7497%)
+            hue-rotate(1deg) brightness(105%) contrast(106%) !important;
+}
+
+/* Textos dos botões de ação */
+body.alto-contraste a.botao,
+body.alto-contraste a.botao *,
+body.alto-contraste a.botao-neutro,
+body.alto-contraste a.botao-menu {
+    background: #ffff00 !important;
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    opacity: 1 !important;
+}
+
+/* Botão de acessibilidade */
+body.alto-contraste #botao-alto-contraste {
+    background: #ffff00 !important;
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+}
