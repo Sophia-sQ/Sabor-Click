@@ -1,8 +1,11 @@
+=============== CARGO: ADMIN ===============
 ("admin", "00000000000", "saborclicknaoresponda@gmail.com", "vN7!qR2$Lm9@Tx4$Kp8Z")
 
+=============== CARGO: CLIENTE ===============
 ("Ana Clara Souza", "11144477735", "ana.souza@exemplo.com", "SenhaCliente1!")
 ("Bruno Henrique Lima", "22255588846", "bruno.lima@exemplo.com", "SenhaCliente2!")
 ("Carla Regina Nunes", "33366699957", "carla.nunes@exemplo.com", "SenhaCliente3!")
 
+=============== CARGO: CHEFE ===============
 ("Diego Martins Rocha", "44477700012", "diego.rocha@exemplo.com", "SenhaChefe1!")
 ("Eduarda Alves Pinto", "55588811123", "eduarda.pinto@exemplo.com", "SenhaChefe2!")
