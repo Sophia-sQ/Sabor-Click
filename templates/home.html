@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-chef.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/alto_contraste.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sabor &amp; Click</title>
@@ -10,15 +11,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
 </head>
 <body>
-    <header class="navbar" id="inicio">
-        <a class="marca" href="#inicio"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
-        <nav aria-label="Navegação principal"><a href="#inicio" aria-current="page">Início</a><a href="#sobre">Sobre</a><a href="#servicos">Serviços</a><a class="botao" href="{{ url_for('auth.login') }}">Login</a></nav>
-    </header>
+    {% include "componentes/navbar_cliente.html" %}
     <main>
-        {% include "componentes/mensagens.html" %}
         <section class="hero" aria-labelledby="titulo-home">
             <div class="hero-conteudo">
                 <p class="selo">GASTRONOMIA PARA MOMENTOS ESPECIAIS</p>
@@ -44,8 +40,14 @@
         <section class="servicos" id="servicos" aria-labelledby="titulo-servicos">
             <div class="servicos-intro"><p class="rotulo">NOSSOS SERVIÇOS</p><h2 id="titulo-servicos">Escolha como quer celebrar.</h2><p>Soluções flexíveis para receber seus convidados com praticidade, beleza e muito sabor.</p></div>
             <div class="servicos-grade">
-                {% for servico in servicos|default([]) %}
-                <a class="servico" href="{{ url_for('cliente.menu') if servicos_na_previa else url_for('cliente.mostrar_servico', slug=servico.slug) }}">{% if servico.imagem %}<img src="{{ url_for('static', filename=servico.imagem) }}" alt="" loading="lazy">{% endif %}<div><h3>{{ servico.numero }} &nbsp;{{ servico.nome }}</h3><p>{{ servico.descricao }}</p></div></a>
+                {% from 'componentes/fotos_servicos.html' import fotos_servicos %}
+                {% for numero, nome, descricao, slug in [
+                    ('01', 'Buffet para eventos', 'Cardápio, equipe, montagem e finalização para festas sociais ou encontros corporativos.', 'buffet'),
+                    ('02', 'Chef em casa', 'Uma experiência intimista: o chef prepara, serve e organiza tudo na sua própria cozinha.', 'chef-em-casa'),
+                    ('03', 'Salgados para eventos', 'Coxinhas, quibes e outros salgados para todos os tipos de evento.', 'mesa-de-salgados'),
+                    ('04', 'Bebidas', 'Seleção de bebidas, sucos e coquetéis para brindar cada momento do seu evento.', 'bar')
+                ] %}
+                <a class="servico" href="{{ url_for('cliente.menu') if servicos_na_previa else url_for('cliente.mostrar_servico', slug=slug) }}"><img src="{{ url_for('static', filename='images/' ~ fotos_servicos[slug]) }}" alt="" loading="lazy"><div><h3>{{ numero }} &nbsp;{{ nome }}</h3><p>{{ descricao }}</p></div></a>
                 {% endfor %}
             </div>
             <div class="menu-acao"><a class="botao botao-menu" href="{{ url_for('cliente.menu') }}">Conhecer o menu</a></div>
@@ -59,5 +61,6 @@
         <div class="rodape-cta"><div><h2>Vamos criar um evento inesquecível?</h2><p>Conte sua ideia e receba uma proposta pensada para o seu momento.</p></div><a class="botao" href="{{ url_for('auth.login') }}">Planejar meu evento</a></div>
         <div class="rodape-base"><a class="marca" href="#inicio"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a><nav aria-label="Navegação do rodapé"><a href="#inicio">Início</a><span>•</span><a href="#sobre">Sobre</a><span>•</span><a href="#servicos">Serviços</a><span>•</span><span>© 2026 Sabor &amp; Click</span></nav></div>
     </footer>
+    <script src="{{ url_for('static', filename='js/alto_contraste.js') }}" defer></script>
 </body>
 </html>
