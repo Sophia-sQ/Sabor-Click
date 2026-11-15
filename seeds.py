@@ -740,10 +740,6 @@ lista_cargos = [
 
 # ================================= "Tabelas" USUARIOS / PEDIDOS =================================
 
-# Usuários adicionais (além do admin, que é criado por iniciar_admin()).
-# Cada CPF e e-mail é distinto do admin (00000000000 / ADMIN_EMAIL) e entre si,
-# pois cpf_hmac e email_hmac são UNIQUE. A senha é sempre colocada em hash.
-# nome, cpf, email, senha, cargo (Cargo enum)
 lista_usuarios = [
     ("Ana Clara Souza", "11144477735", "ana.souza@exemplo.com", "SenhaCliente1!", Cargo.CLIENTE),
     ("Bruno Henrique Lima", "22255588846", "bruno.lima@exemplo.com", "SenhaCliente2!", Cargo.CLIENTE),
@@ -752,27 +748,6 @@ lista_usuarios = [
     ("Eduarda Alves Pinto", "55588811123", "eduarda.pinto@exemplo.com", "SenhaChefe2!", Cargo.CHEFE),
 ]
 
-# ------------------------------------------------------------------------------
-# Expansão programática de clientes, chefes e endereços.
-#
-# Para que os relatórios do admin mostrem faturamento em vários meses, o seed
-# precisa de uma base ampla e determinística de clientes (quem faz os pedidos),
-# chefes (quem os atende) e endereços (local do evento). Os dados são gerados
-# por compreensões a partir de listas fixas, de modo que rodar o seed sempre
-# produz exatamente os mesmos registros (idempotência preservada pelas funções
-# iniciar_*, que pulam CPF/e-mail já existentes).
-#
-# Regras respeitadas:
-#   - Apenas Cargo.CLIENTE e Cargo.CHEFE (NENHUM novo ADMIN; o admin é criado só
-#     por iniciar_admin()).
-#   - CPF é string de 11 dígitos, único entre si e distinto de '00000000000'.
-#   - E-mails são únicos.
-#   - Cada endereço gerado abaixo pertence a um cliente existente, e cada par
-#     (email_cliente, nome_endereco) usado em lista_pedidos existe aqui.
-# ------------------------------------------------------------------------------
-
-# Clientes adicionais: (primeiro_nome, sobrenome, apelido_email). O apelido vira
-# o local-part do e-mail e um prefixo estável para os CPFs/endereços.
 _clientes_extra = [
     ("Fernanda", "Oliveira Castro", "fernanda.castro"),
     ("Gabriel", "Teixeira Ramos", "gabriel.ramos"),
@@ -788,7 +763,6 @@ _clientes_extra = [
     ("Rafael", "Santana Peixoto", "rafael.peixoto"),
 ]
 
-# Chefes adicionais atendem os pedidos; variam o vínculo cliente/chefe.
 _chefes_extra = [
     ("Sofia", "Cunha Vasconcelos", "sofia.vasconcelos"),
     ("Thiago", "Moraes Barros", "thiago.barros"),
