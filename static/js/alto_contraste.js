@@ -16,9 +16,13 @@ function aplicarAltoContraste(ativado) {
         String(ativado)
     );
 
-    botaoContraste.textContent = ativado
+    // O botão exibe apenas o ícone (SVG); não sobrescrever o conteúdo com texto.
+    // Atualiza o rótulo acessível em vez do textContent para preservar o ícone.
+    const rotulo = ativado
         ? "Desativar alto contraste"
         : "Ativar alto contraste";
+    botaoContraste.setAttribute("aria-label", rotulo);
+    botaoContraste.setAttribute("title", rotulo);
 
     localStorage.setItem(
         CHAVE_CONTRASTE,

@@ -3,27 +3,34 @@
    SABOR & CLICK — ALTO CONTRASTE
 ========================================= */
 
-/* Botão na navbar */
+/* Botão na navbar — ícone que herda a cor dos links */
 #botao-alto-contraste {
     position: static;
     flex-shrink: 0;
-    padding: 10px 14px;
-    border: 2px solid #000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border: 0;
     border-radius: 8px;
-    background: #ffff00;
-    color: #000;
-    font-size: 13px;
-    font-weight: 700;
+    background: transparent;
+    color: #462f23; /* mesma cor dos links da navbar */
     cursor: pointer;
-    white-space: nowrap;
+    line-height: 0;
+}
+
+#botao-alto-contraste .icone-contraste {
+    width: 20px;
+    height: 20px;
+    color: inherit; /* o SVG usa currentColor, então acompanha a cor do botão */
 }
 
 #botao-alto-contraste:hover {
-    background: #fff;
+    color: #A94F2E; /* cor de hover dos links de ação */
 }
 
 #botao-alto-contraste:focus-visible {
-    outline: 3px solid #ffff00;
+    outline: 3px solid #A94F2E;
     outline-offset: 4px;
 }
 
@@ -105,9 +112,14 @@ body.alto-contraste a.botao-menu {
     opacity: 1 !important;
 }
 
-/* Botão de acessibilidade */
+/* Botão de acessibilidade — apenas o ícone em amarelo, sem fundo */
 body.alto-contraste #botao-alto-contraste {
-    background: #ffff00 !important;
-    color: #000 !important;
-    -webkit-text-fill-color: #000 !important;
+    background: transparent !important;
+    color: #ffff00 !important;
+    -webkit-text-fill-color: #ffff00 !important;
+}
+
+/* Ícone acompanha a cor do botão (currentColor) também no alto contraste */
+body.alto-contraste #botao-alto-contraste .icone-contraste {
+    color: #ffff00 !important;
 }
