@@ -106,6 +106,17 @@ Popule o banco de dados
 ```sh
 flask seed
 ```
+
+Popule o banco com dados OPCIONAIS (usuários e pedidos)
+```sh
+flask dummy
+```
+
+Use para ver os tokens de login dos usuários dummy
+```sh
+flask token
+```
+
 Rode a aplicação
 ```sh
 python app.py
