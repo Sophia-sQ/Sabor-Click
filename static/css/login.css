@@ -79,6 +79,16 @@
   cursor: default;
 }
 
+/* Botão de alto contraste no topo direito das telas de acesso
+   (login/cadastro/verificação), espelhando o botão "Voltar" à esquerda. */
+.barra-acesso #botao-alto-contraste {
+  position: absolute;
+  top: 38px;
+  right: 48px;
+  z-index: 2;
+  color: var(--texto);
+}
+
 .marca {
   font-family: "Cormorant Garamond", serif;
   font-size: 28px;
@@ -216,6 +226,11 @@
     left: 20px;
     gap: 8px;
     padding: 10px 14px;
+  }
+
+  .barra-acesso #botao-alto-contraste {
+    top: 20px;
+    right: 20px;
   }
 
   .marca {

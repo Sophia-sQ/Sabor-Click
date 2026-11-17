@@ -9,11 +9,12 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marca.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/mensagens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/alto_contraste.css') }}">
 </head>
 <body class="pagina-menu">
 <header class="navbar">
     <a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a>
-    <nav aria-label="Navegação principal"><a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.menu') }}">Menu</a><a class="icone-acao carrinho" href="{{ url_for('cliente.mostrar_carrinho') }}" aria-label="Carrinho"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a></nav>
+    <nav aria-label="Navegação principal"><button type="button" id="botao-alto-contraste" aria-pressed="false" aria-label="Ativar alto contraste" title="Ativar alto contraste"><svg class="icone-contraste" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button><a href="{{ url_for('cliente.home') }}">Início</a><a href="{{ url_for('cliente.menu') }}">Menu</a><a class="icone-acao carrinho" href="{{ url_for('cliente.mostrar_carrinho') }}" aria-label="Carrinho"><img src="{{ url_for('static', filename='images/icone-carrinho.svg') }}" width="20" height="20" alt=""></a></nav>
 </header>
 <main>
 {% include "componentes/mensagens.html" %}
@@ -63,4 +64,5 @@
 </section>
 </main>
 <footer class="menu-rodape"><a class="marca" href="{{ url_for('cliente.home') }}"><img class="logo-marca" src="{{ url_for('static', filename='images/logo-chef.png') }}" width="38" height="38" alt=""><span>Sabor &amp; Click</span></a><span>© 2026 Sabor &amp; Click</span><a href="{{ url_for('cliente.home') }}">Voltar ao início ↑</a></footer>
+<script src="{{ url_for('static', filename='js/alto_contraste.js') }}" defer></script>
 </body></html>
