@@ -187,39 +187,6 @@ def status_inicializacao() -> dict:
 
     return {"seed": bool(seed_ok), "dummy": bool(dummy_ok)}
 
-def _backfill_colunas_catalogo() -> None:
-    """Adiciona colunas novas do catálogo em bancos SQLite já existentes.
-
-    Migração ad-hoc idempotente: usa o inspector para descobrir as colunas atuais
-    de 'cardapio' e 'bebida' e só executa ALTER TABLE ADD COLUMN para as que ainda
-    não existem, permitindo que bancos antigos subam sem precisar recriar as
-    tabelas (db.create_all não altera tabelas já criadas). Linhas existentes
-    recebem ativo=1 (default), mantendo-as ativas após a atualização.
-
-    Deve ser chamada dentro de um app_context e apenas para o dialeto sqlite.
-    """
-    inspetor = inspect(db.engine)
-
-    migracoes = (
-        ("cardapio", "ativo", "ALTER TABLE cardapio ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT 1"),
-        ("bebida", "ativo", "ALTER TABLE bebida ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT 1"),
-        ("bebida", "imagem_slug", "ALTER TABLE bebida ADD COLUMN imagem_slug VARCHAR(120)"),
-        ("servico", "ativo", "ALTER TABLE servico ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT 1"),
-        ("servico", "imagem_slug", "ALTER TABLE servico ADD COLUMN imagem_slug VARCHAR(120)"),
-    )
-
-    alterou = False
-    for tabela, coluna, ddl in migracoes:
-        if not inspetor.has_table(tabela):
-            continue
-        colunas = {c["name"] for c in inspetor.get_columns(tabela)}
-        if coluna not in colunas:
-            db.session.execute(text(ddl))
-            alterou = True
-
-    if alterou:
-        db.session.commit()
-
 
 def init_app(app) -> None:
     """Inicializa o banco de dados na aplicação Flask.
@@ -228,29 +195,27 @@ def init_app(app) -> None:
     inicial de cargos, administrador e estoque dentro do contexto da aplicação.
     Em caso de erro no commit, desfaz a transação (rollback).
 
+    No modo empacotado (PyInstaller / apresentação), o banco é RECRIADO do zero
+    a cada inicialização e re-populado automaticamente, garantindo um estado
+    limpo e previsível em cada execução da demo.
+
     Args:
         app (Flask): instância da aplicação Flask a ser configurada.
     """
-    
+
+    from config import MODO_EMPACOTADO
+
     db.init_app(app)
     # Cria automaticamente todas as tabelas no arquivo do banco se elas não existirem
     with app.app_context():
-        db.create_all()
-        if db.engine.dialect.name == "sqlite":
-            from triggers import criar_trigger_baixa_estoque
-            criar_trigger_baixa_estoque()
-            _backfill_colunas_catalogo()
-        
-    @app.cli.command("seed")
-    def seed_command():
-        """Popula o banco de dados com os dados iniciais."""
-        
-        from click import secho
-        
-        criar_cargos()
-        criar_admin()
-        criar_estoque()
+        # Apresentação: começa sempre do mesmo estado, sem lixo de execuções anteriores.
+        if MODO_EMPACOTADO:
+            db.drop_all()
         try:
+            db.create_all()
+            criar_cargos()
+            criar_admin()
+            criar_estoque()
             db.session.commit()
 
             criar_usuarios()
@@ -258,59 +223,9 @@ def init_app(app) -> None:
             criar_pedidos()
             criar_logs_e_tokens()
             db.session.commit()
-
-            secho("Success", fg="green", bold=True)
-        except SQLAlchemyError as e:
+        except:
             db.session.rollback()
-            secho(f"FAIL {e}", fg="red", bold=True)        
-
-    @app.cli.command("dummy")
-    def seed_dummy_command():
-        """Popula o banco com dados de simulação. Requer 'seed' já executado."""
-        from click import secho
-        from model.usuario_model import NivelPermissao
-
-        if not db.session.query(NivelPermissao.query.exists()).scalar():
-            secho("FAIL. Try 'flask seed' command first.", fg="red", bold=True)
-            return
-        
-        criar_usuarios()
-        criar_enderecos()
-        criar_pedidos()
-        criar_logs_e_tokens()
-        try:
-            db.session.commit()
-            secho("Dummy initialized", fg="yellow", bold=True)
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            secho(f"FAIL {e}", fg="red", bold=True)
             
-    @app.cli.command("check-database")
-    def status_inicializacao():
-        """Verifica se os comandos 'seed' e 'dummy' já foram executados.
-
-        A checagem é feita diretamente no banco (único estado que persiste entre as
-        execuções dos comandos). Usa a existência de registros-sentinela:
-          - 'seed': cria os cargos (nivel_permissao); se houver ao menos um, o seed
-            já rodou.
-          - 'dummy': cria os pedidos de simulação; se houver ao menos um, o dummy já
-            rodou.
-
-        Não realiza commit nem altera dados.
-        """
-        from click import secho
-        from model.usuario_model import NivelPermissao
-        from model.pedido_model import Pedido
-
-        seed_ok = db.session.query(NivelPermissao.query.exists()).scalar()
-        dummy_ok = db.session.query(Pedido.query.exists()).scalar()
-        secho("Verifing . . .", fg="cyan", bold=True)
-        if seed_ok:
-            secho("Seed OK", fg="green", bold=True)
-        else:
-            secho("Seed Unexecuted", fg="red", bold=True)
-        
-        if dummy_ok:
-            secho("Dummy OK", fg="green", bold=True)
-        else:
-            secho("Dummy Unexecuted", fg="yellow", bold=True)
+        if db.engine.dialect.name == "sqlite":
+            from triggers import criar_trigger_baixa_estoque
+            criar_trigger_baixa_estoque()

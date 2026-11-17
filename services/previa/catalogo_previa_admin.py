@@ -1,6 +1,7 @@
 """Gerenciamento persistido do catálogo da prévia local."""
 import hashlib
 import json
+import sys
 from pathlib import Path
 from decimal import Decimal, InvalidOperation
 from threading import RLock
@@ -9,11 +10,37 @@ from uuid import uuid4
 from flask import abort, request, render_template, redirect, url_for
 from jinja2 import Environment, FileSystemLoader
 
-RAIZ = Path(__file__).resolve().parents[2]
+
+def _raiz_dados() -> Path:
+    """Raiz para dados GRAVÁVEIS (JSON do catálogo e uploads de imagem).
+
+    Empacotado com PyInstaller: a pasta do executável, para que os arquivos
+    fiquem DENTRO da pasta da aplicação (e sumam junto quando ela for apagada).
+    Em desenvolvimento: a raiz do projeto (comportamento anterior).
+    """
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent
+    return Path(__file__).resolve().parents[2]
+
+
+def _raiz_recursos() -> Path:
+    """Raiz para recursos SOMENTE LEITURA empacotados (ex.: templates).
+
+    Empacotado com PyInstaller: a pasta temporária de extração (sys._MEIPASS),
+    onde os arquivos adicionados via --add-data são colocados.
+    Em desenvolvimento: a raiz do projeto.
+    """
+    base = getattr(sys, "_MEIPASS", None)
+    if base:
+        return Path(base)
+    return Path(__file__).resolve().parents[2]
+
+
+RAIZ = _raiz_dados()
 ARQUIVO = RAIZ / 'instance' / 'catalogo-previa.json'
 UPLOADS = RAIZ / 'static' / 'images' / 'catalogo'
 LOCK = RLock()
-ENV = Environment(loader=FileSystemLoader(str(RAIZ / 'templates')))
+ENV = Environment(loader=FileSystemLoader(str(_raiz_recursos() / 'templates')))
 SERVICOS_CATALOGO = {
     'buffet': ('Buffet para eventos', 'quentes'),
     'chef-em-casa': ('Chef em casa', 'quentes'),

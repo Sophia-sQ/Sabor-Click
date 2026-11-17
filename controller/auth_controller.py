@@ -64,9 +64,6 @@ def fazer_login():
         flash("Não foi possível localizar o usuário.", "danger")
         return redirect(url_for("auth.login"))
 
-    import socket
-    import smtplib
-
     try:
         enviar_token(usuario.email_criptografado, id_usuario)
     except Exception as erro:

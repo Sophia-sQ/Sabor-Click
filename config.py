@@ -6,6 +6,7 @@
 """
 
 import os
+import sys
 from os import path
 
 from dotenv import load_dotenv
@@ -13,6 +14,26 @@ from flask_mail import Mail
 
 #caminho da raiz do projeto
 basedir = path.abspath(path.dirname(__file__))
+
+
+def _dir_app() -> str:
+    """Pasta onde a aplicação 'mora'.
+
+    - Empacotado com PyInstaller (--onedir): a pasta do próprio executável
+      (ex.: dist/SaborClick/). Assim o banco SQLite fica DENTRO dessa pasta e
+      é removido junto quando o usuário apaga a pasta da aplicação.
+    - Em desenvolvimento: a raiz do projeto (comportamento anterior).
+    """
+    if getattr(sys, "frozen", False):        # rodando sob PyInstaller
+        return path.dirname(sys.executable)   # ex.: dist/SaborClick/
+    return basedir
+
+
+# Diretório da aplicação (executável quando empacotado, raiz do projeto em dev).
+APP_DIR = _dir_app()
+
+# True quando rodando como executável empacotado (modo apresentação/demo).
+MODO_EMPACOTADO = getattr(sys, "frozen", False)
 
 # Procura por um arquivo .env na raiz do projeto
 if path.exists(path.join(basedir, ".env")):
@@ -22,11 +43,22 @@ mail = Mail()
 
 class Config:
     """Configurações base compartilhadas por todos os ambientes."""
+    import secrets
+    if MODO_EMPACOTADO:
+        SECRET_KEY = secrets.token_hex(32)
+    else:
+        SECRET_KEY = os.environ.get("SECRET_KEY")
 
-    SECRET_KEY = os.environ.get("SECRET_KEY")
 
-    # Configura o banco de dados
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///banco.db")
+    # Configura o banco de dados.
+    # Caminho ABSOLUTO ao lado do executável: garante que o banco seja sempre
+    # <APP_DIR>/banco.db (independente do diretório de trabalho) e que apagar a
+    # pasta da aplicação remova o banco junto. DATABASE_URL (quando definida)
+    # continua tendo prioridade.
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "DATABASE_URL",
+        "sqlite:///" + path.join(APP_DIR, "banco.db"),
+    )
 
     # --- CONFIGURAÇÕES DO FLASK-MAIL ---
     MAIL_SERVER = os.environ.get("MAIL_SERVER")
