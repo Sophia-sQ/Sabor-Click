@@ -50,7 +50,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     # Impede que e-mails reais sejam disparados durante os testes de código
     # Os e-mails são interceptados na memória pelo Flask
-    MAIL_SUPPRESS_SEND = False
+    MAIL_SUPPRESS_SEND = True
 
 
 class ProductionConfig(Config):

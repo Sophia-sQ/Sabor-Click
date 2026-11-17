@@ -40,16 +40,11 @@ def _enviar_email_async(app, assunto, destinatario, preheader, html):
         with app.app_context():
             try:
                 enviar_email_nao_responda(assunto, destinatario, preheader, html)
-            except Exception:  # noqa: BLE001 - envio em background não pode derrubar o app
-                app.logger.exception("Falha ao enviar e-mail de notificação do pedido.")
+            except Exception as erro:  # noqa: BLE001 - envio em background não pode derrubar o app
+                app.logger.exception(f"Falha ao enviar e-mail de notificação do pedido.\n {erro}")
 
     threading.Thread(target=_alvo, daemon=True).start()
 
-# Texto exato do RAISE(ABORT, ...) emitido pela trigger de baixa de estoque
-# (triggers.py) quando o estoque geral de algum ingrediente é insuficiente
-# para o consumo total do pedido. O abort chega ao Python como uma
-# SQLAlchemyError (tipicamente OperationalError) cuja mensagem contém este
-# texto; é assim que distinguimos o erro de estoque de qualquer outra falha.
 _MSG_ABORT_ESTOQUE = "Estoque insuficiente para confirmar o pedido"
 
 

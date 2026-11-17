@@ -24,7 +24,7 @@ def create_app() -> Flask:
     
     app = Flask(__name__, instance_relative_config=True)
 
-    app.config.from_object(config_dict["default"])
+    app.config.from_object(config_dict["development"])
 
     from controller.admin import admin_bp
     from controller.auth_controller import auth_bp
@@ -35,6 +35,7 @@ def create_app() -> Flask:
     app.register_blueprint(admin_bp)
     app.register_blueprint(chefe_bp)
     app.register_blueprint(cliente_bp)
+    
     from controller.cliente_controller import home, menu
     app.add_url_rule("/", endpoint="cliente.home", view_func=home)
     app.add_url_rule("/menu", endpoint="cliente.menu", view_func=menu)
@@ -143,4 +144,4 @@ def create_app() -> Flask:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

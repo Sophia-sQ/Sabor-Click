@@ -64,13 +64,17 @@ def fazer_login():
         flash("Não foi possível localizar o usuário.", "danger")
         return redirect(url_for("auth.login"))
 
+    import socket
+    import smtplib
+
     try:
         enviar_token(usuario.email_criptografado, id_usuario)
-    except Exception:
+    except Exception as erro:
         from flask import current_app
-        current_app.logger.exception("Falha ao enviar o código de verificação.")
+        current_app.logger.exception(f"Falha ao enviar o código de verificação.\n {erro}")
         flash("Não foi possível enviar o código.", "danger")
         return redirect(url_for("auth.login"))
+
 
     carrinho = session.get("carrinho", []) if "id" not in session else []
     session.clear()

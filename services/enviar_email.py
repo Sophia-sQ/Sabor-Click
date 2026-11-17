@@ -16,8 +16,23 @@ def enviar_email_nao_responda(assunto:str, destinatario:str, conteudo:str, conte
             render_template).
     """
     
+    import socket
+    import smtplib
+    
     msg = Message(assunto, [descriptografar(destinatario)])
     msg.body = conteudo
     msg.html = conteudo_HTML
+
+    try:
+        mail.send(msg)
+    except socket.gaierror as erro:
+        raise socket.gaierror("Erro: Você está sem internet ou o endereço SMTP está errado.") from erro
+    except TimeoutError as erro:
+        raise TimeoutError("Erro: O servidor demorou muito. O firewall pode estar bloqueando a porta.") from erro
+    except smtplib.SMTPAuthenticationError as erro:
+        raise smtplib.SMTPAuthenticationError(535, "Erro: Usuário ou senha do e-mail incorretos.") from erro
+    except Exception as erro:
+        raise RuntimeError("Ocorreu um erro inesperado ao enviar o e-mail.") from erro
+
+
     
-    mail.send(msg)
