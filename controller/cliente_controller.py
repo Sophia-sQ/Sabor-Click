@@ -120,12 +120,9 @@ def _categorias_do_menu() -> list:
         list: seções com id, nome, resumo e itens (dicts com id_cardapio, nome,
             descricao, preco[centavos], imagem[relativa a static/] e versao).
     """
-    import json
-    from pathlib import Path
+    from config import carregar_json_docs
 
-    base = Path(current_app.root_path)
-    with open(base / "docs" / "imagens-menu.json", encoding="utf-8") as arq:
-        imagens = json.load(arq)
+    imagens = carregar_json_docs("imagens-menu.json")
 
     por_categoria = {secao["id"]: [] for secao in _SECOES_MENU}
     for cardapio in listar_cardapios() or []:
@@ -202,14 +199,9 @@ def _imagem_servico_rel(imagem_slug):
     if not imagem_slug:
         return None
 
-    from pathlib import Path
+    from config import carregar_json_docs
 
-    base = Path(current_app.root_path)
-    try:
-        with open(base / "docs" / "imagens-servicos.json", encoding="utf-8") as arq:
-            imagens = json.load(arq)
-    except (FileNotFoundError, json.JSONDecodeError):
-        imagens = {}
+    imagens = carregar_json_docs("imagens-servicos.json")
 
     arquivo = (imagens.get(imagem_slug) or {}).get("arquivo")
     if arquivo and arquivo.startswith("static/"):
@@ -421,19 +413,14 @@ def _catalogo_bebidas():
     armazenado). Sem dependência da prévia.
     """
     import json
-    from pathlib import Path
 
+    from config import carregar_json_docs
     from services import formatar_bebidas
     from model.pedido_model import listar_bebidas_ativas
     from model.ficha_model import volume_ml_bebida
 
     # Registro de imagens das bebidas (pode não existir se nada foi enviado).
-    base = Path(current_app.root_path)
-    try:
-        with open(base / "docs" / "imagens-bebidas.json", encoding="utf-8") as arq:
-            imagens = json.load(arq)
-    except (FileNotFoundError, json.JSONDecodeError):
-        imagens = {}
+    imagens = carregar_json_docs("imagens-bebidas.json")
 
     def _imagem_rel(slug):
         if not slug:
@@ -662,13 +649,10 @@ def mostrar_servico(slug):
         flash("Serviço não encontrado.", "danger")
         return redirect(url_for("cliente.home_servico"))
 
-    import json
-    from pathlib import Path
+    from config import carregar_json_docs
 
     # Só as imagens vêm do JSON; o preço (centavos) é lido do banco (preco_base).
-    base = Path(current_app.root_path)
-    with open(base / "docs" / "imagens-menu.json", encoding="utf-8") as arq:
-        imagens = json.load(arq)
+    imagens = carregar_json_docs("imagens-menu.json")
 
     associacoes = listar_cardapios_do_servico(servico.id_servico) or []
 
@@ -740,13 +724,10 @@ def _itens_carrinho():
     Returns:
         tuple: itens do carrinho e total em centavos.
     """
-    import json
-    from pathlib import Path
+    from config import carregar_json_docs
 
     # Só as imagens vêm do JSON; o preço (centavos) é lido do banco (preco_base).
-    base = Path(current_app.root_path)
-    with open(base / "docs" / "imagens-menu.json", encoding="utf-8") as arq:
-        imagens = json.load(arq)
+    imagens = carregar_json_docs("imagens-menu.json")
 
     carrinho = session.get("carrinho", [])
     itens_carrinho = []

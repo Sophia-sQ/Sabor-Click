@@ -1,10 +1,19 @@
 """Fábrica da aplicação Flask (create_app) e registro de blueprints, filtros
     de template, hooks de requisição e handlers de erro."""
 
-from flask import Flask, abort, redirect, render_template, request, session, url_for
+from flask import Flask, abort, current_app, redirect, render_template, request, session, url_for
 from werkzeug.exceptions import HTTPException
 
-from config import config_dict, mail  # importa configurações gerais da aplicação
+import os
+
+from config import (  # importa configurações gerais da aplicação
+    APP_DIR,
+    MODO_EMPACOTADO,
+    RECURSOS_DIR,
+    config_dict,
+    mail,
+    preparar_dados_empacotado,
+)
 from database import init_app as init_database
 from model.cargos import Cargo
 from utils import formatar_moeda, nome_exibicao
@@ -22,7 +31,23 @@ def create_app() -> Flask:
         Flask: aplicação Flask pronta para ser executada.
     """
     
-    app = Flask(__name__, instance_relative_config=True)
+    # No modo empacotado (PyInstaller), semeia as pastas graváveis (docs/ e
+    # static/) ao lado do executável a partir do bundle somente-leitura, para
+    # que leituras de docs/*.json e uploads de imagem funcionem e persistam.
+    preparar_dados_empacotado()
+
+    if MODO_EMPACOTADO:
+        # templates vêm do bundle (somente leitura); static aponta para a cópia
+        # GRAVÁVEL ao lado do executável, que já contém os arquivos do bundle
+        # (via preparar_dados_empacotado) e recebe os uploads do admin.
+        app = Flask(
+            __name__,
+            instance_relative_config=True,
+            template_folder=os.path.join(RECURSOS_DIR, "templates"),
+            static_folder=os.path.join(APP_DIR, "static"),
+        )
+    else:
+        app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_object(config_dict["development"])
 
@@ -129,8 +154,14 @@ def create_app() -> Flask:
         ), codigo_http
 
     @app.errorhandler(Exception)  # erros não-HTTP (bugs inesperados) -> 500
-    def erro_inesperado(_erro):
-        """Renderiza a página 500 apenas para falhas realmente inesperadas."""
+    def erro_inesperado(erro):
+        """Renderiza a página 500 apenas para falhas realmente inesperadas.
+
+        Registra o traceback completo no log da aplicação antes de responder,
+        para que erros inesperados não fiquem invisíveis (sobretudo no modo
+        empacotado, onde o console do executável é a única pista do problema).
+        """
+        current_app.logger.exception("Erro inesperado (500): %s", erro)
         return render_template("500.html"), 500
 
     init_database(app)
@@ -141,4 +172,4 @@ def create_app() -> Flask:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

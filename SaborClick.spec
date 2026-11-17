@@ -2,7 +2,7 @@
 from PyInstaller.utils.hooks import collect_data_files
 from PyInstaller.utils.hooks import collect_submodules
 
-datas = [('templates', 'templates'), ('static', 'static')]
+datas = [('templates', 'templates'), ('static', 'static'), ('docs', 'docs')]
 hiddenimports = []
 datas += collect_data_files('tzdata')
 hiddenimports += collect_submodules('cryptography')

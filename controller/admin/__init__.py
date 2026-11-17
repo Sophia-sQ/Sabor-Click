@@ -34,16 +34,9 @@ def _mapa_imagens(nome_json: str) -> dict:
         dict: dicionário slug -> metadados da imagem (vazio se o arquivo não
             existir ou estiver corrompido).
     """
-    import json
-    import os
-    from flask import current_app
+    from config import carregar_json_docs
 
-    caminho = os.path.join(current_app.root_path, "docs", nome_json)
-    try:
-        with open(caminho, encoding="utf-8") as arq:
-            return json.load(arq)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
+    return carregar_json_docs(nome_json)
 
 
 def _imagem_rel(mapa: dict, slug: str | None) -> str | None:

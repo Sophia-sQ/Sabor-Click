@@ -22,7 +22,6 @@ import json
 import os
 import tempfile
 
-from flask import current_app
 from werkzeug.utils import secure_filename
 
 # Extensões de imagem aceitas no upload (comparadas em minúsculo).
@@ -36,13 +35,24 @@ PASTA_MENU_REL = "images/menu"
 
 
 def _pasta_menu_abs() -> str:
-    """Retorna o caminho absoluto da pasta static/images/menu/ da aplicação."""
-    return os.path.join(current_app.root_path, "static", *PASTA_MENU_REL.split("/"))
+    """Retorna o caminho absoluto GRAVÁVEL da pasta static/images/menu/."""
+    from config import pasta_static_gravavel
+
+    return pasta_static_gravavel(*PASTA_MENU_REL.split("/"))
 
 
 def _caminho_json() -> str:
-    """Retorna o caminho absoluto de docs/imagens-menu.json da aplicação."""
-    return os.path.join(current_app.root_path, "docs", "imagens-menu.json")
+    """Retorna o caminho absoluto GRAVÁVEL de docs/imagens-menu.json."""
+    from config import caminho_docs_gravavel
+
+    return caminho_docs_gravavel("imagens-menu.json")
+
+
+def _caminho_json_leitura() -> str:
+    """Retorna o caminho de LEITURA de docs/imagens-menu.json (bundle ou gravável)."""
+    from config import caminho_docs
+
+    return caminho_docs("imagens-menu.json")
 
 
 def extensao_valida(nome_arquivo: str) -> bool:
@@ -126,7 +136,7 @@ def remover_imagem_cardapio(slug: str) -> None:
 
     caminho_json = _caminho_json()
     try:
-        with open(caminho_json, encoding="utf-8") as arq:
+        with open(_caminho_json_leitura(), encoding="utf-8") as arq:
             imagens = json.load(arq)
     except FileNotFoundError:
         return
@@ -169,8 +179,11 @@ def _gravar_imagem(arquivo_storage, nome_cardapio: str, slug_atual: str | None) 
     extensao = secure_filename(nome_original).rsplit(".", 1)[1].lower()
 
     caminho_json = _caminho_json()
-    with open(caminho_json, encoding="utf-8") as arq:
-        imagens = json.load(arq)
+    try:
+        with open(_caminho_json_leitura(), encoding="utf-8") as arq:
+            imagens = json.load(arq)
+    except (FileNotFoundError, json.JSONDecodeError):
+        imagens = {}
 
     pasta_destino = _pasta_menu_abs()
     os.makedirs(pasta_destino, exist_ok=True)
@@ -232,6 +245,7 @@ def _escrever_json_atomico(caminho_json: str, imagens: dict) -> None:
         imagens (dict): conteúdo completo a ser gravado.
     """
     diretorio = os.path.dirname(caminho_json)
+    os.makedirs(diretorio, exist_ok=True)
     temporario = tempfile.NamedTemporaryFile(
         mode="w",
         encoding="utf-8",

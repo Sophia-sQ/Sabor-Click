@@ -16,8 +16,6 @@ import hashlib
 import json
 import os
 
-from flask import current_app
-
 from werkzeug.utils import secure_filename
 
 from services.imagem_cardapio import (
@@ -31,20 +29,25 @@ PASTA_BEBIDAS_REL = "images/bebidas"
 
 
 def _pasta_bebidas_abs() -> str:
-    """Retorna o caminho absoluto da pasta static/images/bebidas/ da aplicação."""
-    return os.path.join(current_app.root_path, "static", *PASTA_BEBIDAS_REL.split("/"))
+    """Retorna o caminho absoluto GRAVÁVEL da pasta static/images/bebidas/."""
+    from config import pasta_static_gravavel
+
+    return pasta_static_gravavel(*PASTA_BEBIDAS_REL.split("/"))
 
 
 def _caminho_json() -> str:
-    """Retorna o caminho absoluto de docs/imagens-bebidas.json da aplicação."""
-    return os.path.join(current_app.root_path, "docs", "imagens-bebidas.json")
+    """Retorna o caminho absoluto GRAVÁVEL de docs/imagens-bebidas.json."""
+    from config import caminho_docs_gravavel
+
+    return caminho_docs_gravavel("imagens-bebidas.json")
 
 
 def _carregar_json() -> dict:
-    """Carrega docs/imagens-bebidas.json, tolerando ausência (retorna {})."""
-    caminho_json = _caminho_json()
+    """Carrega docs/imagens-bebidas.json p/ leitura, tolerando ausência ({})."""
+    from config import caminho_docs
+
     try:
-        with open(caminho_json, encoding="utf-8") as arq:
+        with open(caminho_docs("imagens-bebidas.json"), encoding="utf-8") as arq:
             return json.load(arq)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
