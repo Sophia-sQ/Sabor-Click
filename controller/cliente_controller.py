@@ -444,14 +444,21 @@ def _catalogo_bebidas():
         return arquivo
 
     registros = []
+    
+    from model.ficha_model import buscar_ficha_tecnica_bebida
+    
+    
+    
     for b in listar_bebidas_ativas() or []:
-        registros.append(dict(
-            id=b.id_bebida, nome=b.nome, descricao=b.descricao,
-            preco=b.valor_unitario,
-            imagem_slug=b.imagem_slug,
-            imagem_rel=_imagem_rel(b.imagem_slug),
-            volume_ml=volume_ml_bebida(b.id_bebida) or None,
-        ))
+        ficha = buscar_ficha_tecnica_bebida(b.id_bebida)
+        if len(ficha)<=1:
+            registros.append(dict(
+                id=b.id_bebida, nome=b.nome, descricao=b.descricao,
+                preco=b.valor_unitario,
+                imagem_slug=b.imagem_slug,
+                imagem_rel=_imagem_rel(b.imagem_slug),
+                volume_ml=volume_ml_bebida(b.id_bebida) or None,
+            ))
     return formatar_bebidas(registros, incluir_todos=True)
 
 

@@ -720,9 +720,11 @@ def criar_ficha_tecnica_bebida(id_bebida: int, id_ingrediente: int, qtd_necessar
     return (id_bebida, id_ingrediente)
 
 
-def buscar_ficha_tecnica_bebida(id_bebida: int, id_ingrediente: int) -> FichaTecnica_bebida | None:
+def buscar_ficha_tecnica_bebida(id_bebida: int) -> list[FichaTecnica_bebida] | None:
     """Busca um item da ficha técnica de bebida pela chave composta. None se não existir."""
-    return db.session.get(FichaTecnica_bebida, (id_bebida, id_ingrediente))
+    stmt = db.select(FichaTecnica_bebida).filter_by(id_bebida=id_bebida)
+    registros = db.session.scalars(stmt).all()
+    return registros
 
 
 def listar_ficha_tecnica_por_bebida(id_bebida: int) -> list[FichaTecnica_bebida]:
