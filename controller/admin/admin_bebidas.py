@@ -33,11 +33,6 @@ _CATEGORIAS_VALIDAS = {valor for valor, _ in _OPCOES_BEBIDA}
 
 
 # ===================== FICHA TÉCNICA DA BEBIDA (ingredientes) =====================
-# Convenção de unidades da BEBIDA (FEAT-001, DIFERENTE do prato): o valor
-# digitado em g/ml/unidade é gravado DIRETO como inteiro, SEM multiplicar por
-# 1000. Isso mantém a coerência com o seed de bebidas, com volume_ml_bebida (que
-# soma qtd_necessaria assumindo ml direto) e com a exibição "X ml por porção".
-# A coluna qtd_necessaria é Integer com CHECK > 0, então o valor é inteiro >= 1.
 
 def _qtd_bebida_para_armazenar(valor_digitado: float, unidade: str) -> int:
     """Converte a quantidade digitada no form para o inteiro armazenado na ficha.
@@ -176,12 +171,6 @@ def _ingredientes_catalogo() -> list:
 
 
 # ===================== REGRA DE PREÇO POR PORÇÃO (avulsa) =====================
-# A regra de "avulsa" é derivada no servidor: a bebida é avulsa se, e somente
-# se, tiver EXATAMENTE 1 ingrediente na ficha técnica. Avulsa -> preço por porção
-# exigido e > 0; 2+ ingredientes -> preço sempre 0. A contagem efetiva da ficha
-# (após a sincronização) é a FONTE ÚNICA dessa regra; estes dois helpers separam
-# a validação do texto (_ler_preco_porcao) da gravação coerente do valor final
-# (_aplicar_preco_porcao), evitando duplicar a decisão em dois pontos.
 
 def _ler_preco_porcao(valor_texto: str, avulsa: bool) -> Decimal:
     """Valida o texto do preço por porção conforme a bebida ser avulsa ou não.
@@ -340,16 +329,10 @@ def criar_bebida_route():
     descricao = request.form.get("descricao", "").strip()
     valor_texto = request.form.get("valor_unitario", "").strip()
 
-    # O preço (valor_unitario) NÃO é mais obrigatório de forma incondicional:
-    # a exigência passa a depender da bebida ser avulsa (exatamente 1
-    # ingrediente). Aqui só validamos nome/descrição; o preço é tratado adiante.
     if not nome or not descricao:
         flash("Preencha nome e descrição.", "danger")
         return voltar
 
-    # Regra de negócio (servidor é a autoridade): a bebida precisa de ficha
-    # técnica com PELO MENOS 1 ingrediente. Ler a seleção antes de criar para
-    # rejeitar formulários inválidos sem poluir o banco.
     itens_ficha, invalido = _ler_ingredientes_do_form(request.form)
     if invalido:
         flash("Informe uma quantidade válida (maior que zero) para cada "
@@ -359,10 +342,6 @@ def criar_bebida_route():
         flash("Selecione ao menos um ingrediente para a bebida.", "danger")
         return voltar
 
-    # Preço por porção: só é exigido quando a bebida é AVULSA (exatamente 1
-    # ingrediente). Validamos o texto do preço aqui (parse/finitude/sinal), mas
-    # NÃO decidimos ainda o valor gravado: a contagem final de ingredientes
-    # (após a sincronização) é a fonte única da regra de avulsa.
     avulsa = len(itens_ficha) == 1
     try:
         valor_informado = _ler_preco_porcao(valor_texto, avulsa)
@@ -380,21 +359,12 @@ def criar_bebida_route():
             flash(f"Imagem inválida: {erro}", "danger")
             return voltar
 
-    # Ordem das operações: cria a bebida (com preço provisório) -> obtém o id ->
-    # sincroniza a ficha -> a contagem efetiva pós-sync define o preço final
-    # coerente (fonte única da regra avulsa), gravado com _aplicar_preco_porcao.
     try:
         bebida = criar_bebida(nome, descricao, valor_informado, imagem_slug=imagem_slug)
     except SQLAlchemyError:
         flash("Não foi possível criar a bebida.", "danger")
         return voltar
 
-    # Sequência pós-entidade (sincronização da ficha + preço coerente): cada
-    # função do model commita individualmente (como no resto do projeto), então
-    # não há transação compartilhada aqui. Mesmo assim, envolvemos a sequência
-    # num try/except para SINALIZAR ao admin uma falha de banco (em vez de deixar
-    # a exceção escapar com estado parcial e sem aviso), alinhando ao tratamento
-    # de erro já aplicado na criação da entidade.
     try:
         total_ingredientes = _sincronizar_ficha_da_bebida(bebida.id_bebida, itens_ficha)
         _aplicar_preco_porcao(bebida.id_bebida, total_ingredientes, valor_informado)
@@ -428,8 +398,6 @@ def atualizar_bebida_route(id_bebida):
     descricao = request.form.get("descricao", "").strip()
     valor_texto = request.form.get("valor_unitario", "").strip()
 
-    # Preço condicional (ver criar_bebida_route): só nome/descrição são
-    # obrigatórios aqui; a exigência do preço depende da bebida ser avulsa.
     if not nome or not descricao:
         flash("Preencha nome e descrição.", "danger")
         return voltar
@@ -444,9 +412,6 @@ def atualizar_bebida_route(id_bebida):
         flash("Selecione ao menos um ingrediente para a bebida.", "danger")
         return voltar
 
-    # Preço por porção: exigido (> 0) apenas quando avulsa (1 ingrediente); caso
-    # contrário o valor gravado será 0. Aqui só validamos o texto; a decisão do
-    # valor final é tomada após a sincronização da ficha (fonte única da regra).
     avulsa = len(itens_ficha) == 1
     try:
         valor_informado = _ler_preco_porcao(valor_texto, avulsa)
@@ -464,10 +429,6 @@ def atualizar_bebida_route(id_bebida):
             flash(f"Imagem inválida: {erro}", "danger")
             return voltar
 
-    # Ordem das operações: atualiza os dados básicos (com preço provisório) ->
-    # sincroniza a ficha -> a contagem efetiva pós-sync define o preço final
-    # coerente, gravado por _aplicar_preco_porcao (estado final sempre coerente
-    # com a regra de avulsa).
     try:
         sucesso = atualizar_bebida(id_bebida, nome=nome, descricao=descricao,
                                    valor_unitario=valor_informado, imagem_slug=imagem_slug)
@@ -479,8 +440,6 @@ def atualizar_bebida_route(id_bebida):
         flash("Bebida não encontrada.", "danger")
         return voltar
 
-    # Sequência pós-entidade: ver comentário em criar_bebida_route. Sinaliza a
-    # falha de banco com flash 'danger' em vez de deixá-la escapar.
     try:
         total_ingredientes = _sincronizar_ficha_da_bebida(id_bebida, itens_ficha)
         _aplicar_preco_porcao(id_bebida, total_ingredientes, valor_informado)

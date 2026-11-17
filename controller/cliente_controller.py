@@ -289,10 +289,6 @@ def fazer_pedido():
     carrinho = session.get("carrinho", [])
 
     # --- bebidas (opcionais) ---
-    # O checkout envia um campo de formulário oculto 'bebidas' com um JSON no
-    # formato {"<id_bebida>": qtd}. Cada bebida é validada no servidor (catálogo
-    # + quantidade) e o valor vem SEMPRE do banco (Bebida.valor_unitario), nunca
-    # de um preço informado pelo cliente.
     from decimal import ROUND_HALF_UP, Decimal
 
     try:
@@ -324,9 +320,6 @@ def fazer_pedido():
         return redirect(url_for("cliente.mostrar_carrinho"))
 
     # --- antecedência mínima da data do evento ---
-    # A antecedência depende do MAIOR número de convidados entre os cardápios do
-    # carrinho (não da soma; bebidas não contam como convidados). A cada 50
-    # convidados soma-se uma semana, com piso de 1 semana.
     maior_convidados = 0
     for item in carrinho:
         try:
@@ -348,13 +341,6 @@ def fazer_pedido():
         )
         return redirect(url_for("cliente.mostrar_carrinho"))
 
-    # Pedido.valor_total é persistido em REAIS (coerente com os seeds e com
-    # TODOS os consumidores/relatórios, que tratam o campo como reais e aplicam
-    # *100 ao formatar). O carrinho de cardápios trabalha em CENTAVOS
-    # (_subtotal_item retorna preco_base[centavos]*qtd) e as bebidas já vêm em
-    # REAIS (Bebida.valor_unitario). Por isso somamos tudo em centavos com
-    # Decimal (as bebidas convertidas de reais->centavos com ROUND_HALF_UP) e
-    # convertemos o total final para reais aqui. O total inclui cardápios + bebidas.
     subtotal_cardapios_centavos = sum(_subtotal_item(item) for item in carrinho)
     subtotal_bebidas_centavos = sum(
         int((Decimal(str(item["valor_total"])) * 100).quantize(
@@ -408,10 +394,6 @@ def cancelar_pedido(id_pedido: int):
         flash("Pedido não encontrado.", "danger")
         return redirect(url_for("cliente.perfil"))
 
-    # atualizar_pedido() passou a fazer rollback e RE-LANÇAR em caso de falha no
-    # commit (antes engolia o erro e retornava None/falsy). Tratamos a exceção
-    # aqui para preservar o comportamento anterior: qualquer falha vira a
-    # mensagem de "não pôde ser cancelado" em vez de estourar um 500.
     cancelado = False
     if pedido.status == "aguardando":
         try:
@@ -710,9 +692,6 @@ def mostrar_servico(slug):
             "versao": dados_img.get("versao"),
         })
 
-    # Imagem própria do serviço (upload do admin), resolvida do mesmo modo que a
-    # home (via _imagem_servico_rel). Serviços seed sem upload caem no mapa fixo
-    # fotos_servicos (no template).
     imagem_servico_rel = _imagem_servico_rel(servico.imagem_slug)
 
     return render_template("servico.html", servico=servico, cardapios=cardapios,
@@ -999,8 +978,6 @@ def dados_perfil() -> Response:
     # usuario
     usuario=buscar_usuario_por_id(session.get("id"))
 
-    # Protege contra sessão sem usuário válido (buscar_usuario_por_id -> None):
-    # sem este guarda, o acesso a usuario.cpf_criptografado abaixo quebraria.
     if usuario is None:
         return redirect(url_for("auth.login"))
 
@@ -1025,16 +1002,8 @@ def dados_perfil() -> Response:
             "endereco": None,
         })
 
-    # Formata o total para exibição em uma variável local; NUNCA sobrescreve a
-    # coluna ORM Numeric pedido.valor_total (fazer isso faria o próximo autoflush
-    # tentar persistir a string formatada na coluna numérica e quebrar a rota).
     valor_total_formatado = formatar_moeda(int(round(pedido.valor_total * 100)))
 
-    # detalhamento
-    # CardapioPedido guarda apenas id_cardapio/id_pedido/id_servico/num_convidados,
-    # então nome e preco_base vêm do Cardapio real (buscar_cardapio_por_id) e o
-    # serviço (chave do dict) do Servico real. Linhas órfãs (Cardapio/Servico
-    # inexistentes) são ignoradas para não quebrar a rota.
     cardapios=buscar_cardapios_pedido(pedido.id_pedido) or []
     servicos = {}
     for cp in cardapios:

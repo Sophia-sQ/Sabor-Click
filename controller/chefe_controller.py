@@ -241,30 +241,16 @@ def aceitar_pedido():
 
     data_confirma = datetime.now(ZoneInfo("America/Sao_Paulo"))
 
-    # Garante que o chefe só mantenha UM pedido ativo por vez. A consulta já
-    # ignora pedidos encerrados ('concluido'/'cancelado') e prioriza o ativo
-    # mais recente, então um pedido antigo concluído não bloqueia o aceite.
     if buscar_pedido_ativo_por_chefe(session.get("id")) is not None:
         return jsonify({"ok": False, "erro": "Finalize o pedido atual antes de aceitar outro"}), 409
-
-    # A trigger de baixa de estoque dispara AFTER UPDATE para 'confirmado' e
-    # aborta (RAISE) quando o estoque geral de algum ingrediente é insuficiente.
-    # atualizar_pedido() faz rollback e RE-LANÇA a exceção nesse caso, então
-    # distinguimos aqui o abort de estoque de qualquer outro erro: só o abort
-    # de estoque produz uma mensagem que fala em estoque. A trigger de baixa já
-    # é criada no boot da aplicação (database.init_app), então não é recriada
-    # aqui a cada aceite.
+    
     try:
         atualizado = atualizar_pedido(pedido.id_pedido, "confirmado", data_confirma, session.get("id"))
     except Exception as exc:  # noqa: BLE001 - precisamos inspecionar a exceção
         if _e_erro_de_estoque(exc):
             return jsonify({"ok": False, "erro": "Não foi possível aceitar o pedido: estoque insuficiente para um ou mais ingredientes."}), 409
-        # Qualquer outra falha é inesperada: mensagem genérica e honesta, sem
-        # mencionar estoque, com status 500.
         return jsonify({"ok": False, "erro": "Não foi possível aceitar o pedido. Tente novamente."}), 500
 
-    # atualizado==False significa que o pedido não existe mais (não é estoque).
-    # Já tratamos a inexistência acima, mas mantemos a guarda por segurança.
     if not atualizado:
         return jsonify({"ok": False, "erro": "Pedido não encontrado."}), 404
 
@@ -273,8 +259,6 @@ def aceitar_pedido():
     data_confirma = data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
 
     cliente = buscar_usuario_por_id(pedido.id_cliente)
-    # O HTML é renderizado aqui (onde há app/request context) e o envio por SMTP
-    # roda em background, para a resposta ao chef voltar sem esperar o e-mail.
     _enviar_email_async(
         current_app._get_current_object(),
         "Seu pedido foi aceito.",
@@ -312,27 +296,17 @@ def atualizar_status():
     if novo_status not in valores_aceitos:
         return jsonify({"ok": False, "erro": "Valor de status inválido."}), 400
 
-    # Reforça, no servidor, a única transição válida do fluxo do chef:
-    # confirmado -> 'em preparo' -> concluido. O JS já respeita esse passo a
-    # passo, mas o servidor não pode confiar no cliente: um POST forjado não
-    # pode pular etapas (ex.: confirmado -> concluido direto).
     transicoes_validas = {"confirmado": "em preparo", "em preparo": "concluido"}
     if transicoes_validas.get(pedido.status) != novo_status:
         return jsonify({"ok": False, "erro": "Transição de status não permitida."}), 409
 
     data_confirma = datetime.now(ZoneInfo("America/Sao_Paulo"))
 
-    # atualizar_pedido() passou a fazer rollback e re-lançar em caso de falha no
-    # commit (antes retornava None). Este fluxo não transiciona para
-    # 'confirmado', então a trigger de baixa não dispara aqui; mantemos uma
-    # mensagem genérica e coerente para qualquer erro inesperado.
     try:
         atualizado = atualizar_pedido(pedido.id_pedido, dados["status"], data_confirma, session.get("id"))
     except Exception:  # noqa: BLE001 - falha inesperada no commit
         return jsonify({"ok": False, "erro": "Não foi possível atualizar o pedido."}), 400
 
-    # atualizado==False indica pedido inexistente (já tratado acima); mantém a
-    # guarda para não assumir sucesso indevidamente.
     if not atualizado:
         return jsonify({"ok": False, "erro": "Não foi possível atualizar o pedido."}), 400
 
@@ -345,7 +319,7 @@ def atualizar_status():
     data_confirma = data_confirma.astimezone(ZoneInfo("America/Sao_Paulo"))
 
     cliente = buscar_usuario_por_id(pedido.id_cliente)
-    # HTML renderizado no request; envio SMTP em background para não bloquear.
+
     _enviar_email_async(
         current_app._get_current_object(),
         "Seu pedido recebeu uma atualização.",
@@ -383,25 +357,16 @@ def cancelar_pedido():
     if not pedido:
         return jsonify({"ok": False, "erro": "Pedido não encontrado."}), 404
 
-    # Só é possível cancelar um pedido já aceito pelo chef. Pedidos ainda na
-    # fila ('aguardando') ou já encerrados ('concluido'/'cancelado') não são
-    # canceláveis. A guarda vale mesmo que o JS esconda o botão nesses casos:
-    # o servidor não confia no cliente.
     if pedido.status not in ("confirmado", "em preparo"):
         return jsonify({"ok": False, "erro": "Este pedido não pode ser cancelado."}), 409
 
     data_cancelamento = datetime.now(ZoneInfo("America/Sao_Paulo"))
 
-    # atualizar_pedido() faz rollback e re-lança em caso de falha no commit.
-    # A transição para 'cancelado' não dispara a trigger de baixa de estoque,
-    # então aqui basta uma mensagem genérica para qualquer erro inesperado.
     try:
         atualizado = atualizar_pedido(pedido.id_pedido, "cancelado", id_chefe=session.get("id"))
     except Exception:  # noqa: BLE001 - falha inesperada no commit
         return jsonify({"ok": False, "erro": "Não foi possível cancelar o pedido."}), 500
 
-    # atualizado==False indica pedido inexistente (já tratado acima); mantém a
-    # guarda para não assumir sucesso indevidamente.
     if not atualizado:
         return jsonify({"ok": False, "erro": "Pedido não encontrado."}), 404
 
@@ -469,11 +434,7 @@ def enviar_preparo():
 
     # -------- CARDÁPIOS DO PEDIDO (com pratos e suas fichas técnicas) --------
     cardapios_resposta = []
-    # Serviços envolvidos no pedido: a ficha do chef mostra, além da ficha
-    # técnica por prato, as bancadas (estações de trabalho) dos serviços em que
-    # o pedido foi contratado. Coletamos os ids de serviço aqui e deduplicamos
-    # as bancadas mais abaixo (um mesmo serviço pode aparecer em vários
-    # cardápios e bancadas podem ser compartilhadas entre serviços).
+
     ids_servico = []
     for vinculo in buscar_cardapios_pedido(pedido.id_pedido) or []:
         cardapio = buscar_cardapio_por_id(vinculo.id_cardapio)
@@ -482,12 +443,6 @@ def enviar_preparo():
 
         pratos_resposta = []
         for pc in listar_pratos_por_cardapio(vinculo.id_cardapio) or []:
-            # Um cardápio pode ser de PRATOS (itens PratoCardapio, com
-            # .id_prato/.qtd/.descricao) ou de BEBIDAS (itens BebidaCardapio,
-            # com .id_bebida e sem qtd/descricao). Distinguimos pelo atributo
-            # presente no vínculo e montamos a ficha técnica correspondente.
-            # Em ambos os casos a entrada vai em cardapios[].pratos[] com a
-            # chave 'ficha_tecnica', que é o que o JS (cozinha.js) agrega.
             if hasattr(pc, "id_prato"):
                 prato = buscar_prato_por_id(pc.id_prato)
                 pratos_resposta.append({
@@ -532,14 +487,7 @@ def enviar_preparo():
         })
 
     # -------- BANCADAS DOS SERVIÇOS DO PEDIDO --------
-    # Para cada serviço contratado no pedido, buscamos suas bancadas e
-    # agregamos a lista DISTINTA (deduplicada por id_bancada), já que um
-    # serviço pode aparecer em vários cardápios e uma mesma bancada pode estar
-    # associada a mais de um serviço. Exibimos apenas bancadas ATIVAS
-    # (ativo==True): uma bancada desativada (soft delete) não deve aparecer
-    # como estação de trabalho recomendada. O filtro é feito aqui no controller
-    # em vez de em listar_bancadas_do_servico para não alterar a assinatura do
-    # model, que é de uso geral.
+
     bancadas_resposta = []
     ids_bancada_vistos = set()
     for id_servico in ids_servico:
